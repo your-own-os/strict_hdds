@@ -630,19 +630,6 @@ class Snapshot(abc.ABC):
 
             __mkSubVol("@snapshots", 0o40700, 0, 0)
 
-    @classmethod
-    def checkFs(cls, storageLayoutName, devPath, mntOptList, snapshot):
-        nameList = [x[1] for x in ([cls._rootSubVol()] + cls._homeSubVols() + cls._varSubVols())]
-        if snapshot is not None:
-            nameList.append("@snapshots/%s/snapshot" % (snapshot))
-        with TmpMount(devPath, options=",".join(mntOptList)) as mp:
-            svList = cls._getSubVolList(mp.mountpoint)
-            for sv in nameList:
-                try:
-                    svList.remove(sv)
-                except ValueError:
-                    raise errors.StorageLayoutParseError(storageLayoutName, "sub-volume \"%s\" not found" % (sv))
-
     @staticmethod
     def proxy(func):
         if isinstance(func, property):

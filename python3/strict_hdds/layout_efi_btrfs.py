@@ -233,19 +233,13 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     if len(diskList) == 0:
         raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.DISK_NOT_FOUND)
 
-    # md
+    # bootDisk & bootDev
     bootHdd = HandyMd.checkAndGetBootDiskAndBootDev(StorageLayoutImpl.name, diskList)[0]
-    md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
-
-    # check snapshot
-    snapshotName = kwargsDict.get("snapshot", None)
-    partiList = [md.get_disk_data_partition(x) for x in md.get_disk_list()]
-    SnapshotBtrfs.checkFs(StorageLayoutImpl.name, partiList[0], ["device=%s" % (x) for x in partiList], snapshotName)
 
     # return
     ret = StorageLayoutImpl()
-    ret._md = md
-    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=snapshotName)
+    ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
+    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=kwargsDict.get("snapshot", None))
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret), kwargsDict)       # do mount during MountEfi initialization
     return ret
 

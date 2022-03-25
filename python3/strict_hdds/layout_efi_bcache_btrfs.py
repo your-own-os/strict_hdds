@@ -316,19 +316,11 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(StorageLayoutImpl.name, ssd)
     bootHdd = HandyCg.checkAndGetBootHddAndBootDev(StorageLayoutImpl.name, ssdEspParti, hddList)[0]
 
-    # cg
-    cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
-    bcache = Bcache(keyList=hddList, bcacheDevPathList=bcacheDevPathList)
-
-    # check snapshot
-    snapshotName = kwargsDict.get("snapshot", None)
-    SnapshotBtrfs.checkFs(StorageLayoutImpl.name, bcache.get_all_bcache_dev_list()[0], _devMntOptList(bcache), snapshotName)
-
     # return
     ret = StorageLayoutImpl()
-    ret._cg = cg
-    ret._bcache = bcache
-    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=snapshotName)
+    ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
+    ret._bcache = Bcache(keyList=hddList, bcacheDevPathList=bcacheDevPathList)
+    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=kwargsDict.get("snapshot", None))
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret), kwargsDict)    # do mount during MountEfi initialization
     return ret
 
