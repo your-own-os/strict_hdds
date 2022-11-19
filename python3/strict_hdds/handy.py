@@ -1372,7 +1372,7 @@ class HandyUtil:
         for disk in diskOrHddList:
             parti = PartiUtil.diskToParti(disk, 1)
             if GptUtil.isEspPartition(parti):
-                parti.append(parti)
+                espPartiList.append(parti)
         if len(espPartiList) == 0:
             if mustHave:
                 raise errors.StorageLayoutParseError(storageLayoutName, "no ESP partitions found")
