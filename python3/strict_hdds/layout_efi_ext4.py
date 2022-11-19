@@ -55,7 +55,7 @@ class StorageLayoutImpl(StorageLayout):
 
     @property
     def dev_boot(self):
-        raise self._hddEspParti
+        return self._hddEspParti
 
     @SwapFile.proxy
     @property
