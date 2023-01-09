@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-from .util import Util, PartiUtil, BtrfsUtil
+from .util import Util, PartiUtil, BtrfsUtil, PhysicalDiskMounts
 from .handy import EfiMultiDisk, Snapshot, SnapshotBtrfs, MountEfi, MountParam, HandyMd, DisksChecker
 from . import errors
 from . import StorageLayout
@@ -208,6 +208,8 @@ def parse(boot_dev, root_dev, mount_dir):
             raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "sub-volume \"%s\" is invalid" % (ret))
         if len(ret) > 2:
             kwargsDict["snapshot"] = ret[2:]
+    if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
+        kwargsDict["read-only"] = True
 
     # return
     ret = StorageLayoutImpl()

@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-from .util import Util, PartiUtil, GptUtil
+from .util import Util, PartiUtil, GptUtil, PhysicalDiskMounts
 from .handy import SwapFile, MountEfi, MountParam, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
@@ -126,6 +126,8 @@ def parse(boot_dev, root_dev, mount_dir):
 
     # get kwargsDict from mount options
     kwargsDict = dict()
+    if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
+        kwargsDict["read-only"] = True
 
     # return
     ret = StorageLayoutImpl()
