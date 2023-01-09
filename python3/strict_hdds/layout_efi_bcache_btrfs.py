@@ -356,7 +356,7 @@ def _params_for_mount(obj, kwargsDict):
     tlist = _devMntOptList(obj._bcache)
     if "rootfs_extra_mnt_opts" in kwargsDict:
         assert kwargsDict["rootfs_extra_mnt_opts"] != ""
-        tlist.append(kwargsDict.pop("rootfs_extra_mnt_opts"))
+        tlist += kwargsDict.pop("rootfs_extra_mnt_opts").split(",")
     ret = []
     for dirPath, dirMode, dirUid, dirGid, mntOptList in obj._snapshot.getParamsForMount():
         ret.append(MountParam(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
