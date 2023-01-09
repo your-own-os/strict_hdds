@@ -263,9 +263,9 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
 
 def _params_for_mount(obj, kwargsDict):
     tlist = []
-    if "rootfs_extra_mnt_opts" in kwargsDict:
-        assert kwargsDict["rootfs_extra_mnt_opts"] != ""
-        tlist += kwargsDict.pop("rootfs_extra_mnt_opts").split(",")
+    if "extra_mount_options_for_rootfs" in kwargsDict:
+        assert kwargsDict["extra_mount_options_for_rootfs"] != ""
+        tlist += kwargsDict.pop("extra_mount_options_for_rootfs").split(",")
     return [
         MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist),
         MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=Util.bootDirMntOptList),

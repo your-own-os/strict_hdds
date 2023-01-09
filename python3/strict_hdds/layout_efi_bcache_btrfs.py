@@ -354,9 +354,9 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
 
 def _params_for_mount(obj, kwargsDict):
     tlist = _devMntOptList(obj._bcache)
-    if "rootfs_extra_mnt_opts" in kwargsDict:
-        assert kwargsDict["rootfs_extra_mnt_opts"] != ""
-        tlist += kwargsDict.pop("rootfs_extra_mnt_opts").split(",")
+    if "extra_mount_options_for_rootfs" in kwargsDict:
+        assert kwargsDict["extra_mount_options_for_rootfs"] != ""
+        tlist += kwargsDict.pop("extra_mount_options_for_rootfs").split(",")
     ret = []
     for dirPath, dirMode, dirUid, dirGid, mntOptList in obj._snapshot.getParamsForMount():
         ret.append(MountParam(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
