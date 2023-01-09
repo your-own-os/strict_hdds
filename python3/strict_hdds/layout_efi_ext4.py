@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-from .util import Util, PartiUtil, GptUtil
+from .util import Util, PartiUtil, GptUtil, PhysicalDiskMounts
 from .handy import SwapFile, MountEfi, MountParam, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
@@ -124,8 +124,10 @@ def parse(boot_dev, root_dev, mount_dir):
     if Util.getBlkDevFsType(root_dev) != Util.fsTypeExt4:
         raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
 
-    # FIXME: get kwargsDict from mount options
+    # get kwargsDict from mount options
     kwargsDict = dict()
+    if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
+        kwargsDict["read-only"] = True
 
     # return
     ret = StorageLayoutImpl()
@@ -133,7 +135,7 @@ def parse(boot_dev, root_dev, mount_dir):
     ret._hddEspParti = boot_dev
     ret._hddRootParti = root_dev
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, mount_dir)
-    ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret), kwargsDict)
+    ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)
     return ret
 
 
@@ -163,7 +165,7 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     ret._hddEspParti = espAndRootPartitionList[0][1]
     ret._hddRootParti = espAndRootPartitionList[0][2]
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, mount_dir)
-    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret), kwargsDict)             # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)             # do mount during MountEfi initialization
     return ret
 
 
@@ -185,12 +187,15 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
     ret._hddEspParti = espParti
     ret._hddRootParti = rootParti
     ret._swap = SwapFile(False)
-    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret), kwargsDict)             # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)             # do mount during MountEfi initialization
     return ret
 
 
-def _params_for_mount(obj):
+def _params_for_mount(obj, kwargsDict):
+    tlist = []
+    if kwargsDict.pop("read-only", False):
+        tlist.append("ro")
     return [
-        MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4),
+        MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist),
         MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=Util.bootDirMntOptList),
     ]

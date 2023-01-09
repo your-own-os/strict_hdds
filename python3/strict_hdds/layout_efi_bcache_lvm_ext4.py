@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-from .util import Util, BcacheUtil, LvmUtil
+from .util import Util, BcacheUtil, LvmUtil, PhysicalDiskMounts
 from .handy import EfiCacheGroup, Bcache, MountEfi, MountParam, HandyCg, HandyBcache, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
@@ -270,14 +270,16 @@ def parse(boot_dev, root_dev, mount_dir):
     ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(StorageLayoutImpl.name, ssd)
     bootHdd = HandyCg.checkAndGetBootHddFromBootDev(StorageLayoutImpl.name, boot_dev, ssdEspParti, hddList)
 
-    # FIXME: get kwargsDict from mount options
+    # get kwargsDict from mount options
     kwargsDict = dict()
+    if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
+        kwargsDict["read-only"] = True
 
     # return
     ret = StorageLayoutImpl()
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._bcache = Bcache(keyList=hddList, bcacheDevPathList=pvDevPathList)
-    ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret), kwargsDict)
+    ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)
     return ret
 
 
@@ -304,7 +306,7 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     ret = StorageLayoutImpl()
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._bcache = Bcache(keyList=hddList, bcacheDevPathList=pvDevPathList)
-    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret), kwargsDict)             # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)             # do mount during MountEfi initialization
     return ret
 
 
@@ -330,12 +332,15 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
     ret = StorageLayoutImpl()
     ret._cg = cg
     ret._bcache = bcache
-    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret), kwargsDict)             # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)             # do mount during MountEfi initialization
     return ret
 
 
-def _params_for_mount(obj):
+def _params_for_mount(obj, kwargsDict):
+    tlist = []
+    if kwargsDict.pop("read-only", False):
+        tlist.append("ro")
     return [
-        MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4),
+        MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist),
         MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=Util.bootDirMntOptList),
     ]
