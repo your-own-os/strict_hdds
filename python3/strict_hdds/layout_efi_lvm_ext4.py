@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-from .util import Util, PartiUtil, LvmUtil, PhysicalDiskMounts
+from .util import Util, PartiUtil, LvmUtil
 from .handy import EfiMultiDisk, SwapLvmLv, MountEfi, MountParam, HandyMd, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout

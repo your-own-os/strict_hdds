@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-from .util import Util, BcacheUtil, LvmUtil, PhysicalDiskMounts
+from .util import Util, BcacheUtil, LvmUtil
 from .handy import EfiCacheGroup, Bcache, MountEfi, MountParam, HandyCg, HandyBcache, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout

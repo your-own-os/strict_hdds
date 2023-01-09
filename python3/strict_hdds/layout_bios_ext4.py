@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-from .util import Util, PartiUtil, MbrUtil, PhysicalDiskMounts
+from .util import Util, PartiUtil, MbrUtil
 from .handy import SwapFile, MountBios, MountParam, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
