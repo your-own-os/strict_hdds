@@ -123,8 +123,6 @@ def parse(boot_dev, root_dev, mount_dir):
 
     # get kwargsDict from mount options
     kwargsDict = dict()
-    if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
-        kwargsDict["read-only"] = True
 
     # return
     ret = StorageLayoutImpl()
@@ -186,8 +184,10 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
 
 def _params_for_mount(obj, kwargsDict):
     tlist = []
-    if kwargsDict.pop("read-only", False):
-        tlist.append("ro")
+    if "extra-opts" in kwargsDict:
+        tlist.append(kwargsDict.pop("extra-opts"))
+    if "rootfs-extra-opts" in kwargsDict:
+        tlist.append(kwargsDict.pop("rootfs-extra-opts"))
     return [
         MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist)
     ]
