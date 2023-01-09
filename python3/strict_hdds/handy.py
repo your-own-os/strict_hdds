@@ -889,7 +889,7 @@ class MountBios(Mount):
     def __init__(self, bIsMounted, mntDir, mntParams, kwargsDict):
         assert len(mntParams) == 1
 
-        if kwargsDict.pop("read-only", False):
+        if kwargsDict.pop("read_only", False):
             self._readOnly = True
             mntParams[0].mnt_opt_list.append("ro")
         else:
@@ -927,7 +927,7 @@ class MountEfi(Mount):
     def __init__(self, bIsMounted, mntDir, mntParams, kwargsDict):
         assert len(mntParams) >= 2
 
-        if kwargsDict.pop("read-only", False):
+        if kwargsDict.pop("read_only", False):
             self._readOnly = True
             for p in mntParams:
                 if p.mountpoint != Util.bootDir:
