@@ -862,6 +862,10 @@ class Mount(abc.ABC):
                 Util.cmdCall("umount", p.real_dir_path)
 
     @abc.abstractmethod
+    def is_read_only(self):
+        pass
+
+    @abc.abstractmethod
     def get_bootdir_rw_controller(self):
         pass
 
@@ -870,8 +874,11 @@ class MountBios(Mount):
 
     class RwController(RwController):
 
-        def is_writable(self):
-            return True
+        def __init__(self, parent):
+            self._parent = parent
+
+        def is_writable(self, parent):
+            return not self._parent._readOnly
 
         def to_read_write(self):
             pass
@@ -880,9 +887,19 @@ class MountBios(Mount):
             pass
 
     def __init__(self, bIsMounted, mntDir, mntParams, kwargsDict):
-        super().__init__(bIsMounted, mntDir, mntParams, kwargsDict)
         assert len(mntParams) == 1
-        self._rwCtrl = self.RwController()
+
+        if kwargsDict.pop("read-only", False):
+            self._readOnly = True
+            mntParams[0].mnt_opt_list.append("ro")
+        else:
+            self._readOnly = False
+
+        super().__init__(bIsMounted, mntDir, mntParams, kwargsDict)
+        self._rwCtrl = self.RwController(self)
+
+    def is_read_only(self):
+        return self._readOnly
 
     def get_bootdir_rw_controller(self):
         return self._rwCtrl
@@ -899,19 +916,32 @@ class MountEfi(Mount):
             return self._parent._isMountParamWritable(self._parent._pEsp)
 
         def to_read_write(self):
-            assert self._parent._isMountParamWritable(self._parent._pRootfs)
-            assert not self._parent._isMountParamWritable(self._parent._pEsp)
-            Util.cmdCall("mount", self._parent._pEsp.real_dir_path, "-o", "rw,remount")
+            if not self._parent._readOnly:
+                if not self._parent._isMountParamWritable(self._parent._pEsp):
+                    Util.cmdCall("mount", self._parent._pEsp.real_dir_path, "-o", "rw,remount")
 
         def to_read_only(self):
-            assert self._parent._isMountParamWritable(self._parent._pEsp)
-            Util.cmdCall("mount", self._parent._pEsp.real_dir_path, "-o", "ro,remount")
+            if self._parent._isMountParamWritable(self._parent._pEsp):
+                Util.cmdCall("mount", self._parent._pEsp.real_dir_path, "-o", "ro,remount")
 
     def __init__(self, bIsMounted, mntDir, mntParams, kwargsDict):
+        assert len(mntParams) >= 2
+
+        if kwargsDict.pop("read-only", False):
+            self._readOnly = True
+            for p in mntParams:
+                if p.mountpoint != Util.bootDir:
+                    p.mnt_opt_list.append("ro")
+        else:
+            self._readOnly = False
+
         super().__init__(bIsMounted, mntDir, mntParams, kwargsDict)
         self._pRootfs = self._findRootfsMountParam()
         self._pEsp = self._findEspMountParam()
         self._rwCtrl = self.RwController(self)
+
+    def is_read_only(self):
+        return self._readOnly
 
     def get_bootdir_rw_controller(self):
         return self._rwCtrl
@@ -957,13 +987,16 @@ class MountParam:
         self.device = device
         self.mountpoint = dir_path
         self.fstype = fstype
-        self.opts = ",".join(mnt_opt_list)
 
         self.mnt_opt_list = mnt_opt_list
         self.mnt_dir_mode = dir_mode
         self.mnt_dir_uid = dir_uid
         self.mnt_dir_gid = dir_gid
         self.real_dir_path = None           # the whole object is not valid until self.real_dir_path gets its value
+
+    @property
+    def opts(self):
+        return ",".join(self.mnt_opt_list)
 
     def setMountObj(self, mountObj):
         if self.mountpoint == "/":
