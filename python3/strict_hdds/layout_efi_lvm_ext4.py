@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-from .util import Util, PartiUtil, LvmUtil, PhysicalDiskMounts
+from .util import Util, PartiUtil, LvmUtil
 from .handy import EfiMultiDisk, SwapLvmLv, MountEfi, MountParam, HandyMd, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
@@ -211,16 +211,14 @@ def parse(boot_dev, root_dev, mount_dir):
     diskList = [PartiUtil.partiToDisk(x) for x in pvDevPathList]
     bootHdd = HandyMd.checkAndGetBootDiskFromBootDev(StorageLayoutImpl.name, boot_dev, diskList)
 
-    # get kwargsDict from mount options
+    # FIXME: get kwargsDict from mount options
     kwargsDict = dict()
-    if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
-        kwargsDict["read-only"] = True
 
     # return
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
     ret._swap = HandyUtil.swapLvDetectAndNew(StorageLayoutImpl.name)
-    ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)
+    ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret), kwargsDict)
     return ret
 
 
@@ -241,7 +239,7 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
     ret._swap = HandyUtil.swapLvDetectAndNew(StorageLayoutImpl.name)
-    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)   # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret), kwargsDict)   # do mount during MountEfi initialization
     return ret
 
 
@@ -259,15 +257,12 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
     ret = StorageLayoutImpl()
     ret._md = md
     ret._swap = SwapLvmLv(False)
-    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)   # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret), kwargsDict)   # do mount during MountEfi initialization
     return ret
 
 
-def _params_for_mount(obj, kwargsDict):
-    tlist = []
-    if kwargsDict.pop("read-only", False):
-        tlist.append("ro")
+def _params_for_mount(obj):
     return [
-        MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist),
+        MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4),
         MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=Util.bootDirMntOptList),
     ]

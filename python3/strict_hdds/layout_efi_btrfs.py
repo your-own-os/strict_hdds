@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-from .util import Util, PartiUtil, BtrfsUtil, PhysicalDiskMounts
+from .util import Util, PartiUtil, BtrfsUtil
 from .handy import EfiMultiDisk, Snapshot, SnapshotBtrfs, MountEfi, MountParam, HandyMd, DisksChecker
 from . import errors
 from . import StorageLayout
@@ -208,14 +208,12 @@ def parse(boot_dev, root_dev, mount_dir):
             raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "sub-volume \"%s\" is invalid" % (ret))
         if len(ret) > 2:
             kwargsDict["snapshot"] = ret[2:]
-    if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
-        kwargsDict["read-only"] = True
 
     # return
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
-    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
-    ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)
+    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=kwargsDict.get("snapshot", None))
+    ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret), kwargsDict)
     return ret
 
 
@@ -241,8 +239,8 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     # return
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
-    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
-    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)       # do mount during MountEfi initialization
+    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=kwargsDict.get("snapshot", None))
+    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret), kwargsDict)       # do mount during MountEfi initialization
     return ret
 
 
@@ -259,15 +257,14 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
     # return
     ret = StorageLayoutImpl()
     ret._md = md
-    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
-    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)       # do mount during MountEfi initialization
+    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=kwargsDict.get("snapshot", None))
+    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret), kwargsDict)       # do mount during MountEfi initialization
     return ret
 
 
-def _params_for_mount(obj, kwargsDict):
-    tlist = ["device=%s" % (obj._md.get_disk_data_partition(x)) for x in obj._md.get_disk_list()]
-    if kwargsDict.pop("read-only", False):
-        tlist.append("ro")
+def _params_for_mount(obj):
+    partiList = [obj._md.get_disk_data_partition(x) for x in obj._md.get_disk_list()]
+    tlist = ["device=%s" % (x) for x in partiList]
     ret = []
     for dirPath, dirMode, dirUid, dirGid, mntOptList in obj._snapshot.getParamsForMount():
         ret.append(MountParam(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))

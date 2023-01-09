@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-from .util import Util, PartiUtil, MbrUtil, PhysicalDiskMounts
+from .util import Util, PartiUtil, MbrUtil
 from .handy import SwapFile, MountBios, MountParam, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
@@ -121,17 +121,15 @@ def parse(boot_dev, root_dev, mount_dir):
     if Util.getBlkDevPartitionTableType(hdd) != Util.diskPartTableMbr:
         raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.PARTITION_TYPE_SHOULD_BE(hdd, Util.diskPartTableMbr))
 
-    # get kwargsDict from mount options
+    # FIXME: get kwargsDict from mount options
     kwargsDict = dict()
-    if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
-        kwargsDict["read-only"] = True
 
     # return
     ret = StorageLayoutImpl()
     ret._hdd = hdd
     ret._hddRootParti = root_dev
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, "/")
-    ret._mnt = MountBios(True, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)
+    ret._mnt = MountBios(True, mount_dir, _params_for_mount(ret), kwargsDict)
     return ret
 
 
@@ -161,7 +159,7 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     ret._hdd = PartiUtil.partiToDisk(rootPartitionList[0])
     ret._hddRootParti = rootPartitionList[0]
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, mount_dir)
-    ret._mnt = MountBios(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)      # do mount during MountBios initialization
+    ret._mnt = MountBios(False, mount_dir, _params_for_mount(ret), kwargsDict)      # do mount during MountBios initialization
     return ret
 
 
@@ -180,14 +178,11 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
     ret._hdd = hdd
     ret._hddRootParti = rootParti
     ret._swap = SwapFile(False)
-    ret._mnt = MountBios(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)      # do mount during MountBios initialization
+    ret._mnt = MountBios(False, mount_dir, _params_for_mount(ret), kwargsDict)      # do mount during MountBios initialization
     return ret
 
 
-def _params_for_mount(obj, kwargsDict):
-    tlist = []
-    if kwargsDict.pop("read-only", False):
-        tlist.append("ro")
+def _params_for_mount(obj):
     return [
-        MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist)
+        MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4)
     ]
