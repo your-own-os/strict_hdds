@@ -877,7 +877,7 @@ class MountBios(Mount):
         def __init__(self, parent):
             self._parent = parent
 
-        def is_writable(self, parent):
+        def is_writable(self):
             return not self._parent._readOnly
 
         def to_read_write(self):
