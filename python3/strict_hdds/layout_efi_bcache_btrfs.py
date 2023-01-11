@@ -359,10 +359,16 @@ def _params_for_mount(obj, kwargsDict):
     if "extra_mount_options_for_rootfs" in kwargsDict:
         assert kwargsDict["extra_mount_options_for_rootfs"] != ""
         tlist += kwargsDict.pop("extra_mount_options_for_rootfs").split(",")
+
+    tlistBoot = []
+    if "extra_mount_options_for_boot" in kwargsDict:
+        assert kwargsDict["extra_mount_options_for_boot"] != ""
+        tlistBoot += kwargsDict.pop("extra_mount_options_for_boot").split(",")
+
     ret = []
     for dirPath, dirMode, dirUid, dirGid, mntOptList in obj._snapshot.getParamsForMount():
         ret.append(MountParam(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
-    ret.append(MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=Util.bootDirMntOptList))
+    ret.append(MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
     return ret
 
 

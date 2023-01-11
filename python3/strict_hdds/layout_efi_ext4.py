@@ -196,7 +196,13 @@ def _params_for_mount(obj, kwargsDict):
     if "extra_mount_options_for_rootfs" in kwargsDict:
         assert kwargsDict["extra_mount_options_for_rootfs"] != ""
         tlist += kwargsDict.pop("extra_mount_options_for_rootfs").split(",")
+
+    tlistBoot = []
+    if "extra_mount_options_for_boot" in kwargsDict:
+        assert kwargsDict["extra_mount_options_for_boot"] != ""
+        tlistBoot += kwargsDict.pop("extra_mount_options_for_boot").split(",")
+
     return [
         MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist),
-        MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=Util.bootDirMntOptList),
+        MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
     ]
