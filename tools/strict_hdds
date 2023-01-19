@@ -27,20 +27,20 @@ import strict_hdds
 
 
 def usage():
-    print('Usage:\n')
-    print('   strict_hdds show                           show current storage layout\n')
-    print('   strict_hdds create-and-mount <directory>   create storage layout and mount it to the specified directory\n')
-    print('   strict_hdds detect-and-mount <directory>   detect storage layout and mount it to the specified directory\n')
-    print('   strict_hdds add-harddisk <devpath>         add a harddisk into current storage layout\n')
-    print('   strict_hdds remove-harddisk <devpath>      remove a harddisk from current storage layout\n')
-    print('   strict_hdds enable-swap                    enable swap for current storage layout\n')
-    print('   strict_hdds disable-swap                   disable swap for current storage layout\n')
-    print('   strict_hdds umount                         umount current storage layout\n')
-    print('\n')
-    print('Supported layout:\n')
+    print('Usage:')
+    print('   strict_hdds show                           show current storage layout')
+    print('   strict_hdds create-and-mount <directory>   create storage layout and mount it to the specified directory')
+    print('   strict_hdds detect-and-mount <directory>   detect storage layout and mount it to the specified directory')
+    print('   strict_hdds add-harddisk <devpath>         add a harddisk into current storage layout')
+    print('   strict_hdds remove-harddisk <devpath>      remove a harddisk from current storage layout')
+    print('   strict_hdds enable-swap                    enable swap for current storage layout')
+    print('   strict_hdds disable-swap                   disable swap for current storage layout')
+    print('   strict_hdds umount                         umount current storage layout')
+    print('')
+    print('Supported layout:')
     for layoutName in strict_hdds.get_supported_storage_layout_names():
-        print('   %s\n' % (layoutName))
-    print('\n')
+        print('   %s' % (layoutName))
+    print('')
 
 
 def die(msg):
