@@ -47,14 +47,14 @@ def die(msg):
 
 
 def doShow():
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         die("No mount point directory specified!")
     layout = strict_hdds.get_storage_layout(sys.argv[2])
     _show(layout)
 
 
 def doDetectAndMount():
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         die("No mount point directory specified!")
     kwargs = dict()
     for x in sys.argv[3:]:
@@ -69,9 +69,9 @@ def doDetectAndMount():
 
 
 def doCreateAndMount():
-    if len(sys.argv) < 2:
-        die("No storage layout name specified!")
     if len(sys.argv) < 3:
+        die("No storage layout name specified!")
+    if len(sys.argv) < 4:
         die("No mount point directory specified!")
     kwargs = dict()
     for x in sys.argv[4:]:
@@ -88,9 +88,9 @@ def doCreateAndMount():
 
 
 def doAddHarddisk():
-    if len(sys.argv) < 2:
-        die("No mount point directory specified!")
     if len(sys.argv) < 3:
+        die("No mount point directory specified!")
+    if len(sys.argv) < 4:
         die("No harddisk device file specified!")
     layout = strict_hdds.get_storage_layout(sys.argv[2])
     if getattr(layout, "add_disk"):
@@ -99,9 +99,9 @@ def doAddHarddisk():
 
 
 def doRemoveHarddisk():
-    if len(sys.argv) < 2:
-        die("No mount point directory specified!")
     if len(sys.argv) < 3:
+        die("No mount point directory specified!")
+    if len(sys.argv) < 4:
         die("No harddisk device file specified!")
     layout = strict_hdds.get_storage_layout(sys.argv[2])
     if getattr(layout, "remove_disk"):
@@ -110,7 +110,7 @@ def doRemoveHarddisk():
 
 
 def doUmount():
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         die("No mount point directory specified!")
     layout = strict_hdds.get_storage_layout(sys.argv[1])
     layout.umount_and_dispose()
