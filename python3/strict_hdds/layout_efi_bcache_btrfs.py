@@ -203,7 +203,7 @@ class StorageLayoutImpl(StorageLayout):
             # remove
             self._mnt.umount_esp(self._cg.get_ssd_esp_partition())
             self._bcache.remove_cache(self._cg.get_ssd_cache_partition())
-            self._cg.remove_ssd(disk)
+            self._cg.remove_ssd()
 
             # boot disk change
             if self._cg.boot_disk is not None:
