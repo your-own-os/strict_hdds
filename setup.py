@@ -42,4 +42,5 @@ setup(
     package_dir={
         'strict_hdds': 'python3/strict_hdds',
     },
+    scripts=['tools/strict_hdds'],
 )

@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+
+# Copyright (c) 2005-2014 Fpemud <fpemud@sina.com>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+import sys
+import strict_hdds
+
+
+def usage():
+    print('Usage: strict_hdds <category> [options...] <dest-dir>')
+    print('')
+    print('Available categories:')
+    print('  windows')
+    print('  office')
+    print('')
+    print('Available options:')
+    print('  --force: force overwrite existing files')
+    print('  --create-subdir: create product sub directory')
+    print('')
+    if True:
+        print('Parameters for "windows" category:')
+        print('  --all: download all windows products')
+        print('  --product <id>: download a specified windows product, can be specified multiple times')
+        print('                  id is formatted as "<edition>.<arch>.<language>"')
+        print('    available product ids:')
+        maxLen = max([len(x) for x in windown.WindowsDownloader.get_product_id_list()])
+        for i in windown.WindowsDownloader.get_product_id_list():
+            print('      %s: %s%s' % (i, " " * (maxLen - len(i)), windown.WindowsDownloader.get_product_description(i)))
+        print('')
+    if True:
+        print('Parameters for "office" category:')
+
+
+def die(msg):
+    print(msg, file=sys.stderr)
+    sys.exit(1)
+
+
+def downloadWindows(bForce, bCreateSubDir, destDir, bAll, productIdList):
+    if bAll:
+        productIdList = windown.WindowsDownloader.get_product_id_list()
+
+    obj = windown.WindowsDownloader(windown.etcdir_cfg.Config())
+    for productId in productIdList:
+        obj.download(productId, destDir, bCreateSubDir)
+
+
+def downloadOffice():
+    pass
+
+
+if __name__ == '__main__':
+    c = 1
+    category = None
+    destDir = None
+    bForce = False
+    bCreateSubDir = False
+
+    if len(sys.argv) <= c:
+        usage()
+        sys.exit(1)
+
+    if sys.argv[c] == "--help":
+        usage()
+        sys.exit(0)
+
+    category = sys.argv[c]
+    if category == "windows":
+        bAll = False
+        productIdList = []
+    elif category == "office":
+        pass
+    else:
+        die('Invalid category.')
+    c += 1
+
+    while len(sys.argv) > c:
+        if destDir is not None:
+            die("No argument should exists after <dest-dir>.")
+
+        if sys.argv[c] == "--force":
+            bForce = True
+            c += 1
+            continue
+
+        if sys.argv[c] == "--create-subdir":
+            bCreateSubDir = True
+            c += 1
+            continue
+
+        if sys.argv[c] == "--all":
+            if len(productIdList) > 0:
+                die("--all and --product are mutally exclusive.")
+            bAll = True
+            c += 1
+            continue
+
+        if sys.argv[c] == "--product":
+            c += 1
+            if len(sys.argv) <= c:
+                die('Missing product id.')
+            productId = sys.argv[c]
+            if productId in productIdList:
+                die("Duplicate product id %s specified." % (productId))
+            if productId not in windown.WindowsDownloader.get_product_id_list():
+                die("Invalid product id %s." % (productId))
+            if bAll:
+                die("--all and --product are mutally exclusive.")
+            productIdList.append(productId)
+            c += 1
+            continue
+
+        destDir = sys.argv[c]
+        c += 1
+
+    if destDir is None:
+        die('No destination directory specified.')
+
+    if category == "windows":
+        downloadWindows(bForce, bCreateSubDir, destDir, bAll, productIdList)
+    elif category == "office":
+        downloadOffice()
+    else:
+        assert False
