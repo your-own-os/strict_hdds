@@ -28,14 +28,12 @@ import strict_hdds
 
 def usage():
     print('Usage:')
-    print('   strict_hdds show                           show current storage layout')
-    print('   strict_hdds create-and-mount <directory>   create storage layout and mount it to the specified directory')
-    print('   strict_hdds detect-and-mount <directory>   detect storage layout and mount it to the specified directory')
-    print('   strict_hdds add-harddisk <devpath>         add a harddisk into current storage layout')
-    print('   strict_hdds remove-harddisk <devpath>      remove a harddisk from current storage layout')
-    print('   strict_hdds enable-swap                    enable swap for current storage layout')
-    print('   strict_hdds disable-swap                   disable swap for current storage layout')
-    print('   strict_hdds umount                         umount current storage layout')
+    print('   strict_hdds show <directory>')
+    print('   strict_hdds detect-and-mount <directory> [--read-only] [--extra-mount-options-for-rootfs=opts] [--extra-mount-options-for-boot=opts]')
+    print('   strict_hdds create-and-mount <layout-name> <directory> [--disk-list=dev1,dev2...] [--read-only] [--extra-mount-options-for-rootfs=opts] [--extra-mount-options-for-boot=opts]')
+    print('   strict_hdds add-harddisk <directory> <devpath>')
+    print('   strict_hdds remove-harddisk <directory> <devpath>')
+    print('   strict_hdds umount <directory>')
     print('')
     print('Supported layout:')
     for layoutName in strict_hdds.get_supported_storage_layout_names():
@@ -48,299 +46,207 @@ def die(msg):
     sys.exit(1)
 
 
-if __name__ == '__main__':
-    c = 1
-    op = None
+def doShow():
+    if len(sys.argv) < 2:
+        die("No mount point directory specified!")
+    layout = strict_hdds.get_storage_layout(sys.argv[1])
+    _show(layout)
 
-    if len(sys.argv) <= c:
+
+def doDetectAndMount():
+    if len(sys.argv) < 2:
+        die("No mount point directory specified!")
+    kwargs = dict()
+    for x in sys.argv[2:]:
+        if x == "--read-only":
+            kwargs["read_only"] = True
+        if x.startswith("--extra_mount_options_for_rootfs="):
+            kwargs["extra_mount_point_for_rootfs"] = x[len("--extra_mount_options_for_rootfs="):]
+        if x.startswith("--extra_mount_options_for_boot="):
+            kwargs["extra_mount_point_for_boot"] = x[len("--extra_mount_options_for_boot="):]
+    layout = strict_hdds.detect_and_mount_storage_layout(sys.argv[1], **kwargs)
+    _show(layout)
+
+
+def doCreateAndMount():
+    if len(sys.argv) < 2:
+        die("No storage layout name specified!")
+    if len(sys.argv) < 3:
+        die("No mount point directory specified!")
+    kwargs = dict()
+    for x in sys.argv[3:]:
+        if x.startswith("--disk-list="):
+            kwargs["disk_list"] = x[len("--disk-list="):].split(",")
+        if x == "--read-only":
+            kwargs["read_only"] = True
+        if x.startswith("--extra_mount_options_for_rootfs="):
+            kwargs["extra_mount_point_for_rootfs"] = x[len("--extra_mount_options_for_rootfs="):]
+        if x.startswith("--extra_mount_options_for_boot="):
+            kwargs["extra_mount_point_for_boot"] = x[len("--extra_mount_options_for_boot="):]
+    layout = strict_hdds.create_and_mount_storage_layout(sys.argv[1], sys.argv[2], **kwargs)
+    _show(layout)
+
+
+def doAddHarddisk():
+    if len(sys.argv) < 2:
+        die("No mount point directory specified!")
+    if len(sys.argv) < 3:
+        die("No harddisk device file specified!")
+    layout = strict_hdds.get_storage_layout(sys.argv[1])
+    if getattr(layout, "add_disk"):
+        die("Operation is not supported by layout \"%s\"." % (layout.name))
+    layout.add_disk(sys.argv[2])
+
+
+def doRemoveHarddisk():
+    if len(sys.argv) < 2:
+        die("No mount point directory specified!")
+    if len(sys.argv) < 3:
+        die("No harddisk device file specified!")
+    layout = strict_hdds.get_storage_layout(sys.argv[1])
+    if getattr(layout, "remove_disk"):
+        die("Operation is not supported by layout \"%s\"." % (layout.name))
+    layout.remove_disk(sys.argv[2])
+
+
+def doUmount():
+    if len(sys.argv) < 2:
+        die("No mount point directory specified!")
+    layout = strict_hdds.get_storage_layout(sys.argv[1])
+    layout.umount_and_dispose()
+
+
+def _show(layout):
+    if layout is None:
+        print("Storage layout: empty")
+        return
+
+    if layout.name == "efi-bcachefs":
+        if layout.get_ssd() is not None:
+            ssdStr = layout.get_ssd()
+            if layout.get_ssd_swap_partition() is not None:
+                swapStr = "(with swap)"
+            else:
+                swapStr = ""
+            bootDiskStr = ""
+        else:
+            ssdStr = "None"
+            swapStr = ""
+            bootDiskStr = " (boot disk: %s)" % (layout.boot_disk)
+        print("Storage layout: %s, SSD: %s%s, HDDs: %s%s" % (layout.name, ssdStr, swapStr, " ".join(layout.get_hdd_list()), bootDiskStr))
+        return
+
+    if layout.name == "efi-bcache-btrfs":
+        if layout.get_ssd() is not None:
+            ssdStr = layout.get_ssd()
+            if layout.get_ssd_swap_partition() is not None:
+                swapStr = "(with swap)"
+            else:
+                swapStr = ""
+            bootDiskStr = ""
+        else:
+            ssdStr = "None"
+            swapStr = ""
+            bootDiskStr = " (boot disk: %s)" % (layout.boot_disk)
+        print("Storage layout: %s, SSD: %s%s, HDDs: %s%s" % (layout.name, ssdStr, swapStr, " ".join(layout.get_hdd_list()), bootDiskStr))
+        return
+
+    if layout.name == "efi-btrfs":
+        if layout.get_ssd() is not None:
+            bootDiskStr = ""
+        else:
+            bootDiskStr = " (boot disk: %s)" % (layout.boot_disk)
+        print("Storage layout: %s, HDDs: %s%s" % (layout.name, " ".join(layout.get_hdd_list()), bootDiskStr))
+        return
+
+    if layout.name == "efi-ext4":
+        if layout.dev_swap is not None:
+            swapStr = " (with swap)"
+        else:
+            swapStr = ""
+        print("Storage layout: %s, HDD: %s%s" % (layout.name, layout.boot_disk, swapStr))
+        return
+
+    if layout.name == "bios-ext4":
+        if layout.dev_swap is not None:
+            swapStr = " (with swap)"
+        else:
+            swapStr = ""
+        print("Storage layout: %s, HDD: %s%s" % (layout.name, layout.boot_disk, swapStr))
+        return
+
+    assert False
+
+
+if __name__ == '__main__':
+    if len(sys.argv) <= 1:
         usage()
         sys.exit(1)
 
-    if sys.argv[c] == "--help":
+    if sys.argv[1] == "--help":
         usage()
         sys.exit(0)
 
     if os.getuid() != 0:
         die("You must run this command as root!")
 
-    op = sys.argv[c]
+    op = sys.argv[1]
     if op == "show":
-        pass
+        doShow()
     elif op == "create-and-mount":
-        c += 1
-        targetDir = None
+        doDetectAndMount()
     elif op == "detect-and-mount":
-        targetDir = None
+        doCreateAndMount()
     elif op == "add-harddisk":
-        pass
+        doAddHarddisk()
     elif op == "remove-harddisk":
-        pass
-    elif op == "enable-swap":
-        pass
-    elif op == "disable-swap":
-        pass
+        doRemoveHarddisk()
     elif op == "umount":
-        pass
+        doUmount()
     else:
         die('Invalid operation.')
 
-    while len(sys.argv) > c:
-        if destDir is not None:
-            die("No argument should exists after <dest-dir>.")
-
-        if sys.argv[c] == "--force":
-            bForce = True
-            c += 1
-            continue
-
-        if sys.argv[c] == "--create-subdir":
-            bCreateSubDir = True
-            c += 1
-            continue
-
-        if sys.argv[c] == "--all":
-            if len(productIdList) > 0:
-                die("--all and --product are mutally exclusive.")
-            bAll = True
-            c += 1
-            continue
-
-        if sys.argv[c] == "--product":
-            c += 1
-            if len(sys.argv) <= c:
-                die('Missing product id.')
-            productId = sys.argv[c]
-            if productId in productIdList:
-                die("Duplicate product id %s specified." % (productId))
-            if productId not in windown.WindowsDownloader.get_product_id_list():
-                die("Invalid product id %s." % (productId))
-            if bAll:
-                die("--all and --product are mutally exclusive.")
-            productIdList.append(productId)
-            c += 1
-            continue
-
-        destDir = sys.argv[c]
-        c += 1
-
-    if destDir is None:
-        die('No destination directory specified.')
-
-    if op == "windows":
-        downloadWindows(bForce, bCreateSubDir, destDir, bAll, productIdList)
-    elif op == "office":
-        downloadOffice()
-    else:
-        assert False
 
 
 
-class Main:
+# # deprecated
+# def _createAndMount(self):
+#     if self.args.layout_name not in strict_hdds.get_supported_storage_layout_names():
+#         print("Invalid storage layout!")
+#         return 1
 
-    def main(self):
-        if os.getuid() != 0:
-            print("You must run this command as root!")
-            return 1
-
-        self.args = self._getArgParser().parse_args()
-
-        if not hasattr(self.args, "op") or self.args.op == "show":
-            layout = strict_hdds.get_storage_layout("/mnt/gentoo")
-            return self._show(layout)
-
-        if self.args.op == "detect-and-mount":
-            kwargs = dict()
-            if self.args.read_only is not None:
-                kwargs["read_only"] = self.args.read_only
-            if self.args.extra_mount_options is not None:
-                kwargs["extra_mount_point_for_rootfs"] = self.args.extra_mount_options
-            layout = strict_hdds.detect_and_mount_storage_layout("/mnt/gentoo", **kwargs)
-            return self._show(layout)
-
-        if self.args.op == "create-and-mount":
-            if self.args.layout_name not in strict_hdds.get_supported_storage_layout_names():
-                print("Invalid storage layout!")
-                return 1
-            layout = strict_hdds.create_and_mount_storage_layout(self.args.layout_name, "/mnt/gentoo")
-            return self._show(layout)
-
-        if self.args.op == "wipe":
-            _Util.wipeHarddisk(self.args.harddisk)
-            return 0
-
-        if self.args.op == "wipe-all":
-            for devpath in _Util.getDevPathListForFixedHdd():
-                print("Wipe harddisk %s" % (devpath))
-                _Util.wipeHarddisk(devpath)
-            return 0
-
-        assert False
-
-    def _getArgParser(self):
-        parser = argparse.ArgumentParser()
-        subparsers = parser.add_subparsers()
-
-        parser2 = subparsers.add_parser("show", help="Show target storage information")
-        parser2.set_defaults(op="show")
-
-        parser2 = subparsers.add_parser("detect-and-mount", help="Auto detect storage layout and mount it")
-        parser2.set_defaults(op="detect-and-mount")
-        parser2.add_argument("--read-only", action="store_true")
-        parser2.add_argument("--extra-mount-options")
-
-        parser2 = subparsers.add_parser("create-and-mount", help="Create new target storage layout and mount it")
-        parser2.set_defaults(op="create-and-mount")
-        parser2.add_argument("layout_name", metavar="layout-name")
-
-        parser2 = subparsers.add_parser("wipe-harddisk", help="Wipe the specified harddisk")
-        parser2.set_defaults(op="wipe")
-        parser2.add_argument("harddisk")
-
-        parser2 = subparsers.add_parser("wipe-all-harddisks", help="Wipe all the harddisks of target storage")
-        parser2.set_defaults(op="wipe-all")
-
-        return parser
-
-    def _show(self, layout):
-        # FIXME: show read-only
-
-        if layout is None:
-            print("Storage layout: empty")
-            return 1
-
-        if layout.name == "efi-bcachefs":
-            if layout.get_ssd() is not None:
-                ssdStr = layout.get_ssd()
-                if layout.get_ssd_swap_partition() is not None:
-                    swapStr = "(with swap)"
-                else:
-                    swapStr = ""
-                bootDiskStr = ""
-            else:
-                ssdStr = "None"
-                swapStr = ""
-                bootDiskStr = " (boot disk: %s)" % (layout.boot_disk)
-            print("Storage layout: %s, SSD: %s%s, HDDs: %s%s" % (layout.name, ssdStr, swapStr, " ".join(layout.get_hdd_list()), bootDiskStr))
-            return 0
-
-        if layout.name == "efi-bcache-btrfs":
-            if layout.get_ssd() is not None:
-                ssdStr = layout.get_ssd()
-                if layout.get_ssd_swap_partition() is not None:
-                    swapStr = "(with swap)"
-                else:
-                    swapStr = ""
-                bootDiskStr = ""
-            else:
-                ssdStr = "None"
-                swapStr = ""
-                bootDiskStr = " (boot disk: %s)" % (layout.boot_disk)
-            print("Storage layout: %s, SSD: %s%s, HDDs: %s%s" % (layout.name, ssdStr, swapStr, " ".join(layout.get_hdd_list()), bootDiskStr))
-            return 0
-
-        if layout.name == "efi-btrfs":
-            if layout.get_ssd() is not None:
-                bootDiskStr = ""
-            else:
-                bootDiskStr = " (boot disk: %s)" % (layout.boot_disk)
-            print("Storage layout: %s, HDDs: %s%s" % (layout.name, " ".join(layout.get_hdd_list()), bootDiskStr))
-            return 0
-
-        if layout.name == "efi-ext4":
-            if layout.dev_swap is not None:
-                swapStr = " (with swap)"
-            else:
-                swapStr = ""
-            print("Storage layout: %s, HDD: %s%s" % (layout.name, layout.boot_disk, swapStr))
-            return 0
-
-        if layout.name == "bios-ext4":
-            if layout.dev_swap is not None:
-                swapStr = " (with swap)"
-            else:
-                swapStr = ""
-            print("Storage layout: %s, HDD: %s%s" % (layout.name, layout.boot_disk, swapStr))
-            return 0
-
-        assert False
-
-    # deprecated
-    def _createAndMount(self):
-        if self.args.layout_name not in strict_hdds.get_supported_storage_layout_names():
-            print("Invalid storage layout!")
-            return 1
-
-        layout = strict_hdds.create_and_mount_storage_layout(self.args.layout_name, "/mnt/gentoo")
-        if self.args.layout_name == "bios-ext4":
-            print("Root device: %s" % (layout.dev_rootfs))
-            print("Swap file: None")
-        elif self.args.layout_name == "efi-ext4":
-            print("Root device: %s" % (layout.dev_rootfs))
-            print("Swap file: None")
-        elif self.args.layout_name == "efi-btrfs":
-            print("Root device: %s" % (layout.dev_rootfs))
-        elif self.args.layout_name == "efi-bache-btrfs":
-            print("Root device: %s" % (layout.dev_rootfs))
-            print("Swap device: %s" % (layout.dev_swap if layout.dev_swap is not None else "None"))
-            print("Boot disk: %s" % (layout.get_esp()))
-        elif self.args.layout_name == "efi-bcachefs":
-            print("Root device: %s" % (layout.dev_rootfs))
-            print("Swap device: %s" % (layout.dev_swap if layout.dev_swap is not None else "None"))
-            print("Boot disk: %s" % (layout.get_esp()))
-        else:
-            assert False
-        return 0
+#     layout = strict_hdds.create_and_mount_storage_layout(self.args.layout_name, "/mnt/gentoo")
+#     if self.args.layout_name == "bios-ext4":
+#         print("Root device: %s" % (layout.dev_rootfs))
+#         print("Swap file: None")
+#     elif self.args.layout_name == "efi-ext4":
+#         print("Root device: %s" % (layout.dev_rootfs))
+#         print("Swap file: None")
+#     elif self.args.layout_name == "efi-btrfs":
+#         print("Root device: %s" % (layout.dev_rootfs))
+#     elif self.args.layout_name == "efi-bache-btrfs":
+#         print("Root device: %s" % (layout.dev_rootfs))
+#         print("Swap device: %s" % (layout.dev_swap if layout.dev_swap is not None else "None"))
+#         print("Boot disk: %s" % (layout.get_esp()))
+#     elif self.args.layout_name == "efi-bcachefs":
+#         print("Root device: %s" % (layout.dev_rootfs))
+#         print("Swap device: %s" % (layout.dev_swap if layout.dev_swap is not None else "None"))
+#         print("Boot disk: %s" % (layout.get_esp()))
+#     else:
+#         assert False
+#     return 0
 
 
-class _Util:
-
-    @staticmethod
-    def cmdCall(cmd, *kargs):
-        # call command to execute backstage job
-        #
-        # scenario 1, process group receives SIGTERM, SIGINT and SIGHUP:
-        #   * callee must auto-terminate, and cause no side-effect
-        #   * caller must be terminated by signal, not by detecting child-process failure
-        # scenario 2, caller receives SIGTERM, SIGINT, SIGHUP:
-        #   * caller is terminated by signal, and NOT notify callee
-        #   * callee must auto-terminate, and cause no side-effect, after caller is terminated
-        # scenario 3, callee receives SIGTERM, SIGINT, SIGHUP:
-        #   * caller detects child-process failure and do appopriate treatment
-
-        ret = subprocess.run([cmd] + list(kargs),
-                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                             universal_newlines=True)
-        if ret.returncode > 128:
-            # for scenario 1, caller's signal handler has the oppotunity to get executed during sleep
-            time.sleep(1.0)
-        if ret.returncode != 0:
-            print(ret.stdout)
-            ret.check_returncode()
-        return ret.stdout.rstrip()
-
-    @staticmethod
-    def wipeHarddisk(devpath):
-        with open(devpath, 'wb') as f:
-            f.write(bytearray(1024))
-
-    @staticmethod
-    def getDevPathListForFixedHdd():
-        ret = []
-        for line in _Util.cmdCall("/bin/lsblk", "-o", "NAME,TYPE", "-n").split("\n"):
-            m = re.fullmatch("(\\S+)\\s+(\\S+)", line)
-            if m is None:
-                continue
-            if m.group(2) != "disk":
-                continue
-            if re.search("/usb[0-9]+/", os.path.realpath("/sys/block/%s/device" % (m.group(1)))) is not None:      # USB device
-                continue
-            ret.append("/dev/" + m.group(1))
-        return ret
 
 
-###############################################################################
+#     if self.args.op == "wipe":
+#         _Util.wipeHarddisk(self.args.harddisk)
+#         return 0
 
+#     if self.args.op == "wipe-all":
+#         for devpath in _Util.getDevPathListForFixedHdd():
+#             print("Wipe harddisk %s" % (devpath))
+#             _Util.wipeHarddisk(devpath)
+#         return 0
 
-if __name__ == "__main__":
-    ret = Main().main()
-    sys.exit(ret)
+#     assert False
