@@ -110,10 +110,6 @@ class StorageLayoutImpl(StorageLayout):
             assert False
 
 
-def get_description():
-    return ""
-
-
 def parse(boot_dev, root_dev, mount_dir):
     if boot_dev is not None:
         raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.BOOT_DEV_SHOULD_NOT_EXIST)

@@ -235,10 +235,6 @@ class StorageLayoutImpl(StorageLayout):
             assert False
 
 
-def get_description():
-    return ""
-
-
 def parse(boot_dev, root_dev, mount_dir):
     rootDevList = root_dev.split(":")
 

@@ -116,10 +116,6 @@ class StorageLayoutImpl(StorageLayout):
             assert False
 
 
-def get_description():
-    return ""
-
-
 def parse(boot_dev, root_dev, mount_dir):
     if PartiUtil.partiToDisk(boot_dev) != PartiUtil.partiToDisk(root_dev):
         raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "boot device and root device are not on the same harddisk")
