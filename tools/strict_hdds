@@ -21,6 +21,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import os
 import sys
 import strict_hdds
 
@@ -58,6 +59,9 @@ if __name__ == '__main__':
     if sys.argv[c] == "--help":
         usage()
         sys.exit(0)
+
+    if os.getuid() != 0:
+        die("You must run this command as root!")
 
     op = sys.argv[c]
     if op == "show":
