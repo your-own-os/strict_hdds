@@ -134,7 +134,7 @@ def get_supported_storage_layout_names():
         if fn.startswith("layout_"):
             assert fn.endswith(".py")
             ret.append(Util.modName2layoutName(fn.replace(".py", "")))
-    return ret
+    return sorted(ret)
 
 
 def get_storage_layout(mount_dir="/"):
