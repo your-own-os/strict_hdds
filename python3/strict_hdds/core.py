@@ -43,11 +43,6 @@ class StorageLayout(abc.ABC):
         fn = os.path.basename(fn).replace(".py", "")
         return Util.modName2layoutName(fn)
 
-    @staticmethod
-    @abc.abstractmethod
-    def get_description(lang=None):
-        pass
-
     @property
     @abc.abstractmethod
     def boot_mode(self):

@@ -44,10 +44,6 @@ class StorageLayoutImpl(StorageLayout):
            5. extra harddisk is allowed to exist
     """
 
-    @staticmethod
-    def get_description(lang=None):
-        return ""
-
     def __init__(self):
         self._md = None              # MultiDisk
         self._snapshot = None        # SnapshotBtrfs
@@ -189,6 +185,10 @@ class StorageLayoutImpl(StorageLayout):
             self._snapshot.check(auto_fix, error_callback)
         else:
             assert False
+
+
+def get_description():
+    return ""
 
 
 def parse(boot_dev, root_dev, mount_dir):

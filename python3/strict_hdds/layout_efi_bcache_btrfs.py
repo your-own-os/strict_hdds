@@ -51,10 +51,6 @@ class StorageLayoutImpl(StorageLayout):
            6. extra harddisk is allowed to exist
     """
 
-    @staticmethod
-    def get_description(lang=None):
-        return ""
-
     def __init__(self):
         self._cg = None                     # EfiCacheGroup
         self._bcache = None                 # Bcache
@@ -268,6 +264,10 @@ class StorageLayoutImpl(StorageLayout):
             self._bcache.check_write_mode(kargs[0], auto_fix, error_callback)
         else:
             assert False
+
+
+def get_description():
+    return ""
 
 
 def parse(boot_dev, root_dev, mount_dir):

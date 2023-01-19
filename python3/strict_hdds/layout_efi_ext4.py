@@ -38,10 +38,6 @@ class StorageLayoutImpl(StorageLayout):
            3. extra partition is allowed to exist
     """
 
-    @staticmethod
-    def get_description(lang=None):
-        return ""
-
     def __init__(self):
         self._hdd = None              # boot harddisk name
         self._hddEspParti = None      # ESP partition name
@@ -118,6 +114,10 @@ class StorageLayoutImpl(StorageLayout):
             self._swap.check(auto_fix, error_callback)
         else:
             assert False
+
+
+def get_description():
+    return ""
 
 
 def parse(boot_dev, root_dev, mount_dir):
