@@ -33,8 +33,8 @@ def usage():
     print('   strict_hdds create-and-mount <layout-name> <directory> [--disk-list=dev1,dev2...] [--read-only] [--extra-mount-options-for-rootfs=opt1,opt2...] [--extra-mount-options-for-boot=opt1,opt2...]')
     print('   strict_hdds add-harddisk <directory> <devpath>')
     print('   strict_hdds remove-harddisk <directory> <devpath>')
-    print('   strict_hdds create-swap <directory>')
-    print('   strict_hdds remove-swap <directory>')
+    print('   strict_hdds create-swap-file <directory>')
+    print('   strict_hdds remove-swap-file <directory>')
     print('   strict_hdds umount <directory>')
     print('')
     print('Supported layout:')
@@ -111,7 +111,7 @@ def doRemoveHarddisk():
     layout.remove_disk(sys.argv[3])
 
 
-def doCreateSwap():
+def doCreateSwapFile():
     if len(sys.argv) < 3:
         die("No mount point directory specified!")
     layout = strict_hdds.get_storage_layout(sys.argv[2])
@@ -120,7 +120,7 @@ def doCreateSwap():
     layout.create_swap_file()
 
 
-def doRemoveSwap():
+def doRemoveSwapFile():
     if len(sys.argv) < 3:
         die("No mount point directory specified!")
     layout = strict_hdds.get_storage_layout(sys.argv[2])
@@ -221,10 +221,10 @@ if __name__ == '__main__':
         doAddHarddisk()
     elif op == "remove-harddisk":
         doRemoveHarddisk()
-    elif op == "create-swap":
-        doCreateSwap()
-    elif op == "remove-swap":
-        doRemoveSwap()
+    elif op == "create-swap-file":
+        doCreateSwapFile()
+    elif op == "remove-swap-file":
+        doRemoveSwapFile()
     elif op == "umount":
         doUmount()
     else:
