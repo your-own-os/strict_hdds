@@ -35,6 +35,7 @@ def usage():
     print('   strict_hdds remove-harddisk <directory> <devpath>')
     print('   strict_hdds create-swap-file <directory>')
     print('   strict_hdds remove-swap-file <directory>')
+    print('   strict_hdds check <directory>')
     print('   strict_hdds umount <directory>')
     print('')
     print('Supported layout:')
@@ -127,6 +128,19 @@ def doRemoveSwapFile():
     if not hasattr(layout, "remove_swap_file"):
         die("Operation is not supported by layout \"%s\"." % (layout.name))
     layout.remove_swap_file()
+
+
+def doCheck():
+    if len(sys.argv) < 3:
+        die("No mount point directory specified!")
+    def __errCb(checkCode, message):
+        print(message)
+    layout = strict_hdds.get_storage_layout(sys.argv[2])
+    layout.check(False, __errCb)
+    if layout.name in ["bios-ext4", "efi-ext4", "efi-bcache-btrfs", "efi-bcachefs"]:
+        layout.opt_check("swap", False, __errCb)
+    if layout.name == "efi-bcache-btrfs":
+        layout.opt_check("bcache-write-mode", "writeback", False, __errCb)
 
 
 def doUmount():
@@ -225,6 +239,8 @@ if __name__ == '__main__':
         doCreateSwapFile()
     elif op == "remove-swap-file":
         doRemoveSwapFile()
+    elif op == "check":
+        doCheck()
     elif op == "umount":
         doUmount()
     else:
