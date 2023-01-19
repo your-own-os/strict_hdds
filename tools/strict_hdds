@@ -112,7 +112,7 @@ def doRemoveHarddisk():
 def doUmount():
     if len(sys.argv) < 3:
         die("No mount point directory specified!")
-    layout = strict_hdds.get_storage_layout(sys.argv[1])
+    layout = strict_hdds.get_storage_layout(sys.argv[2])
     layout.umount_and_dispose()
 
 
