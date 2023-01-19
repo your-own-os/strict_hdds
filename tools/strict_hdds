@@ -29,8 +29,8 @@ import strict_hdds
 def usage():
     print('Usage:')
     print('   strict_hdds show <directory>')
-    print('   strict_hdds detect-and-mount <directory> [--read-only] [--extra-mount-options-for-rootfs=opts] [--extra-mount-options-for-boot=opts]')
-    print('   strict_hdds create-and-mount <layout-name> <directory> [--disk-list=dev1,dev2...] [--read-only] [--extra-mount-options-for-rootfs=opts] [--extra-mount-options-for-boot=opts]')
+    print('   strict_hdds detect-and-mount <directory> [--read-only] [--extra-mount-options-for-rootfs=opt1,opt2...] [--extra-mount-options-for-boot=opt1,opt2...]')
+    print('   strict_hdds create-and-mount <layout-name> <directory> [--disk-list=dev1,dev2...] [--read-only] [--extra-mount-options-for-rootfs=opt1,opt2...] [--extra-mount-options-for-boot=opt1,opt2...]')
     print('   strict_hdds add-harddisk <directory> <devpath>')
     print('   strict_hdds remove-harddisk <directory> <devpath>')
     print('   strict_hdds umount <directory>')
