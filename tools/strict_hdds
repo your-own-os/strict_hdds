@@ -105,7 +105,7 @@ def doRemoveHarddisk():
         die("No harddisk device file specified!")
     layout = strict_hdds.get_storage_layout(sys.argv[2])
     if getattr(layout, "remove_disk"):
-        die("Operation is not supported by layout \"%s\"." % (layout.name))
+        die("Operation is not supported by storage layout \"%s\"." % (layout.name))
     layout.remove_disk(sys.argv[3])
 
 
