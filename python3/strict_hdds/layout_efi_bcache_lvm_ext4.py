@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 # Copyright (c) 2020-2021 Fpemud <fpemud@sina.com>
 #
@@ -51,6 +51,10 @@ class StorageLayoutImpl(StorageLayout):
            6. extra LVM-LV is allowed to exist
            7. extra harddisk is allowed to exist
     """
+
+    @staticmethod
+    def get_description(lang=None):
+        return ""
 
     def __init__(self):
         self._cg = None                     # EfiCacheGroup

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 # Copyright (c) 2020-2021 Fpemud <fpemud@sina.com>
 #
@@ -43,6 +43,10 @@ class StorageLayoutImpl(StorageLayout):
            4. use optional swap file /var/swap/swap.dat, at this time /var/swap is a standalone sub-volume
            5. extra harddisk is allowed to exist
     """
+
+    @staticmethod
+    def get_description(lang=None):
+        return ""
 
     def __init__(self):
         self._md = None              # MultiDisk

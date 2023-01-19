@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 # Copyright (c) 2020-2021 Fpemud <fpemud@sina.com>
 #
@@ -42,6 +42,11 @@ class StorageLayout(abc.ABC):
         fn = sys.modules.get(cls.__module__).__file__
         fn = os.path.basename(fn).replace(".py", "")
         return Util.modName2layoutName(fn)
+
+    @staticmethod
+    @abc.abstractmethod
+    def get_description(lang=None):
+        pass
 
     @property
     @abc.abstractmethod

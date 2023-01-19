@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 # Copyright (c) 2020-2021 Fpemud <fpemud@sina.com>
 #
@@ -36,6 +36,10 @@ class StorageLayoutImpl(StorageLayout):
            2. use optional swap file /var/cache/swap.dat
            3. extra partition is allowed to exist
     """
+
+    @staticmethod
+    def get_description(lang=None):
+        return ""
 
     def __init__(self):
         self._hdd = None              # boot harddisk name

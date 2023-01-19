@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3
 
 # Copyright (c) 2020-2021 Fpemud <fpemud@sina.com>
 #
