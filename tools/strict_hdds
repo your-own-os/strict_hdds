@@ -49,7 +49,7 @@ def die(msg):
 def doShow():
     if len(sys.argv) < 2:
         die("No mount point directory specified!")
-    layout = strict_hdds.get_storage_layout(sys.argv[1])
+    layout = strict_hdds.get_storage_layout(sys.argv[2])
     _show(layout)
 
 
@@ -57,14 +57,14 @@ def doDetectAndMount():
     if len(sys.argv) < 2:
         die("No mount point directory specified!")
     kwargs = dict()
-    for x in sys.argv[2:]:
+    for x in sys.argv[3:]:
         if x == "--read-only":
             kwargs["read_only"] = True
         if x.startswith("--extra_mount_options_for_rootfs="):
             kwargs["extra_mount_point_for_rootfs"] = x[len("--extra_mount_options_for_rootfs="):]
         if x.startswith("--extra_mount_options_for_boot="):
             kwargs["extra_mount_point_for_boot"] = x[len("--extra_mount_options_for_boot="):]
-    layout = strict_hdds.detect_and_mount_storage_layout(sys.argv[1], **kwargs)
+    layout = strict_hdds.detect_and_mount_storage_layout(sys.argv[2], **kwargs)
     _show(layout)
 
 
@@ -74,7 +74,7 @@ def doCreateAndMount():
     if len(sys.argv) < 3:
         die("No mount point directory specified!")
     kwargs = dict()
-    for x in sys.argv[3:]:
+    for x in sys.argv[4:]:
         if x.startswith("--disk-list="):
             kwargs["disk_list"] = x[len("--disk-list="):].split(",")
         if x == "--read-only":
@@ -83,7 +83,7 @@ def doCreateAndMount():
             kwargs["extra_mount_point_for_rootfs"] = x[len("--extra_mount_options_for_rootfs="):]
         if x.startswith("--extra_mount_options_for_boot="):
             kwargs["extra_mount_point_for_boot"] = x[len("--extra_mount_options_for_boot="):]
-    layout = strict_hdds.create_and_mount_storage_layout(sys.argv[1], sys.argv[2], **kwargs)
+    layout = strict_hdds.create_and_mount_storage_layout(sys.argv[2], sys.argv[3], **kwargs)
     _show(layout)
 
 
@@ -92,10 +92,10 @@ def doAddHarddisk():
         die("No mount point directory specified!")
     if len(sys.argv) < 3:
         die("No harddisk device file specified!")
-    layout = strict_hdds.get_storage_layout(sys.argv[1])
+    layout = strict_hdds.get_storage_layout(sys.argv[2])
     if getattr(layout, "add_disk"):
         die("Operation is not supported by layout \"%s\"." % (layout.name))
-    layout.add_disk(sys.argv[2])
+    layout.add_disk(sys.argv[3])
 
 
 def doRemoveHarddisk():
@@ -103,10 +103,10 @@ def doRemoveHarddisk():
         die("No mount point directory specified!")
     if len(sys.argv) < 3:
         die("No harddisk device file specified!")
-    layout = strict_hdds.get_storage_layout(sys.argv[1])
+    layout = strict_hdds.get_storage_layout(sys.argv[2])
     if getattr(layout, "remove_disk"):
         die("Operation is not supported by layout \"%s\"." % (layout.name))
-    layout.remove_disk(sys.argv[2])
+    layout.remove_disk(sys.argv[3])
 
 
 def doUmount():
