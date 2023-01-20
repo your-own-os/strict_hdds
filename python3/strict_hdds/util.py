@@ -982,7 +982,7 @@ class BcacheUtil:
             if re.fullmatch("bcache[0-9]+", fn) is not None:
                 ret.append(os.path.join("/dev", fn))
 
-        # FIXME: filter, bad design
+        # FIXME: filter, bad code
         ret2 = []
         for fn in ret:
             devPathList = BcacheUtil.getSlaveDevPathList(fn)
