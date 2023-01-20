@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 
 
+import re
 from .util import Util, BcacheUtil, BtrfsUtil, PhysicalDiskMounts
 from .handy import EfiCacheGroup, Bcache, Snapshot, SnapshotBtrfs, MountEfi, MountParam, HandyCg, HandyBcache, DisksChecker
 from . import errors
@@ -292,7 +293,7 @@ def parse(boot_dev, root_dev, mount_dir):
         if not ret.startswith("/@"):
             raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "sub-volume \"%s\" is invalid" % (ret))
         if len(ret) > 2:
-            kwargsDict["snapshot"] = ret[2:]
+            kwargsDict["snapshot"] = SnapshotBtrfs.getSnapshotNameFromSubvol(ret)
     if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
         kwargsDict["read-only"] = True
 

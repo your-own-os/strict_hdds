@@ -631,6 +631,11 @@ class Snapshot(abc.ABC):
             __mkSubVol("@snapshots", 0o40700, 0, 0)
 
     @staticmethod
+    def getSnapshotNameFromSubvol(subvol):
+        m = re.fullmatch("/@snapshots/([^/]+)/snapshot", subvol)
+        return m.group(1)
+
+    @staticmethod
     def proxy(func):
         if isinstance(func, property):
             def f_get(self):
