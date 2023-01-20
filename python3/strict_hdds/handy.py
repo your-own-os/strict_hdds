@@ -695,10 +695,6 @@ class Snapshot(abc.ABC):
                 nameList.append(name)
             nameList.append("@snapshots")
 
-        prefixList = []
-        for path, name, mode, uid, gid in (self._homeSubVols() + self._varSubVols()):
-            prefixList.append(name + "/")
-
         # check existence
         svList = self._getSubVolList(self._mntDir)
         for sv in nameList:
@@ -708,6 +704,10 @@ class Snapshot(abc.ABC):
                 error_callback(errors.CheckCode.TRIVIAL, "Sub-volume \"%s\" does not exist." % (sv))    # no way to auto fix
 
         # check redundancy
+        prefixList = []
+        if True:
+            for path, name, mode, uid, gid in (self._homeSubVols() + self._varSubVols()):
+                prefixList.append(name + "/")
         for sv in svList:
             if any([sv.startswith(x) for x in prefixList]):
                 # sub-volumes created by other programs
