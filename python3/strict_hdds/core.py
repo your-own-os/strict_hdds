@@ -195,16 +195,16 @@ def get_storage_layout(mount_dir="/"):
 
 def mount_storage_layout(mount_dir, layout_name=None, disk_list=None, **kwargs):
     if disk_list is None:
-        diskList = Util.getDevPathListForFixedDisk()
-    if len(diskList) == 0:
+        disk_list = Util.getDevPathListForFixedDisk()
+    if len(disk_list) == 0:
         raise errors.StorageLayoutParseError(errors.NO_DISK_WHEN_PARSE)
 
     if layout_name is not None:
-        return _detectAndMountOneStorageLayout(layout_name, diskList, mount_dir, kwargs)
+        return _detectAndMountOneStorageLayout(layout_name, disk_list, mount_dir, kwargs)
 
     espPartiList = []
     normalPartiList = []
-    for disk in diskList:
+    for disk in disk_list:
         for devPath in glob.glob(disk + "*"):
             if devPath == disk:
                 continue
@@ -218,43 +218,43 @@ def mount_storage_layout(mount_dir, layout_name=None, disk_list=None, **kwargs):
         # bcachefs related
         if Util.anyIn(["efi-bcachefs"], allLayoutNames):
             if any(Util.getBlkDevFsType(x) == Util.fsTypeBcachefs for x in normalPartiList):
-                return _detectAndMountOneStorageLayout("efi-bcachefs", diskList, mount_dir, kwargs)
+                return _detectAndMountOneStorageLayout("efi-bcachefs", disk_list, mount_dir, kwargs)
 
         # btrfs related
         if Util.anyIn(["efi-btrfs"], allLayoutNames):
             if any(Util.getBlkDevFsType(x) == Util.fsTypeBtrfs for x in normalPartiList):
-                return _detectAndMountOneStorageLayout("efi-btrfs", diskList, mount_dir, kwargs)
+                return _detectAndMountOneStorageLayout("efi-btrfs", disk_list, mount_dir, kwargs)
 
         # bcache related
         if Util.anyIn(["efi-bcache-btrfs", "efi-bcache-lvm-ext4"], allLayoutNames):
             bcacheDevPathList = BcacheUtil.scanAndRegisterAll()         # only call bcache related procedure when corresponding storage layout exists
             if len(bcacheDevPathList) > 0:
                 if any(Util.getBlkDevFsType(x) == Util.fsTypeBtrfs for x in bcacheDevPathList):
-                    return _detectAndMountOneStorageLayout("efi-bcache-btrfs", diskList, mount_dir, kwargs)
+                    return _detectAndMountOneStorageLayout("efi-bcache-btrfs", disk_list, mount_dir, kwargs)
                 else:
-                    return _detectAndMountOneStorageLayout("efi-bcache-lvm-ext4", diskList, mount_dir, kwargs)
+                    return _detectAndMountOneStorageLayout("efi-bcache-lvm-ext4", disk_list, mount_dir, kwargs)
 
         # lvm related
         if Util.anyIn(["efi-lvm-ext4"], allLayoutNames):
             LvmUtil.activateAll()                                       # only call lvm related procedure when corresponding storage layout exists
             if LvmUtil.vgName in LvmUtil.getVgList():
-                return _detectAndMountOneStorageLayout("efi-lvm-ext4", diskList, mount_dir, kwargs)
+                return _detectAndMountOneStorageLayout("efi-lvm-ext4", disk_list, mount_dir, kwargs)
 
         # simple layout
         if Util.anyIn(["efi-ext4"], allLayoutNames):
             if any([Util.getBlkDevFsType(x) == Util.fsTypeExt4 for x in normalPartiList]):
-                return _detectAndMountOneStorageLayout("efi-ext4", diskList, mount_dir, kwargs)
+                return _detectAndMountOneStorageLayout("efi-ext4", disk_list, mount_dir, kwargs)
     else:
         # lvm related
         if Util.anyIn(["bios-lvm-ext4"], allLayoutNames):
             LvmUtil.activateAll()                                       # only call lvm related procedure when corresponding storage layout exists
             if LvmUtil.vgName in LvmUtil.getVgList():
-                return _detectAndMountOneStorageLayout("bios-lvm-ext4", diskList, mount_dir, kwargs)
+                return _detectAndMountOneStorageLayout("bios-lvm-ext4", disk_list, mount_dir, kwargs)
 
         # simple layout
         if Util.anyIn(["bios-ext4"], allLayoutNames):
             if any([Util.getBlkDevFsType(x) == Util.fsTypeExt4 for x in normalPartiList]):
-                return _detectAndMountOneStorageLayout("bios-ext4", diskList, mount_dir, kwargs)
+                return _detectAndMountOneStorageLayout("bios-ext4", disk_list, mount_dir, kwargs)
 
     raise errors.StorageLayoutParseError("", "unknown storage layout")
 
