@@ -29,8 +29,8 @@ import strict_hdds
 def usage():
     print('Usage:')
     print('   strict_hdds show <directory>')
-    print('   strict_hdds mount <directory> [--layout-name=name] [--read-only] [--extra-mount-options-for-rootfs=opt1,opt2...] [--extra-mount-options-for-boot=opt1,opt2...]')
-    print('   strict_hdds create-and-mount <directory> <--layout-name=name> [--disk-list=dev1,dev2...] [--read-only] [--extra-mount-options-for-rootfs=opt1,opt2...] [--extra-mount-options-for-boot=opt1,opt2...]')
+    print('   strict_hdds mount <directory> [--layout-name=name] [--disk-list=dev1,dev2...] [--read-only] [--extra-mount-options-for-rootfs=opt1,opt2...] [--extra-mount-options-for-boot=opt1,opt2...]')
+    print('   strict_hdds create <directory> <--layout-name=name> [--disk-list=dev1,dev2...] [--read-only] [--extra-mount-options-for-rootfs=opt1,opt2...] [--extra-mount-options-for-boot=opt1,opt2...]')
     print('   strict_hdds add-harddisk <directory> <devpath>')
     print('   strict_hdds remove-harddisk <directory> <devpath>')
     print('   strict_hdds create-swap-file <directory>')
@@ -67,6 +67,8 @@ def doMount():
     for x in sys.argv[3:]:
         if x.startswith("--layout-name"):
             layoutName = x[len("--layout-name"):]
+        if x.startswith("--disk-list="):
+            kwargs["disk_list"] = x[len("--disk-list="):].split(",")
         if x == "--read-only":
             kwargs["read_only"] = True
         if x.startswith("--extra_mount_options_for_rootfs="):
@@ -280,7 +282,7 @@ if __name__ == '__main__':
         doShow()
     elif op == "mount":
         doMount()
-    elif op == "create-and-mount":
+    elif op == "create":
         doCreateAndMount()
     elif op == "add-harddisk":
         doAddHarddisk()
