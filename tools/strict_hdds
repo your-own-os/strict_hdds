@@ -35,6 +35,9 @@ def usage():
     print('   strict_hdds remove-harddisk <directory> <devpath>')
     print('   strict_hdds create-swap-file <directory>')
     print('   strict_hdds remove-swap-file <directory>')
+    print('   strict_hdds create-snapshot <directory> <snapshot-name>')
+    print('   strict_hdds remove-snapshot <directory> <snapshot-name>')
+    print('   strict_hdds rollback-to-snapshot <directory> <snapshot-name> [--rollback-home] [--rollback-var]')
     print('   strict_hdds check <directory>')
     print('   strict_hdds umount <directory>')
     print('')
@@ -137,6 +140,45 @@ def doRemoveSwapFile():
     if not hasattr(layout, "remove_swap_file"):
         die("Operation is not supported by layout \"%s\"." % (layout.name))
     layout.remove_swap_file()
+
+
+def doCreateSnapshot():
+    if len(sys.argv) < 3:
+        die("No mount point directory specified!")
+    if len(sys.argv) < 4:
+        die("No snapshot name specified!")
+    layout = strict_hdds.get_storage_layout(sys.argv[2])
+    if not hasattr(layout, "create_snapshot"):
+        die("Operation is not supported by layout \"%s\"." % (layout.name))
+    layout.create_snapshot(sys.argv[3])
+
+
+def doRemoveSnapshot():
+    if len(sys.argv) < 3:
+        die("No mount point directory specified!")
+    if len(sys.argv) < 4:
+        die("No snapshot name specified!")
+    layout = strict_hdds.get_storage_layout(sys.argv[2])
+    if not hasattr(layout, "remove_snapshot"):
+        die("Operation is not supported by layout \"%s\"." % (layout.name))
+    layout.remove_snapshot(sys.argv[3])
+
+
+def doRollbackToSnapshot():
+    if len(sys.argv) < 3:
+        die("No mount point directory specified!")
+    if len(sys.argv) < 4:
+        die("No snapshot name specified!")
+    kwargs = dict()
+    for x in sys.argv[4:]:
+        if x == "--rollback-home":
+            kwargs["home"] = True
+        if x == "--rollback-var":
+            kwargs["var"] = True
+    layout = strict_hdds.get_storage_layout(sys.argv[2])
+    if not hasattr(layout, "rollback_to_snapshot"):
+        die("Operation is not supported by layout \"%s\"." % (layout.name))
+    layout.rollback_to_snapshot(sys.argv[3], **kwargs)
 
 
 def doCheck():
@@ -248,6 +290,12 @@ if __name__ == '__main__':
         doCreateSwapFile()
     elif op == "remove-swap-file":
         doRemoveSwapFile()
+    elif op == "create-snapshot":
+        doCreateSnapshot()
+    elif op == "remove-snapshot":
+        doRemoveSnapshot()
+    elif op == "rollback-to-snapshot":
+        doRollbackToSnapshot()
     elif op == "check":
         doCheck()
     elif op == "umount":
