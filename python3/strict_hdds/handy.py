@@ -631,9 +631,8 @@ class Snapshot(abc.ABC):
             __mkSubVol("@snapshots", 0o40700, 0, 0)
 
     @classmethod
-    def getSnapshotNameFromSubvolPath(cls, subvol):
-        path, rootName, mode, uid, gid = cls._rootSubVol()
-        m = re.fullmatch("/@snapshots/([^/]+)/%s" % (rootName), subvol)
+    def getSnapshotNameFromSubVolPath(cls, subvol):
+        m = re.fullmatch("/@snapshots/([^/]+)/", subvol)
         return m.group(1)
 
     @staticmethod
@@ -657,41 +656,64 @@ class Snapshot(abc.ABC):
         return self._snapshotName
 
     def get_snapshot_list(self):
-        path, rootName, mode, uid, gid = self._rootSubVol()
+        subVolList = self._getSubVolList()
         ret = []
-        for sv in self._getSubVolList():
-            m = re.fullmatch("@snapshots/([^/]+)/%s" % rootName, sv)
-            if m is not None:
-                ret.append(m.group(1))
+        for snapshotName in self._subVolList2SnapshotNameList(subVolList):
+            if all([x in subVolList for x in self._snapshotName2SnapshotFullNameList(snapshotName)]):
+                ret.append(snapshotName)
         return ret
 
     def create_snapshot(self, snapshot_name):
-        path, rootName, mode, uid, gid = self._rootSubVol()
-        self._createSnapshotSubVol(self._mntDir, rootName, "@snapshots/%s/%s" % (snapshot_name, rootName))
+        # open file check
+        pass
+
+        # mtime check
+        pass
+
+        # /var/tmp should be empty
+        pass
+
+        for path, name, mode, uid, gid in self._allSubVols():
+            if name not in self._subVolNamesExcludedFromSnapshoting():
+                self._createSnapshotSubVol(self._mntDir, name, self._getSnapshotFullName(snapshot_name, name))
+            else:
+                self._createSubVol(self._mntDir, name)
+                dirpath = os.path.join(self._mntDir, name)
+                os.chown(dirpath, uid, gid)
+                os.chmod(dirpath, mode)
 
     def remove_snapshot(self, snapshot_name):
         self._recursiveDeleteSubVols("@snapshots/%s" % (snapshot_name))
 
+    def rollback_to_snapshot(self, snapshot_name, home=False, var=False):
+        subVolList = self._getSubVolList()
+        if not all([x in subVolList for x in self._snapshotName2SnapshotFullNameList(snapshot_name)]):
+            raise Exception("")
+
+        # FIXME: rsync back
+        assert False
+
+        # FIXME: dangerous
+        if home:
+            assert False
+
+        # FIXME: dangerous
+        if var:
+            # contents in self._subVolNamesExcludedFromSnapshoting() are not important, they will be lost
+            assert False
+
     def getParamsForMount(self):
         ret = []
-
-        if True:
-            path, rootName, mode, uid, gid = self._rootSubVol()
+        for path, name, mode, uid, gid in self._allSubVols():
             if self._snapshotName is not None:
-                rootName = "@snapshots/%s/%s" % (self._snapshotName, rootName)
-            ret.append((path, mode, uid, gid, ["subvol=/%s" % (rootName)]))
-
-        for path, name, mode, uid, gid in (self._homeSubVols() + self._varSubVols()):
+                name = self._getSnapshotFullName(self._snapshotName, name)
             ret.append((path, mode, uid, gid, ["subvol=/%s" % (name)]))
-
         return ret
 
     def check(self, auto_fix, error_callback):
         nameList = []
         if True:
-            path, rootName, mode, uid, gid = self._rootSubVol()
-            nameList.append(rootName)
-            for path, name, mode, uid, gid in (self._homeSubVols() + self._varSubVols()):
+            for path, name, mode, uid, gid in self._allSubVols():
                 nameList.append(name)
             nameList.append("@snapshots")
 
@@ -701,15 +723,43 @@ class Snapshot(abc.ABC):
             try:
                 svList.remove(sv)
             except ValueError:
-                error_callback(errors.CheckCode.TRIVIAL, "Sub-volume \"%s\" does not exist." % (sv))    # no way to auto fix
+                # no way to auto fix
+                error_callback(errors.CheckCode.TRIVIAL, "Sub-volume \"%s\" does not exist." % (sv))
+
+        # check snapshots
+        for snapshotName in self._subVolList2SnapshotNameList(svList):
+            for sv in self._snapshotName2SnapshotFullNameList(snapshotName):
+                try:
+                    svList.remove(sv)
+                except ValueError:
+                    # no way to auto fix
+                    error_callback(errors.CheckCode.TRIVIAL, "Sub-volume \"%s\" does not exist when it should be." % (sv))
 
         # check redundancy
         for sv in svList:
-            if sv.startswith("@snapshots/"):
-                path, rootName, mode, uid, gid = self._rootSubVol()
-                if re.fullmatch("@snapshots/[^/]+/%s" % (rootName), sv):
-                    continue
-            error_callback(errors.CheckCode.TRIVIAL, "Redundant sub-volume \"%s\"." % (sv))     # too dangerous to auto fix
+            # too dangerous to auto fix
+            error_callback(errors.CheckCode.TRIVIAL, "Redundant sub-volume \"%s\"." % (sv))
+
+    def _subVolList2SnapshotNameList(self, subVolList):
+        ret = []
+        for sv in subVolList:
+            m = re.fullmatch("@snapshots/([^/]+)/", sv)
+            if m is not None:
+                ret.append(m.group(1))
+        return ret
+
+    def _snapshotName2SnapshotFullNameList(self, snapshotName):
+        ret = []
+        for path, name, mode, uid, gid in self._allSubVols():
+            ret.append(self._getSnapshotFullName(snapshotName, name))
+        return ret
+
+    def _getSnapshotFullName(self, snapshotName, name):
+        return "@snapshots/%s/%s" % (snapshotName, name)
+
+    @classmethod
+    def _allSubVols(cls):
+        return [cls._rootSubVol] + cls._homeSubVols() + cls._varSubVols()
 
     @staticmethod
     def _rootSubVol():
@@ -733,6 +783,13 @@ class Snapshot(abc.ABC):
             ("/var/spool", "@var_spool", 0o40755, 0, 0),
             ("/var/tmp",   "@var_tmp",   0o41777, 0, 0),
             ("/var/www",   "@var_www",   0o40755, 0, 0),     # FIXME
+        ]
+
+    @staticmethod
+    def _subVolNamesExcludedFromSnapshoting():
+        return [
+            "@var_log",
+            "@var_tmp",
         ]
 
     @staticmethod

@@ -247,6 +247,10 @@ class StorageLayoutImpl(StorageLayout):
     def remove_snapshot(self, snapshot_name):
         pass
 
+    @Snapshot.proxy
+    def rollback_to_snapshot(self, snapshot_name, home=False, var=False):
+        pass
+
     def _check_impl(self, check_item, *kargs, auto_fix=False, error_callback=None):
         if check_item == Util.checkItemBasic:
             if True:
@@ -292,7 +296,7 @@ def parse(boot_dev, root_dev, mount_dir):
         if not ret.startswith("/@"):
             raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "sub-volume \"%s\" is invalid" % (ret))
         if len(ret) > 2:
-            kwargsDict["snapshot"] = SnapshotBtrfs.getSnapshotNameFromSubvolPath(ret)
+            kwargsDict["snapshot"] = SnapshotBtrfs.getSnapshotNameFromSubVolPath(ret)
     if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
         kwargsDict["read-only"] = True
 
