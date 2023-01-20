@@ -193,22 +193,14 @@ def get_storage_layout(mount_dir="/"):
     raise errors.StorageLayoutParseError("", "unknown storage layout")
 
 
-def mount_storage_layout(layout_name, mount_dir, disk_list=None, **kwargs):
+def mount_storage_layout(mount_dir, layout_name=None, disk_list=None, **kwargs):
     if disk_list is None:
         diskList = Util.getDevPathListForFixedDisk()
     if len(diskList) == 0:
         raise errors.StorageLayoutParseError(errors.NO_DISK_WHEN_PARSE)
 
-    return _detectAndMountOneStorageLayout(layout_name, diskList, mount_dir, kwargs)
-
-
-def detect_and_mount_storage_layout(mount_dir, disk_list=None, **kwargs):
-    allLayoutNames = get_supported_storage_layout_names()
-
-    if disk_list is None:
-        diskList = Util.getDevPathListForFixedDisk()
-    if len(diskList) == 0:
-        raise errors.StorageLayoutParseError(errors.NO_DISK_WHEN_PARSE)
+    if layout_name is not None:
+        return _detectAndMountOneStorageLayout(layout_name, diskList, mount_dir, kwargs)
 
     espPartiList = []
     normalPartiList = []
@@ -221,6 +213,7 @@ def detect_and_mount_storage_layout(mount_dir, disk_list=None, **kwargs):
             else:
                 normalPartiList.append(devPath)
 
+    allLayoutNames = get_supported_storage_layout_names()
     if len(espPartiList) > 0:
         # bcachefs related
         if Util.anyIn(["efi-bcachefs"], allLayoutNames):

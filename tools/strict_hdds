@@ -30,7 +30,7 @@ def usage():
     print('Usage:')
     print('   strict_hdds show <directory>')
     print('   strict_hdds mount <directory> [--layout-name=name] [--disk-list=dev1,dev2...] [--read-only] [--extra-mount-options-for-rootfs=opt1,opt2...] [--extra-mount-options-for-boot=opt1,opt2...]')
-    print('   strict_hdds create <directory> <--layout-name=name> [--disk-list=dev1,dev2...] [--read-only] [--extra-mount-options-for-rootfs=opt1,opt2...] [--extra-mount-options-for-boot=opt1,opt2...]')
+    print('   strict_hdds create-and-mount <directory> <layout-name> [--disk-list=dev1,dev2...] [--read-only] [--extra-mount-options-for-rootfs=opt1,opt2...] [--extra-mount-options-for-boot=opt1,opt2...]')
     print('   strict_hdds add-harddisk <directory> <devpath>')
     print('   strict_hdds remove-harddisk <directory> <devpath>')
     print('   strict_hdds create-swap-file <directory>')
@@ -62,11 +62,10 @@ def doShow():
 def doMount():
     if len(sys.argv) < 3:
         die("No mount point directory specified!")
-    layoutName = None
     kwargs = dict()
     for x in sys.argv[3:]:
-        if x.startswith("--layout-name"):
-            layoutName = x[len("--layout-name"):]
+        if x.startswith("--layout-name="):
+            kwargs["layout_name"] = x[len("--layout-name="):]
         if x.startswith("--disk-list="):
             kwargs["disk_list"] = x[len("--disk-list="):].split(",")
         if x == "--read-only":
@@ -75,21 +74,17 @@ def doMount():
             kwargs["extra_mount_point_for_rootfs"] = x[len("--extra_mount_options_for_rootfs="):]
         if x.startswith("--extra_mount_options_for_boot="):
             kwargs["extra_mount_point_for_boot"] = x[len("--extra_mount_options_for_boot="):]
-    if layoutName is None:
-        layout = strict_hdds.detect_and_mount_storage_layout(sys.argv[2], **kwargs)
-    else:
-        layout = strict_hdds.mount_storage_layout(layoutName, sys.argv[2], **kwargs)
+    layout = strict_hdds.mount_storage_layout(sys.argv[2], **kwargs)
     _show(layout)
 
 
 def doCreateAndMount():
     if len(sys.argv) < 3:
         die("No mount point directory specified!")
-    layoutName = None
+    if len(sys.argv) < 4:
+        die("No storage layout name specified!")
     kwargs = dict()
-    for x in sys.argv[3:]:
-        if x.startswith("--layout-name"):
-            layoutName = x[len("--layout-name"):]
+    for x in sys.argv[4:]:
         if x.startswith("--disk-list="):
             kwargs["disk_list"] = x[len("--disk-list="):].split(",")
         if x == "--read-only":
@@ -98,9 +93,7 @@ def doCreateAndMount():
             kwargs["extra_mount_point_for_rootfs"] = x[len("--extra_mount_options_for_rootfs="):]
         if x.startswith("--extra_mount_options_for_boot="):
             kwargs["extra_mount_point_for_boot"] = x[len("--extra_mount_options_for_boot="):]
-    if layoutName is None:
-        die("No storage layout name specified!")
-    layout = strict_hdds.create_and_mount_storage_layout(layoutName, sys.argv[2], **kwargs)
+    layout = strict_hdds.create_and_mount_storage_layout(args.argv[3], sys.argv[2], **kwargs)
     _show(layout)
 
 
@@ -282,7 +275,7 @@ if __name__ == '__main__':
         doShow()
     elif op == "mount":
         doMount()
-    elif op == "create":
+    elif op == "create-and-mount":
         doCreateAndMount()
     elif op == "add-harddisk":
         doAddHarddisk()
