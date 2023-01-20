@@ -248,7 +248,7 @@ class StorageLayoutImpl(StorageLayout):
         pass
 
     @Snapshot.proxy
-    def rollback_to_snapshot(self, snapshot_name, home=False, var=False):
+    def sync_from_snapshot(self, snapshot_name, home=False, var=False):
         pass
 
     def _check_impl(self, check_item, *kargs, auto_fix=False, error_callback=None):

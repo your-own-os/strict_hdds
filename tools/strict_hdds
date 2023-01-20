@@ -171,9 +171,9 @@ def doSyncFromSnapshot():
         if x == "--sync-var":
             kwargs["var"] = True
     layout = strict_hdds.get_storage_layout(sys.argv[2])
-    if not hasattr(layout, "rollback_to_snapshot"):
+    if not hasattr(layout, "sync_from_snapshot"):
         die("Operation is not supported by layout \"%s\"." % (layout.name))
-    layout.rollback_to_snapshot(sys.argv[3], **kwargs)
+    layout.sync_from_snapshot(sys.argv[3], **kwargs)
 
 
 def doCheck():
