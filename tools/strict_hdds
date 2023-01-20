@@ -70,10 +70,10 @@ def doMount():
             kwargs["disk_list"] = x[len("--disk-list="):].split(",")
         if x == "--read-only":
             kwargs["read_only"] = True
-        if x.startswith("--extra_mount_options_for_rootfs="):
-            kwargs["extra_mount_point_for_rootfs"] = x[len("--extra_mount_options_for_rootfs="):]
-        if x.startswith("--extra_mount_options_for_boot="):
-            kwargs["extra_mount_point_for_boot"] = x[len("--extra_mount_options_for_boot="):]
+        if x.startswith("--extra-mount-options-for-rootfs="):
+            kwargs["extra_mount_point_for_rootfs"] = x[len("--extra-mount-options-for-rootfs="):]
+        if x.startswith("--extra-mount-options-for-boot="):
+            kwargs["extra_mount_point_for_boot"] = x[len("--extra-mount-options-for-boot="):]
     layout = strict_hdds.mount_storage_layout(sys.argv[2], **kwargs)
     _show(layout)
 
@@ -89,10 +89,10 @@ def doCreateAndMount():
             kwargs["disk_list"] = x[len("--disk-list="):].split(",")
         if x == "--read-only":
             kwargs["read_only"] = True
-        if x.startswith("--extra_mount_options_for_rootfs="):
-            kwargs["extra_mount_point_for_rootfs"] = x[len("--extra_mount_options_for_rootfs="):]
-        if x.startswith("--extra_mount_options_for_boot="):
-            kwargs["extra_mount_point_for_boot"] = x[len("--extra_mount_options_for_boot="):]
+        if x.startswith("--extra-mount-options-for-rootfs="):
+            kwargs["extra_mount_point_for_rootfs"] = x[len("--extra-mount-options-for-rootfs="):]
+        if x.startswith("--extra-mount-options-for-boot="):
+            kwargs["extra_mount_point_for_boot"] = x[len("--extra-mount-options-for-boot="):]
     layout = strict_hdds.create_and_mount_storage_layout(sys.argv[3], sys.argv[2], **kwargs)
     _show(layout)
 
