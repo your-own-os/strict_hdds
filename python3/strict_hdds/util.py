@@ -975,14 +975,21 @@ class BcacheUtil:
         return retList
 
     @staticmethod
-    def scanAndRegisterAll():
-        # FIXME
-
+    def scanAndRegisterAllAndFilter(diskList):
+        # FIXME: we should do scan and register
         ret = []
         for fn in os.listdir("/dev"):
             if re.fullmatch("bcache[0-9]+", fn) is not None:
                 ret.append(os.path.join("/dev", fn))
-        return ret
+
+        # FIXME: filter, bad design
+        ret2 = []
+        for fn in ret:
+            devPathList = BcacheUtil.getSlaveDevPathList(fn)
+            if all([(x in diskList) for x in devPathList]):
+                ret2.append(fn)
+
+        return ret2
 
     @staticmethod
     def _isBackingDeviceOrCachDevice(devPath, backingDeviceOrCacheDevice):

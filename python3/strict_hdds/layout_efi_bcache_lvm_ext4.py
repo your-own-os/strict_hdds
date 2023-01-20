@@ -284,7 +284,7 @@ def parse(boot_dev, root_dev, mount_dir):
 
 
 def detect_and_mount(disk_list, mount_dir, kwargsDict):
-    BcacheUtil.scanAndRegisterAll()
+    BcacheUtil.scanAndRegisterAllAndFilter(disk_list)
     LvmUtil.activateAll()
 
     # pv list

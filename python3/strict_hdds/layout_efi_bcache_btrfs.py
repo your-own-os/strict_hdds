@@ -311,7 +311,7 @@ def parse(boot_dev, root_dev, mount_dir):
 
 def detect_and_mount(disk_list, mount_dir, kwargsDict):
     # scan
-    bcacheDevPathList = BcacheUtil.scanAndRegisterAll()
+    bcacheDevPathList = BcacheUtil.scanAndRegisterAllAndFilter(disk_list)
     bcacheDevPathList = [x for x in bcacheDevPathList if Util.getBlkDevFsType(x) == Util.fsTypeBtrfs]
     if len(bcacheDevPathList) == 0:
         raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.DISK_NOT_FOUND)

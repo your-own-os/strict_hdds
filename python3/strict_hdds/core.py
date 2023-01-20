@@ -227,7 +227,7 @@ def mount_storage_layout(mount_dir, layout_name=None, disk_list=None, **kwargs):
 
         # bcache related
         if Util.anyIn(["efi-bcache-btrfs", "efi-bcache-lvm-ext4"], allLayoutNames):
-            bcacheDevPathList = BcacheUtil.scanAndRegisterAll()         # only call bcache related procedure when corresponding storage layout exists
+            bcacheDevPathList = BcacheUtil.scanAndRegisterAllAndFilter(disk_list)    # only call bcache related procedure when corresponding storage layout exists
             if len(bcacheDevPathList) > 0:
                 if any(Util.getBlkDevFsType(x) == Util.fsTypeBtrfs for x in bcacheDevPathList):
                     return _detectAndMountOneStorageLayout("efi-bcache-btrfs", disk_list, mount_dir, kwargs)
@@ -236,7 +236,7 @@ def mount_storage_layout(mount_dir, layout_name=None, disk_list=None, **kwargs):
 
         # lvm related
         if Util.anyIn(["efi-lvm-ext4"], allLayoutNames):
-            LvmUtil.activateAll()                                       # only call lvm related procedure when corresponding storage layout exists
+            LvmUtil.activateAll()                                           # only call lvm related procedure when corresponding storage layout exists
             if LvmUtil.vgName in LvmUtil.getVgList():
                 return _detectAndMountOneStorageLayout("efi-lvm-ext4", disk_list, mount_dir, kwargs)
 
