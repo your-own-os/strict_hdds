@@ -201,13 +201,13 @@ def parse(boot_dev, root_dev, mount_dir):
     # get kwargsDict from mount options
     kwargsDict = dict()
     if True:
-        ret = Util.mntGetSubVol(mount_dir)
+        ret = Util.mntGetSubVolPath(mount_dir)
         if ret is None:
             raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "sub-volume not used")
         if not ret.startswith("/@"):
             raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "sub-volume \"%s\" is invalid" % (ret))
         if len(ret) > 2:
-            kwargsDict["snapshot"] = SnapshotBtrfs.getSnapshotNameFromSubvol(ret)
+            kwargsDict["snapshot"] = SnapshotBtrfs.getSnapshotNameFromSubvolPath(ret)
     if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
         kwargsDict["read-only"] = True
 

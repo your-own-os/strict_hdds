@@ -85,7 +85,7 @@ class Util:
         return "layout_" + layoutName.replace("-", "_")
 
     @staticmethod
-    def mntGetSubVol(mountPoint):
+    def mntGetSubVolPath(mountPoint):
         for mo in PhysicalDiskMounts.find_entry_by_mount_point(mountPoint).mnt_opt_list:
             m = re.fullmatch("subvol=(.+)", mo)
             if m is not None:

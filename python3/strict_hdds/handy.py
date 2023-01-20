@@ -631,7 +631,7 @@ class Snapshot(abc.ABC):
             __mkSubVol("@snapshots", 0o40700, 0, 0)
 
     @staticmethod
-    def getSnapshotNameFromSubvol(subvol):
+    def getSnapshotNameFromSubvolPath(subvol):
         m = re.fullmatch("/@snapshots/([^/]+)/snapshot", subvol)
         return m.group(1)
 
