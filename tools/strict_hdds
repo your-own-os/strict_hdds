@@ -93,7 +93,7 @@ def doCreateAndMount():
             kwargs["extra_mount_point_for_rootfs"] = x[len("--extra_mount_options_for_rootfs="):]
         if x.startswith("--extra_mount_options_for_boot="):
             kwargs["extra_mount_point_for_boot"] = x[len("--extra_mount_options_for_boot="):]
-    layout = strict_hdds.create_and_mount_storage_layout(args.argv[3], sys.argv[2], **kwargs)
+    layout = strict_hdds.create_and_mount_storage_layout(sys.argv[3], sys.argv[2], **kwargs)
     _show(layout)
 
 
