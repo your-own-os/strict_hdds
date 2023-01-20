@@ -685,7 +685,7 @@ class Snapshot(abc.ABC):
     def remove_snapshot(self, snapshot_name):
         self._recursiveDeleteSubVols("@snapshots/%s" % (snapshot_name))
 
-    def rollback_to_snapshot(self, snapshot_name, home=False, var=False):
+    def sync_from_snapshot(self, snapshot_name, home=False, var=False):
         subVolList = self._getSubVolList()
         if not all([x in subVolList for x in self._snapshotName2SnapshotFullNameList(snapshot_name)]):
             raise Exception("")
