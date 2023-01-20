@@ -630,9 +630,10 @@ class Snapshot(abc.ABC):
 
             __mkSubVol("@snapshots", 0o40700, 0, 0)
 
-    @staticmethod
-    def getSnapshotNameFromSubvolPath(subvol):
-        m = re.fullmatch("/@snapshots/([^/]+)/snapshot", subvol)
+    @classmethod
+    def getSnapshotNameFromSubvolPath(cls, subvol):
+        path, rootName, mode, uid, gid = cls._rootSubVol()
+        m = re.fullmatch("/@snapshots/([^/]+)/%s" % (rootName), subvol)
         return m.group(1)
 
     @staticmethod
@@ -656,15 +657,17 @@ class Snapshot(abc.ABC):
         return self._snapshotName
 
     def get_snapshot_list(self):
+        path, rootName, mode, uid, gid = self._rootSubVol()
         ret = []
         for sv in self._getSubVolList():
-            m = re.fullmatch("@snapshots/([^/]+)/snapshot", sv)
+            m = re.fullmatch("@snapshots/([^/]+)/%s" % rootName, sv)
             if m is not None:
                 ret.append(m.group(1))
         return ret
 
     def create_snapshot(self, snapshot_name):
-        self._createSnapshotSubVol(self._mntDir, "@", "@snapshots/%s/snapshot" % (snapshot_name))
+        path, rootName, mode, uid, gid = self._rootSubVol()
+        self._createSnapshotSubVol(self._mntDir, rootName, "@snapshots/%s/%s" % (snapshot_name, rootName))
 
     def remove_snapshot(self, snapshot_name):
         self._recursiveDeleteSubVols("@snapshots/%s" % (snapshot_name))
@@ -673,10 +676,10 @@ class Snapshot(abc.ABC):
         ret = []
 
         if True:
-            path, name, mode, uid, gid = self._rootSubVol()
+            path, rootName, mode, uid, gid = self._rootSubVol()
             if self._snapshotName is not None:
-                name = "@snapshots/%s/snapshot" % (self._snapshotName)
-            ret.append((path, mode, uid, gid, ["subvol=/%s" % (name)]))
+                rootName = "@snapshots/%s/%s" % (self._snapshotName, rootName)
+            ret.append((path, mode, uid, gid, ["subvol=/%s" % (rootName)]))
 
         for path, name, mode, uid, gid in (self._homeSubVols() + self._varSubVols()):
             ret.append((path, mode, uid, gid, ["subvol=/%s" % (name)]))
@@ -686,11 +689,15 @@ class Snapshot(abc.ABC):
     def check(self, auto_fix, error_callback):
         nameList = []
         if True:
-            path, name, mode, uid, gid = self._rootSubVol()
-            nameList.append(name)
+            path, rootName, mode, uid, gid = self._rootSubVol()
+            nameList.append(rootName)
+            for path, name, mode, uid, gid in (self._homeSubVols() + self._varSubVols()):
+                nameList.append(name)
+            nameList.append("@snapshots")
+
+        prefixList = []
         for path, name, mode, uid, gid in (self._homeSubVols() + self._varSubVols()):
-            nameList.append(name)
-        nameList.append("@snapshots")
+            prefixList.append(name + "/")
 
         # check existence
         svList = self._getSubVolList(self._mntDir)
@@ -701,13 +708,13 @@ class Snapshot(abc.ABC):
                 error_callback(errors.CheckCode.TRIVIAL, "Sub-volume \"%s\" does not exist." % (sv))    # no way to auto fix
 
         # check redundancy
-        prefixList = [x[1] + "/" for x in (self._homeSubVols() + self._varSubVols())]
         for sv in svList:
             if any([sv.startswith(x) for x in prefixList]):
                 # sub-volumes created by other programs
                 pass
             elif sv.startswith("@snapshots/"):
-                if not re.fullmatch("@snapshots/[^/]+/snapshot", sv):
+                path, rootName, mode, uid, gid = self._rootSubVol()
+                if not re.fullmatch("@snapshots/[^/]+/%s" % (rootName), sv):
                     error_callback(errors.CheckCode.TRIVIAL, "Redundant sub-volume \"%s\"." % (sv))     # too dangerous to auto fix
             else:
                 error_callback(errors.CheckCode.TRIVIAL, "Redundant sub-volume \"%s\"." % (sv))         # too dangerous to auto fix

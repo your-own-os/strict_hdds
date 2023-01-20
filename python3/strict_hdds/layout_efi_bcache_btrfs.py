@@ -21,7 +21,6 @@
 # THE SOFTWARE.
 
 
-import re
 from .util import Util, BcacheUtil, BtrfsUtil, PhysicalDiskMounts
 from .handy import EfiCacheGroup, Bcache, Snapshot, SnapshotBtrfs, MountEfi, MountParam, HandyCg, HandyBcache, DisksChecker
 from . import errors
