@@ -759,7 +759,7 @@ class Snapshot(abc.ABC):
 
     @classmethod
     def _allSubVols(cls):
-        return [cls._rootSubVol] + cls._homeSubVols() + cls._varSubVols()
+        return [cls._rootSubVol()] + cls._homeSubVols() + cls._varSubVols()
 
     @staticmethod
     def _rootSubVol():
