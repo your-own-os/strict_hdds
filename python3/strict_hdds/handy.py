@@ -704,20 +704,12 @@ class Snapshot(abc.ABC):
                 error_callback(errors.CheckCode.TRIVIAL, "Sub-volume \"%s\" does not exist." % (sv))    # no way to auto fix
 
         # check redundancy
-        prefixList = []
-        if True:
-            for path, name, mode, uid, gid in (self._homeSubVols() + self._varSubVols()):
-                prefixList.append(name + "/")
         for sv in svList:
-            if any([sv.startswith(x) for x in prefixList]):
-                # sub-volumes created by other programs
-                pass
-            elif sv.startswith("@snapshots/"):
+            if sv.startswith("@snapshots/"):
                 path, rootName, mode, uid, gid = self._rootSubVol()
-                if not re.fullmatch("@snapshots/[^/]+/%s" % (rootName), sv):
-                    error_callback(errors.CheckCode.TRIVIAL, "Redundant sub-volume \"%s\"." % (sv))     # too dangerous to auto fix
-            else:
-                error_callback(errors.CheckCode.TRIVIAL, "Redundant sub-volume \"%s\"." % (sv))         # too dangerous to auto fix
+                if re.fullmatch("@snapshots/[^/]+/%s" % (rootName), sv):
+                    continue
+            error_callback(errors.CheckCode.TRIVIAL, "Redundant sub-volume \"%s\"." % (sv))     # too dangerous to auto fix
 
     @staticmethod
     def _rootSubVol():
