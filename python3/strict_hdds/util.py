@@ -986,7 +986,7 @@ class BcacheUtil:
         ret2 = []
         for fn in ret:
             devPathList = BcacheUtil.getSlaveDevPathList(fn)
-            if all([(x in diskList) for x in devPathList]):
+            if all([(PartiUtil.partiToDisk(x) in diskList) for x in devPathList]):
                 ret2.append(fn)
 
         return ret2
