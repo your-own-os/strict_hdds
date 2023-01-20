@@ -659,26 +659,32 @@ class Snapshot(abc.ABC):
         return ret
 
     def create_snapshot(self, snapshot_name):
-        # self._createSnapshotSubVol(self._mntDir, "@", os.path.join("@snapshots", snapshot_name, "snapshot"))
-        assert False
+        self._createSnapshotSubVol(self._mntDir, "@", "@snapshots/%s/snapshot" % (snapshot_name))
 
     def remove_snapshot(self, snapshot_name):
-        # self._deleteSubVol(os.path.join("@snapshots", snapshot_name))
-        assert False
+        self._deleteSubVol("@snapshots/%s" % (snapshot_name))
 
     def getParamsForMount(self):
         ret = []
+
         if True:
             path, name, mode, uid, gid = self._rootSubVol()
             if self._snapshotName is not None:
                 name = "@snapshots/%s/snapshot" % (self._snapshotName)
             ret.append((path, mode, uid, gid, ["subvol=/%s" % (name)]))
+
         for path, name, mode, uid, gid in (self._homeSubVols() + self._varSubVols()):
             ret.append((path, mode, uid, gid, ["subvol=/%s" % (name)]))
+
         return ret
 
     def check(self, auto_fix, error_callback):
-        nameList = [x[1] for x in ([self._rootSubVol()] + self._homeSubVols() + self._varSubVols())]
+        nameList = []
+        if True:
+            path, name, mode, uid, gid = self._rootSubVol()
+            nameList.append(name)
+        for path, name, mode, uid, gid in (self._homeSubVols() + self._varSubVols()):
+            nameList.append(name)
         nameList.append("@snapshots")
 
         # check existence
