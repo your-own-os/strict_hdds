@@ -662,7 +662,7 @@ class Snapshot(abc.ABC):
         self._createSnapshotSubVol(self._mntDir, "@", "@snapshots/%s/snapshot" % (snapshot_name))
 
     def remove_snapshot(self, snapshot_name):
-        self._deleteSubVol("@snapshots/%s" % (snapshot_name))
+        self._recursiveDeleteSubVol("@snapshots/%s" % (snapshot_name))
 
     def getParamsForMount(self):
         ret = []
@@ -743,7 +743,7 @@ class Snapshot(abc.ABC):
 
     @staticmethod
     @abc.abstractmethod
-    def _deleteSubVol(mntDir, subVolPath):
+    def _recursiveDeleteSubVol(mntDir, subVolPath):
         pass
 
     @staticmethod
@@ -763,7 +763,7 @@ class SnapshotBtrfs(Snapshot):
         Util.cmdCall("btrfs", "subvolume", "snapshot", os.path.join(mntDir, srcSubVolPath), os.path.join(mntDir, subVolPath))
 
     @staticmethod
-    def _deleteSubVol(mntDir, subVolPath):
+    def _recursiveDeleteSubVol(mntDir, subVolPath):
         Util.cmdCall("btrfs", "subvolume", "delete", os.path.join(mntDir, subVolPath))
 
     @staticmethod
