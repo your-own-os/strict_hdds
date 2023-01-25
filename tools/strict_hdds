@@ -29,8 +29,8 @@ import strict_hdds
 def usage():
     print('Usage:')
     print('   strict_hdds show <directory>')
-    print('   strict_hdds mount <directory> [--layout-name=name] [--disk-list=dev1,dev2...] [--read-only] [--extra-mount-options-for-rootfs=opt1,opt2...] [--extra-mount-options-for-boot=opt1,opt2...]')
-    print('   strict_hdds create-and-mount <directory> <layout-name> [--disk-list=dev1,dev2...] [--read-only] [--extra-mount-options-for-rootfs=opt1,opt2...] [--extra-mount-options-for-boot=opt1,opt2...]')
+    print('   strict_hdds mount <directory> [--layout-name=name] [--disk-list=dev1,dev2...] [--read-only] [--extra-mount-options-for-root-dev=opt1,opt2...] [--extra-mount-options-for-boot-dev=opt1,opt2...]')
+    print('   strict_hdds create-and-mount <directory> <layout-name> [--disk-list=dev1,dev2...] [--read-only] [--extra-mount-options-for-root-dev=opt1,opt2...] [--extra-mount-options-for-boot-dev=opt1,opt2...]')
     print('   strict_hdds add-harddisk <directory> <devpath>')
     print('   strict_hdds remove-harddisk <directory> <devpath>')
     print('   strict_hdds create-swap-file <directory>')
@@ -70,10 +70,10 @@ def doMount():
             kwargs["disk_list"] = x[len("--disk-list="):].split(",")
         if x == "--read-only":
             kwargs["read_only"] = True
-        if x.startswith("--extra-mount-options-for-rootfs="):
-            kwargs["extra_mount_point_for_rootfs"] = x[len("--extra-mount-options-for-rootfs="):]
-        if x.startswith("--extra-mount-options-for-boot="):
-            kwargs["extra_mount_point_for_boot"] = x[len("--extra-mount-options-for-boot="):]
+        if x.startswith("--extra-mount-options-for-root-dev="):
+            kwargs["extra_mount_options_for_root_dev"] = x[len("--extra-mount-options-for-root-dev="):]
+        if x.startswith("--extra-mount-options-for-boot-dev="):
+            kwargs["extra_mount_options_for_boot_dev"] = x[len("--extra-mount-options-for-boot-dev="):]
     layout = strict_hdds.mount_storage_layout(sys.argv[2], **kwargs)
     _show(layout)
 
@@ -89,10 +89,10 @@ def doCreateAndMount():
             kwargs["disk_list"] = x[len("--disk-list="):].split(",")
         if x == "--read-only":
             kwargs["read_only"] = True
-        if x.startswith("--extra-mount-options-for-rootfs="):
-            kwargs["extra_mount_point_for_rootfs"] = x[len("--extra-mount-options-for-rootfs="):]
-        if x.startswith("--extra-mount-options-for-boot="):
-            kwargs["extra_mount_point_for_boot"] = x[len("--extra-mount-options-for-boot="):]
+        if x.startswith("--extra-mount-options-for-root-dev="):
+            kwargs["extra_mount_options_for_root_dev"] = x[len("--extra-mount-options-for-root-dev="):]
+        if x.startswith("--extra-mount-options-for-boot-dev="):
+            kwargs["extra_mount_options_for_boot_dev"] = x[len("--extra-mount-options-for-boot-dev="):]
     layout = strict_hdds.create_and_mount_storage_layout(sys.argv[3], sys.argv[2], **kwargs)
     _show(layout)
 

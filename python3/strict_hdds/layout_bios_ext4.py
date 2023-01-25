@@ -187,13 +187,13 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
 def _params_for_mount(obj, kwargsDict):
     tlist = []
     if "extra_mount_options" in kwargsDict:
-        assert "extra_mount_options_for_rootfs" not in kwargsDict
+        assert "extra_mount_options_for_root_dev" not in kwargsDict
         assert kwargsDict["extra_mount_options"] != ""
         tlist += kwargsDict.pop("extra_mount_options").split(",")
-    if "extra_mount_options_for_rootfs" in kwargsDict:
+    if "extra_mount_options_for_root_dev" in kwargsDict:
         assert "extra_mount_options" not in kwargsDict
-        assert kwargsDict["extra_mount_options_for_rootfs"] != ""
-        tlist += kwargsDict.pop("extra_mount_options_for_rootfs").split(",")
+        assert kwargsDict["extra_mount_options_for_root_dev"] != ""
+        tlist += kwargsDict.pop("extra_mount_options_for_root_dev").split(",")
     return [
         MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist)
     ]
