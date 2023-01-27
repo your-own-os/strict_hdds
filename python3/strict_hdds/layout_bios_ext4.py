@@ -86,6 +86,9 @@ class StorageLayoutImpl(StorageLayout):
     def get_bootdir_rw_controller(self):
         pass
 
+    def get_disk_list(self):
+        return [self._hdd]
+
     @SwapFile.proxy
     def create_swap_file(self):
         pass

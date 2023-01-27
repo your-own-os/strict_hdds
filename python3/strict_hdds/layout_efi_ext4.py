@@ -92,6 +92,9 @@ class StorageLayoutImpl(StorageLayout):
     def get_esp(self):
         return self._hddEspParti
 
+    def get_disk_list(self):
+        return [self._hdd]
+
     @SwapFile.proxy
     def create_swap_file(self):
         pass

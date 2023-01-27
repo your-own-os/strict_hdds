@@ -80,6 +80,10 @@ class StorageLayout(abc.ABC):
     def get_bootdir_rw_controller(self):
         pass
 
+    @abc.abstractmethod
+    def get_disk_list(self):
+        pass
+
     def check(self, auto_fix=False, error_callback=None):
         self._check_impl(Util.checkItemBasic, auto_fix=auto_fix, error_callback=functools.partial(errors.checkErrorCallback, error_callback))
 
