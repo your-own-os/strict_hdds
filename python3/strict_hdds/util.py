@@ -274,6 +274,7 @@ class Util:
 
     @staticmethod
     def getSwapSizeInGb():
+        # see https://opensource.com/article/19/2/swap-space-poll
         sz = Util.getPhysicalMemorySizeInGb()
         if sz <= 4:
             return sz * 2               # 3GB -> 6GB, 4GB -> 8GB
