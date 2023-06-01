@@ -1196,7 +1196,7 @@ class HandyCg:
         else:
             espParti = HandyUtil._mcCheckAndGetEspParti(storageLayoutName, hddList, mustHave=True)
             if espParti != bootDev:
-                raise errors.StorageLayoutParseError(storageLayoutName, errors.BOOT_DEV_MUST_BE(ssdEspParti))
+                raise errors.StorageLayoutParseError(storageLayoutName, errors.BOOT_DEV_MUST_BE(bootDev))
             return PartiUtil.partiToDisk(espParti)
 
     @staticmethod
