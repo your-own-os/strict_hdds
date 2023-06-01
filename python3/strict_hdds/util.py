@@ -665,6 +665,7 @@ class GptUtil:
 
         # do checking
         diskDevPath, partId = PartiUtil.partiToDiskAndPartiId(devPath)
+        diskSectorSize = parted.getDevice(diskDevPath).sectorSize
         with open(diskDevPath, "rb") as f:
             # get protective MBR
             mbrHeader = struct.unpack(mbrHeaderFmt, f.read(struct.calcsize(mbrHeaderFmt)))
@@ -683,8 +684,9 @@ class GptUtil:
                 return False
 
             # get the specified GPT partition entry
+            f.seek(diskSectorSize)
             gptHeader = struct.unpack(gptHeaderFmt, f.read(struct.calcsize(gptHeaderFmt)))
-            f.seek(gptHeader[10] * 512 + struct.calcsize(gptEntryFmt) * (partId - 1))
+            f.seek(gptHeader[10] * diskSectorSize + struct.calcsize(gptEntryFmt) * (partId - 1))
             partEntry = struct.unpack(gptEntryFmt, f.read(struct.calcsize(gptEntryFmt)))
 
             # check partition GUID
