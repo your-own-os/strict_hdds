@@ -1286,7 +1286,6 @@ class DisksChecker:
     def check_boot_sector(self, auto_fix, error_callback):
         for hdd in self._hddList:
             dev, disk = self._partedGetDevAndDisk(hdd)
-            diskSectorSize = parted.getDevice(dev).sectorSize
             if disk.type == "msdos":
                 pass
             elif disk.type == "gpt":
@@ -1355,7 +1354,7 @@ class DisksChecker:
                     continue
 
                 # read to gpt header
-                buf = f.read(diskSectorSize - struct.calcsize(mbrHeaderFmt))
+                buf = f.read(dev.sectorSize - struct.calcsize(mbrHeaderFmt))
                 if not Util.isBufferAllZero(buf):
                     error_callback(errors.CheckCode.TRIVIAL, "space between Protective MBR and GPT header should be filled with zero")
                     continue
