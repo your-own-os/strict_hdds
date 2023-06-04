@@ -1267,21 +1267,11 @@ class DisksChecker:
         self._hddList = disk_list
         self._diskCache = dict()        # avoid create new disk object every time
 
-    def check_partition_type(self, partition_type_list, auto_fix, error_callback):
-        partTypeList = []
-
-        bBad = False
+    def check_partition_type(self, partition_type, auto_fix, error_callback):
         for hdd in self._hddList:
             dev, disk = self._partedGetDevAndDisk(hdd)
-            partTypeList.append(disk.type)
-            if disk.type not in [partition_type_list]:
+            if disk.type != partition_type:
                 error_callback(errors.CheckCode.TRIVIAL, "Inappopriate partition type for %s" % (hdd))
-                bBad = True
-
-        if not bBad:
-            for i in range(1, len(self._hddList)):
-                if partTypeList[i - 1] != partTypeList[i]:
-                    error_callback(errors.CheckCode.TRIVIAL, "%s and %s have different partition types" % (self._hddList[i - 1], self._hddList[i]))
 
     def check_boot_sector(self, auto_fix, error_callback):
         for hdd in self._hddList:
