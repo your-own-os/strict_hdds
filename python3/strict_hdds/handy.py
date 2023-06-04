@@ -1286,6 +1286,7 @@ class DisksChecker:
     def check_boot_sector(self, auto_fix, error_callback):
         for hdd in self._hddList:
             dev, disk = self._partedGetDevAndDisk(hdd)
+            diskSectorSize = parted.getDevice(dev).sectorSize
             if disk.type == "msdos":
                 pass
             elif disk.type == "gpt":
@@ -1311,18 +1312,18 @@ class DisksChecker:
                 #     struct mbr_partition_record partition_record[4];
                 #     uint16_t                    signature;
                 # };
-                self.mbrHeaderFmt = "440sIH%dsH" % (struct.calcsize(mbrPartitionRecordFmt) * 4)
-                assert struct.calcsize(self.mbrHeaderFmt) == 512
+                mbrHeaderFmt = "440sIH%dsH" % (struct.calcsize(mbrPartitionRecordFmt) * 4)
+                assert struct.calcsize(mbrHeaderFmt) == 512
 
                 # get Protective MBR header
                 mbrHeader = None
                 if True:
                     with open(hdd, "rb") as f:
-                        buf = f.read(struct.calcsize(self.mbrHeaderFmt))
-                        mbrHeader = struct.unpack(self.mbrHeaderFmt, buf)
+                        buf = f.read(struct.calcsize(mbrHeaderFmt))
+                        mbrHeader = struct.unpack(mbrHeaderFmt, buf)
                 else:
                     # FIXME: we can't use self._partedReadSectors() since it returns str, not bytes, what a bug!
-                    # mbrHeader = struct.unpack(self.mbrHeaderFmt, self._partedReadSectors(dev, 0, 1)[:struct.calcsize(self.mbrHeaderFmt)])
+                    # mbrHeader = struct.unpack(mbrHeaderFmt, self._partedReadSectors(dev, 0, 1)[:struct.calcsize(mbrHeaderFmt)])
                     pass
 
                 # check Protective MBR header
@@ -1339,7 +1340,7 @@ class DisksChecker:
                 # check Protective MBR Partition Record
                 pRec = struct.unpack_from(mbrPartitionRecordFmt, mbrHeader[3], 0)
                 if pRec[4] != 0xEE:
-                    error_callback(errors.CheckCode.TRIVIAL, "The first Partition Record should be Protective MBR Partition Record (OS Type == 0xEE) for %s" % (hdd))
+                    error_callback(errors.CheckCode.TRIVIAL, "the first Partition Record should be Protective MBR Partition Record (OS Type == 0xEE) for %s" % (hdd))
                     continue
                 if pRec[0] != 0:
                     error_callback(errors.CheckCode.TRIVIAL, "Boot Indicator in Protective MBR Partition Record should be zero for %s" % (hdd))
@@ -1347,7 +1348,13 @@ class DisksChecker:
 
                 # other Partition Record should be filled with zero
                 if not Util.isBufferAllZero(mbrHeader[struct.calcsize(mbrPartitionRecordFmt):]):
-                    error_callback(errors.CheckCode.TRIVIAL, "All Partition Records should be filled with zero")
+                    error_callback(errors.CheckCode.TRIVIAL, "all Partition Records should be filled with zero")
+                    continue
+
+                # read to gpt header
+                buf = f.read(diskSectorSize - struct.calcsize(mbrHeaderFmt))
+                if not Util.isBufferAllZero(buf):
+                    error_callback(errors.CheckCode.TRIVIAL, "space between Protective MBR and GPT header should be filled with zero")
                     continue
 
                 # ghnt and check primary and backup GPT header
