@@ -683,12 +683,8 @@ class GptUtil:
             if not found:
                 return False
 
-            # read to gpt header
-            buf = f.read(diskSectorSize - struct.calcsize(mbrHeaderFmt))
-            if not Util.isBufferAllZero(buf):
-                return False
-
             # get the specified GPT partition entry
+            f.seek(diskSectorSize)
             gptHeader = struct.unpack(gptHeaderFmt, f.read(struct.calcsize(gptHeaderFmt)))
             f.seek(gptHeader[10] * diskSectorSize + struct.calcsize(gptEntryFmt) * (partId - 1))
             partEntry = struct.unpack(gptEntryFmt, f.read(struct.calcsize(gptEntryFmt)))
