@@ -1336,6 +1336,9 @@ class DisksChecker:
                 if mbrHeader[2] != 0:
                     error_callback(errors.CheckCode.TRIVIAL, "reserved area in Protective MBR should be zero for %s" % (hdd))
                     continue
+                if mbrHeader[4] != 0xAA55:
+                    error_callback(errors.CheckCode.TRIVIAL, "signature in Protective MBR should be 0xAA55 for %s" % (hdd))
+                    continue
 
                 # check Protective MBR Partition Record
                 pRec = struct.unpack_from(mbrPartitionRecordFmt, mbrHeader[3], 0)
