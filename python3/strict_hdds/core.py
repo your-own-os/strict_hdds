@@ -119,6 +119,10 @@ class MountEntry:
 class RwController(abc.ABC):
 
     @abc.abstractmethod
+    def is_controllable(self):
+        pass
+
+    @abc.abstractmethod
     def is_writable(self):
         pass
 
