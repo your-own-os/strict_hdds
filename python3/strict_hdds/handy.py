@@ -1280,41 +1280,41 @@ class DisksChecker:
                 error_callback(errors.CheckCode.TRIVIAL, "Inappopriate partition type for %s" % (hdd))
 
     def check_boot_sector(self, auto_fix, error_callback):
+        # struct mbr_partition_record {
+        #     uint8_t  boot_indicator;
+        #     uint8_t  start_head;
+        #     uint8_t  start_sector;
+        #     uint8_t  start_track;
+        #     uint8_t  os_type;
+        #     uint8_t  end_head;
+        #     uint8_t  end_sector;
+        #     uint8_t  end_track;
+        #     uint32_t starting_lba;
+        #     uint32_t size_in_lba;
+        # };
+        mbrPartitionRecordFmt = "8BII"
+        assert struct.calcsize(mbrPartitionRecordFmt) == 16
+
+        # struct mbr_header {
+        #     uint8_t                     boot_code[440];
+        #     uint32_t                    unique_mbr_signature;
+        #     uint16_t                    unknown;
+        #     struct mbr_partition_record partition_record[4];
+        #     uint16_t                    signature;
+        # };
+        mbrHeaderFmt = "440sIH%dsH" % (struct.calcsize(mbrPartitionRecordFmt) * 4)
+        assert struct.calcsize(mbrHeaderFmt) == 512
+
         for hdd in self._hddList:
             dev, disk = self._partedGetDevAndDisk(hdd)
             if disk.type == "msdos":
                 pass
             elif disk.type == "gpt":
-                # struct mbr_partition_record {
-                #     uint8_t  boot_indicator;
-                #     uint8_t  start_head;
-                #     uint8_t  start_sector;
-                #     uint8_t  start_track;
-                #     uint8_t  os_type;
-                #     uint8_t  end_head;
-                #     uint8_t  end_sector;
-                #     uint8_t  end_track;
-                #     uint32_t starting_lba;
-                #     uint32_t size_in_lba;
-                # };
-                mbrPartitionRecordFmt = "8BII"
-                assert struct.calcsize(mbrPartitionRecordFmt) == 16
-
-                # struct mbr_header {
-                #     uint8_t                     boot_code[440];
-                #     uint32_t                    unique_mbr_signature;
-                #     uint16_t                    unknown;
-                #     struct mbr_partition_record partition_record[4];
-                #     uint16_t                    signature;
-                # };
-                mbrHeaderFmt = "440sIH%dsH" % (struct.calcsize(mbrPartitionRecordFmt) * 4)
-                assert struct.calcsize(mbrHeaderFmt) == 512
-
                 # FIXME: we can't use self._partedReadSectors() since it returns str, not bytes, what a bug!
                 # mbrHeader = struct.unpack(mbrHeaderFmt, self._partedReadSectors(dev, 0, 1)[:struct.calcsize(mbrHeaderFmt)])
 
                 with open(hdd, "rb") as f:
-                    # get Protective MBR header
+                    # read Protective MBR header
                     buf = f.read(struct.calcsize(mbrHeaderFmt))
                     mbrHeader = struct.unpack(mbrHeaderFmt, buf)
 
