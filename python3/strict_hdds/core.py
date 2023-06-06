@@ -77,7 +77,7 @@ class StorageLayout(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def is_mounted_read_only(self):
+    def is_read_only(self):
         pass
 
     @abc.abstractmethod
