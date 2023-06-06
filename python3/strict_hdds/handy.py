@@ -910,9 +910,13 @@ class Mount(abc.ABC):
     def mount_point(self):
         return self._mntDir
 
-    @property
-    def mount_params(self):
-        return self._mntParams
+    @abc.abstractmethod
+    def is_read_only(self):
+        pass
+
+    @abc.abstractmethod
+    def get_mount_params(self, **kwargs):
+        pass
 
     def get_mount_entries(self):
         ret = []
@@ -927,10 +931,6 @@ class Mount(abc.ABC):
         for p in reversed(self._mntParams):
             if p.device is not None:
                 Util.cmdCall("umount", p.real_dir_path)
-
-    @abc.abstractmethod
-    def is_read_only(self):
-        pass
 
 
 class MountBios(Mount):
@@ -949,6 +949,9 @@ class MountBios(Mount):
 
     def is_read_only(self):
         return self._readOnly
+
+    def get_mount_params(self, **kwargs):
+        assert False
 
 
 class MountEfi(Mount):
@@ -989,6 +992,9 @@ class MountEfi(Mount):
     def is_read_only(self):
         return self._readOnly
 
+    def get_mount_params(self, **kwargs):
+        assert False
+
     def get_bootdir_rw_controller(self):
         return self._rwCtrl
 
@@ -1004,13 +1010,13 @@ class MountEfi(Mount):
         self._pEsp.device = None
 
     def _findRootfsMountParam(self):
-        for p in self.mount_params:
+        for p in self._parent._mntParams:
             if p.mountpoint == "/":
                 return p
         assert False
 
     def _findEspMountParam(self):
-        for p in self.mount_params:
+        for p in self._parent._mntParams:
             if p.mountpoint == Util.bootDir:
                 return p
         assert False

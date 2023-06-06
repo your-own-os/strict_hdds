@@ -36,6 +36,7 @@ __version__ = "0.0.1"
 
 
 from .core import StorageLayout
+from .core import MountParam
 from .core import MountEntry
 from .core import RwController
 

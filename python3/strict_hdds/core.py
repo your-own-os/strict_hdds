@@ -73,6 +73,10 @@ class StorageLayout(abc.ABC):
         pass
 
     @abc.abstractmethod
+    def get_mount_params(self, **kwargs):
+        pass
+
+    @abc.abstractmethod
     def get_mount_entries(self):
         pass
 
@@ -94,6 +98,31 @@ class StorageLayout(abc.ABC):
     @abc.abstractmethod
     def _check_impl(self, check_item, *kargs, auto_fix=False, error_callback=None):
         pass
+
+
+class MountParam:
+
+    def __init__(self, dir_path, dir_mode, dir_uid, dir_gid, device, fstype, mnt_opt_list=[]):
+        assert os.path.isabs(dir_path)
+        assert dir_mode is not None
+        assert isinstance(dir_uid, int)
+        assert isinstance(dir_gid, int)
+        assert device is not None
+        assert fstype is not None
+        assert mnt_opt_list is not None
+
+        self.device = device
+        self.mountpoint = dir_path
+        self.fstype = fstype
+
+        self.mnt_opt_list = mnt_opt_list
+        self.mnt_dir_mode = dir_mode
+        self.mnt_dir_uid = dir_uid
+        self.mnt_dir_gid = dir_gid
+
+    @property
+    def opts(self):
+        return ",".join(self.mnt_opt_list)
 
 
 class MountEntry:
