@@ -77,6 +77,10 @@ class StorageLayout(abc.ABC):
         pass
 
     @abc.abstractmethod
+    def is_mounted_read_only(self):
+        pass
+
+    @abc.abstractmethod
     def get_bootdir_rw_controller(self):
         pass
 

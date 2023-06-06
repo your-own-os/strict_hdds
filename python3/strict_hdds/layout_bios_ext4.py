@@ -83,6 +83,10 @@ class StorageLayoutImpl(StorageLayout):
         pass
 
     @MountBios.proxy
+    def is_read_only(self):
+        pass
+
+    @MountBios.proxy
     def get_bootdir_rw_controller(self):
         pass
 

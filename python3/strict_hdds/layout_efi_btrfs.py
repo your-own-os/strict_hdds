@@ -88,6 +88,10 @@ class StorageLayoutImpl(StorageLayout):
         pass
 
     @MountEfi.proxy
+    def is_read_only(self):
+        pass
+
+    @MountEfi.proxy
     def get_bootdir_rw_controller(self):
         pass
 
