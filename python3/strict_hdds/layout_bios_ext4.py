@@ -86,10 +86,6 @@ class StorageLayoutImpl(StorageLayout):
     def is_read_only(self):
         pass
 
-    @MountBios.proxy
-    def get_bootdir_rw_controller(self):
-        pass
-
     def get_disk_list(self):
         return [self._hdd]
 

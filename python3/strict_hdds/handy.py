@@ -932,26 +932,8 @@ class Mount(abc.ABC):
     def is_read_only(self):
         pass
 
-    @abc.abstractmethod
-    def get_bootdir_rw_controller(self):
-        pass
-
 
 class MountBios(Mount):
-
-    class RwController(RwController):
-
-        def __init__(self, parent):
-            self._parent = parent
-
-        def is_writable(self):
-            return not self._parent._readOnly
-
-        def to_read_write(self):
-            pass
-
-        def to_read_only(self):
-            pass
 
     def __init__(self, bIsMounted, mntDir, mntParams, kwargsDict):
         assert len(mntParams) == 1
@@ -967,9 +949,6 @@ class MountBios(Mount):
 
     def is_read_only(self):
         return self._readOnly
-
-    def get_bootdir_rw_controller(self):
-        return self._rwCtrl
 
 
 class MountEfi(Mount):

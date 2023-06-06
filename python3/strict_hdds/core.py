@@ -81,10 +81,6 @@ class StorageLayout(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_bootdir_rw_controller(self):
-        pass
-
-    @abc.abstractmethod
     def get_disk_list(self):
         pass
 
