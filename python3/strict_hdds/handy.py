@@ -944,9 +944,6 @@ class MountBios(Mount):
         def __init__(self, parent):
             self._parent = parent
 
-        def is_controllable(self):
-            return False
-
         def is_writable(self):
             return not self._parent._readOnly
 
@@ -981,9 +978,6 @@ class MountEfi(Mount):
 
         def __init__(self, parent):
             self._parent = parent
-
-        def is_controllable(self):
-            return True
 
         def is_writable(self):
             return self._parent._isMountParamWritable(self._parent._pEsp)
