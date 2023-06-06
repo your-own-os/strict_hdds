@@ -22,7 +22,7 @@
 
 
 from .util import Util, PartiUtil, MbrUtil, PhysicalDiskMounts
-from .handy import SwapFile, MountBios, MountParam, DisksChecker, HandyUtil
+from .handy import SwapFile, MountBios, InternalMountParam, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
 
@@ -198,5 +198,5 @@ def _params_for_mount(obj, kwargsDict):
         assert kwargsDict["extra_mount_options_for_root_dev"] != ""
         tlist += kwargsDict.pop("extra_mount_options_for_root_dev").split(",")
     return [
-        MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist)
+        InternalMountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist)
     ]

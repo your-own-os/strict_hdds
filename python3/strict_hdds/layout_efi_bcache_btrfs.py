@@ -22,7 +22,7 @@
 
 
 from .util import Util, BcacheUtil, BtrfsUtil, PhysicalDiskMounts
-from .handy import EfiCacheGroup, Bcache, Snapshot, SnapshotBtrfs, MountEfi, MountParam, HandyCg, HandyBcache, DisksChecker
+from .handy import EfiCacheGroup, Bcache, Snapshot, SnapshotBtrfs, MountEfi, InternalMountParam, HandyCg, HandyBcache, DisksChecker
 from . import errors
 from . import StorageLayout
 
@@ -375,8 +375,8 @@ def _params_for_mount(obj, kwargsDict):
 
     ret = []
     for dirPath, dirMode, dirUid, dirGid, mntOptList in obj._snapshot.getParamsForMount():
-        ret.append(MountParam(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
-    ret.append(MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
+        ret.append(InternalMountParam(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
+    ret.append(InternalMountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
     return ret
 
 

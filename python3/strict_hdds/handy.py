@@ -873,7 +873,7 @@ class Mount(abc.ABC):
 
     def __init__(self, bIsMounted, mntDir, mntParams, kwargsDict):
         assert len(mntParams) > 0
-        assert all([isinstance(x, MountParam) for x in mntParams])
+        assert all([isinstance(x, InternalMountParam) for x in mntParams])
         assert mntParams[0].mountpoint == "/"
 
         self._mntDir = mntDir
@@ -1019,7 +1019,7 @@ class MountEfi(Mount):
         return ("rw" in PhysicalDiskMounts.find_entry_by_mount_point(p.real_dir_path).mnt_opt_list)
 
 
-class MountParam:
+class InternalMountParam:
 
     def __init__(self, dir_path, dir_mode, dir_uid, dir_gid, device, fstype, mnt_opt_list=[]):
         assert os.path.isabs(dir_path)

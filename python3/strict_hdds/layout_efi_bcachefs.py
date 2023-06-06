@@ -22,7 +22,7 @@
 
 
 from .util import Util, PartiUtil, BcachefsUtil, PhysicalDiskMounts
-from .handy import EfiCacheGroup, MountEfi, MountParam, HandyCg, DisksChecker
+from .handy import EfiCacheGroup, MountEfi, InternalMountParam, HandyCg, DisksChecker
 from . import errors
 from . import StorageLayout
 
@@ -325,6 +325,6 @@ def _params_for_mount(obj, kwargsDict):
         tlistBoot += kwargsDict.pop("extra_mount_options_for_boot_dev").split(",")
 
     return [
-        MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeBcachefs, mnt_opt_list=tlist),
-        MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
+        InternalMountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeBcachefs, mnt_opt_list=tlist),
+        InternalMountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
     ]
