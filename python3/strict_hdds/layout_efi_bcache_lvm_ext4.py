@@ -277,7 +277,7 @@ def parse(boot_dev, root_dev, mount_dir):
     # get kwargsDict from mount options
     kwargsDict = dict()
     if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
-        kwargsDict["read-only"] = True
+        kwargsDict["read_only"] = True
 
     # return
     ret = StorageLayoutImpl()
