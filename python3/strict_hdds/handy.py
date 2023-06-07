@@ -31,6 +31,7 @@ import struct
 import parted
 from .util import Util, PartiUtil, GptUtil, BcacheUtil, LvmUtil, PhysicalDiskMounts, TmpMount
 from . import errors
+from . import MountParam
 from . import MountEntry
 from . import RwController
 
@@ -942,7 +943,7 @@ class MountBios(Mount):
         self._rwCtrl = self.RwController(self)
 
     def get_mount_params(self, **kwargs):
-        ret = copy.deepcopy(self._mntParams)            # FIXME: convert from InternalMountParam to MountParam
+        ret = [copy.deepcopy(super(MountParam, x)) for x in self._mntParams]
         if kwargs.get("read_only", False):
             ret[0].mnt_opt_list.append("ro")
         return ret
@@ -982,7 +983,7 @@ class MountEfi(Mount):
         self._rwCtrl = self.RwController(self)
 
     def get_mount_params(self, **kwargs):
-        ret = copy.deepcopy(self._mntParams)            # FIXME: convert from InternalMountParam to MountParam
+        ret = [copy.deepcopy(super(MountParam, x)) for x in self._mntParams]
         if kwargs.get("read_only", False):
             for p in ret:
                 if p.mountpoint != Util.bootDir:
@@ -1019,30 +1020,12 @@ class MountEfi(Mount):
         return ("rw" in PhysicalDiskMounts.find_entry_by_mount_point(p.real_dir_path).mnt_opt_list)
 
 
-class InternalMountParam:
+class InternalMountParam(MountParam):
 
-    def __init__(self, dir_path, dir_mode, dir_uid, dir_gid, device, fstype, mnt_opt_list=[]):
-        assert os.path.isabs(dir_path)
-        assert dir_mode is not None
-        assert isinstance(dir_uid, int)
-        assert isinstance(dir_gid, int)
-        assert device is not None
-        assert fstype is not None
-        assert mnt_opt_list is not None
+    def __init__(self, *kargs, **kwargs):
+        super().__init__(*kargs, **kwargs)
 
-        self.device = device
-        self.mountpoint = dir_path
-        self.fstype = fstype
-
-        self.mnt_opt_list = mnt_opt_list
-        self.mnt_dir_mode = dir_mode
-        self.mnt_dir_uid = dir_uid
-        self.mnt_dir_gid = dir_gid
         self.real_dir_path = None           # the whole object is not valid until self.real_dir_path gets its value
-
-    @property
-    def opts(self):
-        return ",".join(self.mnt_opt_list)
 
     def setMountObj(self, mountObj):
         if self.mountpoint == "/":
