@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-from .util import Util, PartiUtil, BtrfsUtil, PhysicalDiskMounts
+from .util import Util, PartiUtil, BtrfsUtil
 from .handy import EfiMultiDisk, Snapshot, SubVolsBtrfs, MountEfi, InternalMountParam, HandyMd, DisksChecker
 from . import errors
 from . import StorageLayout
@@ -210,8 +210,8 @@ def parse(boot_dev, root_dev, mount_dir):
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
-    SubVolsBtrfs.mntArgsDictSetSnapshot(mount_dir, mntArgsDict)
-    MountEfi.mntArgsDictSetReadOnly(mount_dir, mntArgsDict)
+    SubVolsBtrfs.mntArgsDictSetSnapshot(StorageLayoutImpl.name, mount_dir, mntArgsDict)
+    MountEfi.mntArgsDictSetReadOnly(StorageLayoutImpl.name, mount_dir, mntArgsDict)
 
     # return
     ret = StorageLayoutImpl()

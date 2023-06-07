@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-from .util import Util, PartiUtil, GptUtil, PhysicalDiskMounts
+from .util import Util, PartiUtil, GptUtil
 from .handy import SwapFile, MountEfi, InternalMountParam, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
@@ -136,7 +136,7 @@ def parse(boot_dev, root_dev, mount_dir):
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
-    MountEfi.mntArgsDictSetReadOnly(mount_dir, mntArgsDict)
+    MountEfi.mntArgsDictSetReadOnly(StorageLayoutImpl.name, mount_dir, mntArgsDict)
 
     # return
     ret = StorageLayoutImpl()

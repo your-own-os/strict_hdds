@@ -343,4 +343,3 @@ def _detectAndMountOneStorageLayout(layoutName, diskList, mountDir, mntArgsDict)
         return f(diskList, mountDir, mntArgsDict)
     except ModuleNotFoundError:
         raise errors.StorageLayoutParseError("", "unknown storage layout")
-

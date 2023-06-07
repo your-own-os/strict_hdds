@@ -817,12 +817,12 @@ class Snapshot(abc.ABC):
 class SubVolsBtrfs(Snapshot):
 
     @classmethod
-    def mntArgsDictSetSnapshot(cls, mount_dir, mnt_args_dict):
+    def mntArgsDictSetSnapshot(cls, storageLayoutName, mount_dir, mnt_args_dict):
         ret = Util.mntGetSubVolPath(mount_dir)
         if ret is None:
-            raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "sub-volume not used")
+            raise errors.StorageLayoutParseError(storageLayoutName, "sub-volume not used")
         if not ret.startswith("/@"):
-            raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "sub-volume \"%s\" is invalid" % (ret))
+            raise errors.StorageLayoutParseError(storageLayoutName, "sub-volume \"%s\" is invalid" % (ret))
         if len(ret) > 2:
             mnt_args_dict["snapshot"] = cls.getSnapshotNameFromSubVolPath(ret)
 
@@ -871,7 +871,7 @@ class SubVolsBtrfs(Snapshot):
 class Mount(abc.ABC):
 
     @staticmethod
-    def mntArgsDictSetReadOnly(mount_dir, mnt_args_dict):
+    def mntArgsDictSetReadOnly(storageLayoutName, mount_dir, mnt_args_dict):
         if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
             mnt_args_dict["read_only"] = True
 

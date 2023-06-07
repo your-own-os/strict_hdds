@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-from .util import Util, PartiUtil, MbrUtil, PhysicalDiskMounts
+from .util import Util, PartiUtil, MbrUtil
 from .handy import SwapFile, MountBios, InternalMountParam, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
@@ -129,7 +129,7 @@ def parse(boot_dev, root_dev, mount_dir):
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
-    MountBios.mntArgsDictSetReadOnly(mount_dir, mntArgsDict)
+    MountBios.mntArgsDictSetReadOnly(StorageLayoutImpl.name, mount_dir, mntArgsDict)
 
     # return
     ret = StorageLayoutImpl()
@@ -143,7 +143,7 @@ def parse(boot_dev, root_dev, mount_dir):
 
 
 def detect_and_mount(disk_list, mount_dir, mntArgsDict):
-    kwargsDict = mntArgsDict.copy()
+    mntArgsDict = mntArgsDict.copy()
 
     # scan for root partition
     rootPartitionList = []
@@ -170,14 +170,14 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     ret._hdd = PartiUtil.partiToDisk(rootPartitionList[0])
     ret._hddRootParti = rootPartitionList[0]
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, mount_dir)
-    ret._mnt = MountBios(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)      # do mount during MountBios initialization
+    ret._mnt = MountBios(False, mount_dir, _params_for_mount(ret, mntArgsDict), mntArgsDict)      # do mount during MountBios initialization
 
-    assert len(kwargsDict) == 0
+    assert len(mntArgsDict) == 0
     return ret
 
 
-def create_and_mount(disk_list, mount_dir, kwargsDict):
-    kwargsDict = kwargsDict.copy()
+def create_and_mount(disk_list, mount_dir, mntArgsDict):
+    mntArgsDict = mntArgsDict.copy()
 
     # create partitions
     hdd = HandyUtil.checkAndGetHdd(disk_list)
@@ -193,22 +193,22 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
     ret._hdd = hdd
     ret._hddRootParti = rootParti
     ret._swap = SwapFile(False)
-    ret._mnt = MountBios(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)      # do mount during MountBios initialization
+    ret._mnt = MountBios(False, mount_dir, _params_for_mount(ret, mntArgsDict), mntArgsDict)      # do mount during MountBios initialization
 
-    assert len(kwargsDict) == 0
+    assert len(mntArgsDict) == 0
     return ret
 
 
-def _params_for_mount(obj, kwargsDict):
+def _params_for_mount(obj, mntArgsDict):
     tlist = []
-    if "extra_mount_options" in kwargsDict:
-        assert "extra_mount_options_for_root_dev" not in kwargsDict
-        assert kwargsDict["extra_mount_options"] != ""
-        tlist += kwargsDict.pop("extra_mount_options").split(",")
-    if "extra_mount_options_for_root_dev" in kwargsDict:
-        assert "extra_mount_options" not in kwargsDict
-        assert kwargsDict["extra_mount_options_for_root_dev"] != ""
-        tlist += kwargsDict.pop("extra_mount_options_for_root_dev").split(",")
+    if "extra_mount_options" in mntArgsDict:
+        assert "extra_mount_options_for_root_dev" not in mntArgsDict
+        assert mntArgsDict["extra_mount_options"] != ""
+        tlist += mntArgsDict.pop("extra_mount_options").split(",")
+    if "extra_mount_options_for_root_dev" in mntArgsDict:
+        assert "extra_mount_options" not in mntArgsDict
+        assert mntArgsDict["extra_mount_options_for_root_dev"] != ""
+        tlist += mntArgsDict.pop("extra_mount_options_for_root_dev").split(",")
     return [
         InternalMountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist)
     ]

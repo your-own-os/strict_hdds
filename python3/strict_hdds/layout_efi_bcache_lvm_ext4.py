@@ -21,7 +21,7 @@
 # THE SOFTWARE.
 
 
-from .util import Util, BcacheUtil, LvmUtil, PhysicalDiskMounts
+from .util import Util, BcacheUtil, LvmUtil
 from .handy import EfiCacheGroup, Bcache, MountEfi, InternalMountParam, HandyCg, HandyBcache, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
@@ -279,7 +279,7 @@ def parse(boot_dev, root_dev, mount_dir):
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
-    MountEfi.mntArgsDictSetReadOnly(mount_dir, mntArgsDict)
+    MountEfi.mntArgsDictSetReadOnly(StorageLayoutImpl.name, mount_dir, mntArgsDict)
 
     # return
     ret = StorageLayoutImpl()
@@ -352,16 +352,16 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     return ret
 
 
-def _params_for_mount(obj, kwargsDict):
+def _params_for_mount(obj, mntArgsDict):
     tlist = []
-    if "extra_mount_options_for_root_dev" in kwargsDict:
-        assert kwargsDict["extra_mount_options_for_root_dev"] != ""
-        tlist += kwargsDict.pop("extra_mount_options_for_root_dev").split(",")
+    if "extra_mount_options_for_root_dev" in mntArgsDict:
+        assert mntArgsDict["extra_mount_options_for_root_dev"] != ""
+        tlist += mntArgsDict.pop("extra_mount_options_for_root_dev").split(",")
 
     tlistBoot = []
-    if "extra_mount_options_for_boot_dev" in kwargsDict:
-        assert kwargsDict["extra_mount_options_for_boot_dev"] != ""
-        tlistBoot += kwargsDict.pop("extra_mount_options_for_boot_dev").split(",")
+    if "extra_mount_options_for_boot_dev" in mntArgsDict:
+        assert mntArgsDict["extra_mount_options_for_boot_dev"] != ""
+        tlistBoot += mntArgsDict.pop("extra_mount_options_for_boot_dev").split(",")
 
     return [
         InternalMountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist),
