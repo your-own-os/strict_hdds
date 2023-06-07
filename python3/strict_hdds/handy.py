@@ -882,7 +882,7 @@ class Mount(abc.ABC):
 
         self._mntDir = mntDir
 
-        self._mntParams = copy.deepcopy(mntParams)
+        self._mntParams = mntParams
         for p in self._mntParams:
             p.setMountObj(self)
 
