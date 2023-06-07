@@ -942,7 +942,7 @@ class Mount(abc.ABC):
     def get_mount_params(self, **kwargs):
         mntParams = [copy.deepcopy(x) for x in self._mntParams]
         mntArgsDict = kwargs.copy()
-        self._mntParamMergeFunc(mntParams, mntArgsDict)
+        self._mntParamsMergeFunc(mntParams, mntArgsDict)
         assert len(mntArgsDict) == 0
         return mntParams
 

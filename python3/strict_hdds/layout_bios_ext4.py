@@ -212,3 +212,7 @@ def _getMntParams(obj, mntArgsDict):
     return [
         MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist)
     ]
+
+
+def _mntParamsMergeMntArgs(mntParams, mntArgsDict):
+    MountEfi.mntParamsMergeMntArgReadOnly(mntParams, mntArgsDict)

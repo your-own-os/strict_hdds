@@ -393,7 +393,6 @@ def _getMntParams(obj, mntArgsDict):
 def _mntParamsMergeMntArgs(mntParams, mntArgsDict):
     SubVolsBtrfs.mntParamsMergeMntArgSnapshot(mntParams, mntArgsDict)
     MountEfi.mntParamsMergeMntArgReadOnly(mntParams, mntArgsDict)
-    assert len(mntArgsDict) == 0
 
 
 def _devMntOptList(bcache):

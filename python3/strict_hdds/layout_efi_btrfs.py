@@ -294,3 +294,8 @@ def _getMntParams(obj, mntArgsDict):
         ret.append(MountParam(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
     ret.append(MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
     return ret
+
+
+def _mntParamsMergeMntArgs(mntParams, mntArgsDict):
+    SubVolsBtrfs.mntParamsMergeMntArgSnapshot(mntParams, mntArgsDict)
+    MountEfi.mntParamsMergeMntArgReadOnly(mntParams, mntArgsDict)
