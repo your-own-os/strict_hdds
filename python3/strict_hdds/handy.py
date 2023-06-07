@@ -706,10 +706,13 @@ class Snapshot(abc.ABC):
     def getParamsForMount(self):
         ret = []
         for path, name, mode, uid, gid in self._allSubVols():
-            if self._snapshotName is not None:
-                name = self._getSnapshotFullName(self._snapshotName, name)
-            ret.append((path, mode, uid, gid, ["subvol=/%s" % (name)]))
+            ret.append((path, mode, uid, gid, [self.getMntOpt(self._snapshotName)]))
         return ret
+
+    def getMntOpt(self, snapshot_name=None):
+        if snapshot_name is not None:
+            name = self._getSnapshotFullName(snapshot_name, name)
+        return "subvol=/%s" % (name)
 
     def check(self, auto_fix, error_callback):
         nameList = []

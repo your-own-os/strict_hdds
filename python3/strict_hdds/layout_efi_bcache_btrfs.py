@@ -310,7 +310,7 @@ def parse(boot_dev, root_dev, mount_dir):
     ret = StorageLayoutImpl()
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._bcache = Bcache(keyList=hddList, bcacheDevPathList=bcacheDevPathList)
-    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
+    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict["snapshot", None))
     ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)
     return ret
 
@@ -332,7 +332,7 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     ret = StorageLayoutImpl()
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._bcache = Bcache(keyList=hddList, bcacheDevPathList=bcacheDevPathList)
-    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
+    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict["snapshot", None))
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)    # do mount during MountEfi initialization
     return ret
 
@@ -359,7 +359,7 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
     ret = StorageLayoutImpl()
     ret._cg = cg
     ret._bcache = bcache
-    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
+    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict["snapshot", None))
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)    # do mount during MountEfi initialization
     return ret
 
@@ -368,12 +368,12 @@ def _params_for_mount(obj, kwargsDict):
     tlist = _devMntOptList(obj._bcache)
     if "extra_mount_options_for_root_dev" in kwargsDict:
         assert kwargsDict["extra_mount_options_for_root_dev"] != ""
-        tlist += kwargsDict.pop("extra_mount_options_for_root_dev").split(",")
+        tlist += kwargsDict["extra_mount_options_for_root_dev"].split(",")
 
     tlistBoot = []
     if "extra_mount_options_for_boot_dev" in kwargsDict:
         assert kwargsDict["extra_mount_options_for_boot_dev"] != ""
-        tlistBoot += kwargsDict.pop("extra_mount_options_for_boot_dev").split(",")
+        tlistBoot += kwargsDict["extra_mount_options_for_boot_dev"].split(",")
 
     ret = []
     for dirPath, dirMode, dirUid, dirGid, mntOptList in obj._subvols.getParamsForMount():
