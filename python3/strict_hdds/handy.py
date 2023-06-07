@@ -882,12 +882,11 @@ class Mount(abc.ABC):
         for p in self._mntParams:
             p.setMountObj(self)
 
-        # FIXME: we'll use kwargsDict later
-        pass
+        self._kwargsDict = copy.deepcopy(kwargsDict)
 
         # do mount
         if not bIsMounted:
-            for p in self._mntParams:
+            for p in self.get_mount_params(**self._kwargsDict):
                 if p.mountpoint != "/":
                     if not os.path.exists(p.real_dir_path):
                         os.mkdir(p.real_dir_path)
@@ -910,9 +909,8 @@ class Mount(abc.ABC):
     def mount_point(self):
         return self._mntDir
 
-    @abc.abstractmethod
     def is_read_only(self):
-        pass
+        return self._kwargsDict.get("read_only", False)
 
     @abc.abstractmethod
     def get_mount_params(self, **kwargs):
@@ -937,21 +935,17 @@ class MountBios(Mount):
 
     def __init__(self, bIsMounted, mntDir, mntParams, kwargsDict):
         assert len(mntParams) == 1
-
-        if kwargsDict.pop("read_only", False):
-            self._readOnly = True
-            mntParams[0].mnt_opt_list.append("ro")
-        else:
-            self._readOnly = False
+        assert all(["ro" not in x.mnt_opt_list for x in mntParams])             # avoids conflict with kwargsDict["read_only"]
+        assert all(["rw" not in x.mnt_opt_list for x in mntParams])             # avoids conflict with kwargsDict["read_only"]
 
         super().__init__(bIsMounted, mntDir, mntParams, kwargsDict)
         self._rwCtrl = self.RwController(self)
 
-    def is_read_only(self):
-        return self._readOnly
-
     def get_mount_params(self, **kwargs):
-        assert False
+        ret = copy.deepcopy(self._mntParams)            # FIXME: convert from InternalMountParam to MountParam
+        if kwargs.get("read_only", False):
+            ret[0].mnt_opt_list.append("ro")
+        return ret
 
 
 class MountEfi(Mount):
@@ -965,7 +959,7 @@ class MountEfi(Mount):
             return self._parent._isMountParamWritable(self._parent._pEsp)
 
         def to_read_write(self):
-            if not self._parent._readOnly:
+            if not self.is_read_only():
                 if not self._parent._isMountParamWritable(self._parent._pEsp):
                     Util.cmdCall("mount", self._parent._pEsp.real_dir_path, "-o", "rw,remount")
 
@@ -976,24 +970,24 @@ class MountEfi(Mount):
     def __init__(self, bIsMounted, mntDir, mntParams, kwargsDict):
         assert len(mntParams) >= 2
 
-        if kwargsDict.pop("read_only", False):
-            self._readOnly = True
-            for p in mntParams:
-                if p.mountpoint != Util.bootDir:
-                    p.mnt_opt_list.append("ro")
-        else:
-            self._readOnly = False
+        # avoids conflict with kwargsDict["read_only"]
+        for p in mntParams:
+            if p.mountpoint != Util.bootDir:
+                assert "ro" not in p.mnt_opt_list
+            assert "rw" not in p.mnt_opt_list
 
         super().__init__(bIsMounted, mntDir, mntParams, kwargsDict)
         self._pRootfs = self._findRootfsMountParam()
         self._pEsp = self._findEspMountParam()
         self._rwCtrl = self.RwController(self)
 
-    def is_read_only(self):
-        return self._readOnly
-
     def get_mount_params(self, **kwargs):
-        assert False
+        ret = copy.deepcopy(self._mntParams)            # FIXME: convert from InternalMountParam to MountParam
+        if kwargs.get("read_only", False):
+            for p in ret:
+                if p.mountpoint != Util.bootDir:
+                    p.mnt_opt_list.append("ro")
+        return ret
 
     def get_bootdir_rw_controller(self):
         return self._rwCtrl
