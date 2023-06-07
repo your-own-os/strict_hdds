@@ -898,19 +898,25 @@ class Mount(abc.ABC):
                 return getattr(self._mnt, func.__name__)(*args)
             return f
 
-    def __init__(self, bIsMounted, mntDir, mntParams, mntArgsDict, mntParamsMergeFunc):
-        assert len(mntParams) > 0
-        assert all([isinstance(x, MountParam) for x in mntParams])
-        assert mntParams[0].mountpoint == "/"
+    # FIXME: should be class method
+    @abc.abstractmethod
+    def _assertMntParams(self):
+        pass
 
+    def __init__(self, bIsMounted, mntDir, getMntParamsFunc, mntArgsDict):
         self._mntDir = mntDir
-        self._mntParams = mntParams
-        self._mntParamsMergeFunc = mntParamsMergeFunc
+        self._getMntParamsFunc = getMntParamsFunc
 
-        # consume mntArgsDict, do mount
-        mntParams = self.get_mount_params(**mntArgsDict)
+        self._mntParams = self._getMntParamsFunc(mntArgsDict)
+        assert len(mntArgsDict) == 0
+        assert len(self._mntParams) > 0
+        assert all([isinstance(x, MountParam) for x in self._mntParams])
+        assert self._mntParams[0].mountpoint == "/"
+        self._assertMntParams(self._mntParams)
+
+        # do mount
         if not bIsMounted:
-            for p in mntParams:
+            for p in self._mntParams:
                 real_dir_path = self._getRealDirPath(p)
                 if p.mountpoint != "/":
                     if not os.path.exists(real_dir_path):
@@ -935,9 +941,8 @@ class Mount(abc.ABC):
         return self._mntDir
 
     def get_mount_params(self, **kwargs):
-        mntParams = [copy.deepcopy(x) for x in self._mntParams]
         mntArgsDict = kwargs.copy()
-        self._mntParamsMergeFunc(mntParams, mntArgsDict)
+        mntParams = self._getMntParamsFunc(mntArgsDict)
         assert len(mntArgsDict) == 0
         return mntParams
 
@@ -975,12 +980,14 @@ class MountBios(Mount):
         if mntArgsDict.pop("read_only", False):
             mntParams[0].mnt_opt_list.append("ro")
 
-    def __init__(self, bIsMounted, mntDir, mntParams, mntArgsDict, mntParamsMergeFunc):
+    @staticmethod
+    def _assertMntParams(self, mntParams):
         assert len(mntParams) == 1
         assert all(["ro" not in x.mnt_opt_list for x in mntParams])             # avoids conflict with mntArgsDict["read_only"]
         assert all(["rw" not in x.mnt_opt_list for x in mntParams])             # avoids conflict with mntArgsDict["read_only"]
 
-        super().__init__(bIsMounted, mntDir, mntParams, mntArgsDict, mntParamsMergeFunc)
+    def __init__(self, bIsMounted, mntDir, getMntParamsFunc, mntArgsDict):
+        super().__init__(bIsMounted, mntDir, getMntParamsFunc, mntArgsDict)
         self._readOnly = mntArgsDict.pop("read_only", False)
 
     def is_read_only(self):
@@ -1018,7 +1025,8 @@ class MountEfi(Mount):
                 if p.mountpoint != Util.bootDir:
                     p.mnt_opt_list.append("ro")
 
-    def __init__(self, bIsMounted, mntDir, mntParams, mntArgsDict, mntParamsMergeFunc):
+    @staticmethod
+    def _assertMntParams(self, mntParams):
         assert len(mntParams) >= 2
 
         # avoids conflict with mntArgsDict["read_only"]
@@ -1027,7 +1035,8 @@ class MountEfi(Mount):
                 assert "ro" not in p.mnt_opt_list
             assert "rw" not in p.mnt_opt_list
 
-        super().__init__(bIsMounted, mntDir, mntParams, mntArgsDict, mntParamsMergeFunc)
+    def __init__(self, bIsMounted, mntDir, getMntParamsFunc, mntArgsDict):
+        super().__init__(bIsMounted, mntDir, getMntParamsFunc, mntArgsDict)
         self._pRootfs = self._findRootfsMountParam()
         self._pEsp = self._findEspMountParam()
         self._rwCtrl = self.RwController(self)
@@ -1051,13 +1060,13 @@ class MountEfi(Mount):
         self._pEsp.device = None
 
     def _findRootfsMountParam(self):
-        for p in self._parent._mntParams:
+        for p in self._mntParams:
             if p.mountpoint == "/":
                 return p
         assert False
 
     def _findEspMountParam(self):
-        for p in self._parent._mntParams:
+        for p in self._mntParams:
             if p.mountpoint == Util.bootDir:
                 return p
         assert False
