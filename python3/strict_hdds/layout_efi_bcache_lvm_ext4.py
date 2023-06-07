@@ -96,7 +96,6 @@ class StorageLayoutImpl(StorageLayout):
             del self._cg
 
     @MountEfi.proxy
-    @property
     def get_mount_entries(self):
         pass
 
