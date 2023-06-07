@@ -195,11 +195,11 @@ def _params_for_mount(obj, kwargsDict):
     if "extra_mount_options" in kwargsDict:
         assert "extra_mount_options_for_root_dev" not in kwargsDict
         assert kwargsDict["extra_mount_options"] != ""
-        tlist += kwargsDict["extra_mount_options"].split(",")
+        tlist += kwargsDict.pop("extra_mount_options").split(",")
     if "extra_mount_options_for_root_dev" in kwargsDict:
         assert "extra_mount_options" not in kwargsDict
         assert kwargsDict["extra_mount_options_for_root_dev"] != ""
-        tlist += kwargsDict["extra_mount_options_for_root_dev"].split(",")
+        tlist += kwargsDict.pop("extra_mount_options_for_root_dev").split(",")
     return [
         InternalMountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist)
     ]
