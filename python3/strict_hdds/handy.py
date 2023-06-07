@@ -911,7 +911,7 @@ class Mount(abc.ABC):
         mntParams = self.get_mount_params(**mntArgsDict)
         if not bIsMounted:
             for p in mntParams:
-                real_dir_path = self.getRealDirPath(p)
+                real_dir_path = self._getRealDirPath(p)
                 if p.mountpoint != "/":
                     if not os.path.exists(real_dir_path):
                         os.mkdir(real_dir_path)
@@ -944,7 +944,7 @@ class Mount(abc.ABC):
     def get_mount_entries(self):
         ret = []
         for p in self._mntParams:
-            real_dir_path = self.getRealDirPath(p)
+            real_dir_path = self._getRealDirPath(p)
             item = MountEntry(p.device, p.mountpoint, p.fstype,
                               PhysicalDiskMounts.find_entry_by_mount_point(real_dir_path).opts,
                               real_dir_path)
@@ -954,9 +954,9 @@ class Mount(abc.ABC):
     def umount(self):
         for p in reversed(self._mntParams):
             if p.device is not None:
-                Util.cmdCall("umount", self.getRealDirPath(p))
+                Util.cmdCall("umount", self._getRealDirPath(p))
 
-    def getRealDirPath(self, p):
+    def _getRealDirPath(self, p):
         if p.mountpoint != "/":
             return os.path.join(self._mntDir, p.mountpoint[1:])
         else:
