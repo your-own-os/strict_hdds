@@ -145,7 +145,7 @@ def parse(boot_dev, root_dev, mount_dir):
     ret._hddEspParti = boot_dev
     ret._hddRootParti = root_dev
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, mount_dir)
-    ret._mnt = MountEfi(True, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict)
+    ret._mnt = MountEfi(True, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict, _mntParamsMergeMntArgs)
 
     assert len(mntArgsDict) == 0
     return ret
@@ -179,7 +179,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     ret._hddEspParti = espAndRootPartitionList[0][1]
     ret._hddRootParti = espAndRootPartitionList[0][2]
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, mount_dir)
-    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict)             # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict, _mntParamsMergeMntArgs)             # do mount during MountEfi initialization
 
     assert len(mntArgsDict) == 0
     return ret
@@ -205,7 +205,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     ret._hddEspParti = espParti
     ret._hddRootParti = rootParti
     ret._swap = SwapFile(False)
-    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict)             # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict, _mntParamsMergeMntArgs)             # do mount during MountEfi initialization
 
     assert len(mntArgsDict) == 0
     return ret

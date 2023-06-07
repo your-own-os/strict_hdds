@@ -227,7 +227,7 @@ def parse(boot_dev, root_dev, mount_dir):
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
     ret._swap = HandyUtil.swapLvDetectAndNew(StorageLayoutImpl.name)
-    ret._mnt = MountEfi(True, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict)
+    ret._mnt = MountEfi(True, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict, _mntParamsMergeMntArgs)
 
     assert len(mntArgsDict) == 0
     return ret
@@ -252,7 +252,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
     ret._swap = HandyUtil.swapLvDetectAndNew(StorageLayoutImpl.name)
-    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict)   # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict, _mntParamsMergeMntArgs)   # do mount during MountEfi initialization
 
     assert len(mntArgsDict) == 0
     return ret
@@ -274,7 +274,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     ret = StorageLayoutImpl()
     ret._md = md
     ret._swap = SwapLvmLv(False)
-    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict)   # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict, _mntParamsMergeMntArgs)   # do mount during MountEfi initialization
 
     assert len(mntArgsDict) == 0
     return ret

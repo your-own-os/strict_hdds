@@ -980,7 +980,7 @@ class MountBios(Mount):
         assert all(["ro" not in x.mnt_opt_list for x in mntParams])             # avoids conflict with mntArgsDict["read_only"]
         assert all(["rw" not in x.mnt_opt_list for x in mntParams])             # avoids conflict with mntArgsDict["read_only"]
 
-        super().__init__(bIsMounted, mntDir, mntParams, mntArgsDict)
+        super().__init__(bIsMounted, mntDir, mntParams, mntArgsDict, mntParamsMergeFunc)
         self._readOnly = mntArgsDict.pop("read_only", False)
 
     def is_read_only(self):
@@ -1022,7 +1022,7 @@ class MountEfi(Mount):
                 assert "ro" not in p.mnt_opt_list
             assert "rw" not in p.mnt_opt_list
 
-        super().__init__(bIsMounted, mntDir, mntParams, mntArgsDict)
+        super().__init__(bIsMounted, mntDir, mntParams, mntArgsDict, mntParamsMergeFunc)
         self._pRootfs = self._findRootfsMountParam()
         self._pEsp = self._findEspMountParam()
         self._rwCtrl = self.RwController(self)
