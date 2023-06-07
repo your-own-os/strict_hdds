@@ -600,7 +600,7 @@ class SwapFile:
                 error_callback(errors.CheckCode.SWAP_SIZE_TOO_SMALL, "file")
 
 
-class SubVols(abc.ABC):
+class Snapshot(abc.ABC):
 
     @classmethod
     def initializeFs(cls, devPath, mntOptList):
@@ -640,12 +640,12 @@ class SubVols(abc.ABC):
     def proxy(func):
         if isinstance(func, property):
             def f_get(self):
-                return getattr(self._subvols, func.fget.__name__)
+                return getattr(self._snapshot, func.fget.__name__)
             f_get.__name__ = func.fget.__name__
             return property(f_get)
         else:
             def f(self, *args):
-                return getattr(self._subvols, func.__name__)(*args)
+                return getattr(self._snapshot, func.__name__)(*args)
             return f
 
     def __init__(self, mntDir, snapshot=None):
@@ -814,7 +814,7 @@ class SubVols(abc.ABC):
         pass
 
 
-class SubVolsBtrfs(SubVols):
+class SubVolsBtrfs(Snapshot):
 
     @staticmethod
     def _createSubVol(mntDir, subVolPath):
@@ -837,7 +837,7 @@ class SubVolsBtrfs(SubVols):
         return ret
 
 
-# class SubVolsBcachefs(SubVols):
+# class SubVolsBcachefs(Snapshot):
 
 #     @staticmethod
 #     def _createSubVol(mntDir, subVolPath):
