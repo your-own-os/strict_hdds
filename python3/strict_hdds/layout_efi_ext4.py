@@ -22,7 +22,7 @@
 
 
 from .util import Util, PartiUtil, GptUtil
-from .handy import SwapFile, MountEfi, InternalMountParam, DisksChecker, HandyUtil
+from .handy import SwapFile, MountEfi, MountParam, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
 
@@ -80,9 +80,10 @@ class StorageLayoutImpl(StorageLayout):
         del self._hddEspParti
         del self._hdd
 
-    @MountEfi.proxy
     def get_mount_params(self, **kwargs):
-        pass
+        mntParams = self._mnt.get_mount_params()
+        _mntParamsMergeMntArgs(mntParams, kwargs.copy())
+        return mntParams
 
     @MountEfi.proxy
     def get_mount_entries(self):
@@ -144,7 +145,7 @@ def parse(boot_dev, root_dev, mount_dir):
     ret._hddEspParti = boot_dev
     ret._hddRootParti = root_dev
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, mount_dir)
-    ret._mnt = MountEfi(True, mount_dir, _toBaseMntParams(ret, mntArgsDict), mntArgsDict)
+    ret._mnt = MountEfi(True, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict)
 
     assert len(mntArgsDict) == 0
     return ret
@@ -178,7 +179,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     ret._hddEspParti = espAndRootPartitionList[0][1]
     ret._hddRootParti = espAndRootPartitionList[0][2]
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, mount_dir)
-    ret._mnt = MountEfi(False, mount_dir, _toBaseMntParams(ret, mntArgsDict), mntArgsDict)             # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict)             # do mount during MountEfi initialization
 
     assert len(mntArgsDict) == 0
     return ret
@@ -204,13 +205,13 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     ret._hddEspParti = espParti
     ret._hddRootParti = rootParti
     ret._swap = SwapFile(False)
-    ret._mnt = MountEfi(False, mount_dir, _toBaseMntParams(ret, mntArgsDict), mntArgsDict)             # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict)             # do mount during MountEfi initialization
 
     assert len(mntArgsDict) == 0
     return ret
 
 
-def _toBaseMntParams(obj, mntArgsDict):
+def _getMntParams(obj, mntArgsDict):
     tlist = []
     if "extra_mount_options_for_root_dev" in mntArgsDict:
         assert mntArgsDict["extra_mount_options_for_root_dev"] != ""
@@ -222,6 +223,6 @@ def _toBaseMntParams(obj, mntArgsDict):
         tlistBoot += mntArgsDict.pop("extra_mount_options_for_boot_dev").split(",")
 
     return [
-        InternalMountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist),
-        InternalMountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
+        MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist),
+        MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
     ]

@@ -22,7 +22,7 @@
 
 
 from .util import Util, PartiUtil, BtrfsUtil
-from .handy import EfiMultiDisk, SubVols, SubVolsBtrfs, MountEfi, InternalMountParam, HandyMd, DisksChecker
+from .handy import EfiMultiDisk, SubVols, SubVolsBtrfs, MountEfi, MountParam, HandyMd, DisksChecker
 from . import errors
 from . import StorageLayout
 
@@ -83,7 +83,9 @@ class StorageLayoutImpl(StorageLayout):
         del self._md
 
     def get_mount_params(self, **kwargs):
-        assert False
+        mntParams = self._mnt.get_mount_params()
+        _mntParamsMergeMntArgs(mntParams, kwargs.copy())
+        return mntParams
 
     @MountEfi.proxy
     def get_mount_entries(self):
@@ -217,7 +219,7 @@ def parse(boot_dev, root_dev, mount_dir):
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
     ret._subvols = SubVolsBtrfs(mount_dir, snapshot=mntArgsDict.pop("snapshot", None))
-    ret._mnt = MountEfi(True, mount_dir, _toBaseMntParams(ret, mntArgsDict), mntArgsDict)
+    ret._mnt = MountEfi(True, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict)
 
     assert len(mntArgsDict) == 0
     return ret
@@ -248,7 +250,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
     ret._subvols = SubVolsBtrfs(mount_dir, snapshot=mntArgsDict.pop("snapshot", None))
-    ret._mnt = MountEfi(False, mount_dir, _toBaseMntParams(ret, mntArgsDict), mntArgsDict)       # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict)       # do mount during MountEfi initialization
 
     assert len(mntArgsDict) == 0
     return ret
@@ -270,13 +272,13 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     ret = StorageLayoutImpl()
     ret._md = md
     ret._subvols = SubVolsBtrfs(mount_dir, snapshot=mntArgsDict.pop("snapshot", None))
-    ret._mnt = MountEfi(False, mount_dir, _toBaseMntParams(ret, mntArgsDict), mntArgsDict)       # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict)       # do mount during MountEfi initialization
 
     assert len(mntArgsDict) == 0
     return ret
 
 
-def _toBaseMntParams(obj, mntArgsDict):
+def _getMntParams(obj, mntArgsDict):
     tlist = ["device=%s" % (obj._md.get_disk_data_partition(x)) for x in obj._md.get_disk_list()]
     if "extra_mount_options_for_root_dev" in mntArgsDict:
         assert mntArgsDict["extra_mount_options_for_root_dev"] != ""
@@ -288,7 +290,7 @@ def _toBaseMntParams(obj, mntArgsDict):
         tlistBoot += mntArgsDict.pop("extra_mount_options_for_boot_dev").split(",")
 
     ret = []
-    for dirPath, dirMode, dirUid, dirGid, mntOptList in obj._subvols.getParamsForMount():
-        ret.append(InternalMountParam(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
-    ret.append(InternalMountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
+    for dirPath, dirMode, dirUid, dirGid, mntOptList in obj._subvols.getParamsForMountWithoutSnapshot():
+        ret.append(MountParam(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
+    ret.append(MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
     return ret
