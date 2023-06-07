@@ -22,7 +22,7 @@
 
 
 from .util import Util, PartiUtil, BtrfsUtil
-from .handy import EfiMultiDisk, Snapshot, SubVolsBtrfs, MountEfi, InternalMountParam, HandyMd, DisksChecker
+from .handy import EfiMultiDisk, SubVols, SubVolsBtrfs, MountEfi, InternalMountParam, HandyMd, DisksChecker
 from . import errors
 from . import StorageLayout
 
@@ -66,7 +66,7 @@ class StorageLayoutImpl(StorageLayout):
     def boot_disk(self):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     @property
     def snapshot(self):
         pass
@@ -121,7 +121,7 @@ class StorageLayoutImpl(StorageLayout):
     def get_disk_data_partition(self, disk):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def get_snapshot_list(self):
         pass
 
@@ -172,15 +172,15 @@ class StorageLayoutImpl(StorageLayout):
         else:
             return False
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def create_snapshot(self, snapshot_name):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def remove_snapshot(self, snapshot_name):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def sync_from_snapshot(self, snapshot_name, home=False, var=False):
         pass
 

@@ -22,7 +22,7 @@
 
 
 from .util import Util, BcacheUtil, BtrfsUtil
-from .handy import EfiCacheGroup, Bcache, Snapshot, SubVolsBtrfs, MountEfi, InternalMountParam, HandyCg, HandyBcache, DisksChecker
+from .handy import EfiCacheGroup, Bcache, SubVols, SubVolsBtrfs, MountEfi, InternalMountParam, HandyCg, HandyBcache, DisksChecker
 from . import errors
 from . import StorageLayout
 
@@ -80,7 +80,7 @@ class StorageLayoutImpl(StorageLayout):
     def boot_disk(self):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     @property
     def snapshot(self):
         pass
@@ -170,7 +170,7 @@ class StorageLayoutImpl(StorageLayout):
     def get_swap_size(self):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def get_snapshot_list(self):
         pass
 
@@ -245,15 +245,15 @@ class StorageLayoutImpl(StorageLayout):
 
         assert False
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def create_snapshot(self, snapshot_name):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def remove_snapshot(self, snapshot_name):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def sync_from_snapshot(self, snapshot_name, home=False, var=False):
         pass
 

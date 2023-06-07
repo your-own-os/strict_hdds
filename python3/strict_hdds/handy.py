@@ -600,7 +600,7 @@ class SwapFile:
                 error_callback(errors.CheckCode.SWAP_SIZE_TOO_SMALL, "file")
 
 
-class Snapshot(abc.ABC):
+class SubVols(abc.ABC):
 
     @classmethod
     def initializeFs(cls, devPath, mntOptList):
@@ -814,7 +814,7 @@ class Snapshot(abc.ABC):
         pass
 
 
-class SubVolsBtrfs(Snapshot):
+class SubVolsBtrfs(SubVols):
 
     @classmethod
     def mntArgsDictSetSnapshot(cls, storageLayoutName, mount_dir, mnt_args_dict):
@@ -847,7 +847,7 @@ class SubVolsBtrfs(Snapshot):
         return ret
 
 
-# class SubVolsBcachefs(Snapshot):
+# class SubVolsBcachefs(SubVols):
 
 #     @staticmethod
 #     def _createSubVol(mntDir, subVolPath):
@@ -871,9 +871,9 @@ class SubVolsBtrfs(Snapshot):
 class Mount(abc.ABC):
 
     @staticmethod
-    def mntArgsDictSetReadOnly(storageLayoutName, mount_dir, mnt_args_dict):
+    def mntArgsDictSetReadOnly(storageLayoutName, mount_dir, mntArgsDict):
         if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
-            mnt_args_dict["read_only"] = True
+            mntArgsDict["read_only"] = True
 
     @staticmethod
     def proxy(func):
