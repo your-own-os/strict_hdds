@@ -95,10 +95,9 @@ class StorageLayoutImpl(StorageLayout):
         if True:
             del self._cg
 
+    @MountEfi.proxy
     def get_mount_params(self, **kwargs):
-        mntParams = self._mnt.get_mount_params()
-        _mntParamsMergeMntArgs(mntParams, kwargs.copy())
-        return mntParams
+        pass
 
     @MountEfi.proxy
     def get_mount_entries(self):
