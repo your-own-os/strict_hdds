@@ -81,6 +81,10 @@ class StorageLayoutImpl(StorageLayout):
         del self._hdd
 
     @MountEfi.proxy
+    def get_mount_params(self, **kwargs):
+        pass
+
+    @MountEfi.proxy
     def get_mount_entries(self):
         pass
 

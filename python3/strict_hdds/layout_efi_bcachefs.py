@@ -93,6 +93,9 @@ class StorageLayoutImpl(StorageLayout):
         if True:
             del self._cg
 
+    def get_mount_params(self, **kwargs):
+        assert False
+
     @MountEfi.proxy
     def get_mount_entries(self):
         pass
