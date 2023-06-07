@@ -226,10 +226,14 @@ def parse(boot_dev, root_dev, mount_dir):
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
     ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
     ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)
+
+    assert len(kwargsDict) == 0
     return ret
 
 
 def detect_and_mount(disk_list, mount_dir, kwargsDict):
+    kwargsDict = kwargsDict.copy()
+
     # filter
     diskList = []
     for d in disk_list:
@@ -253,10 +257,14 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
     ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)       # do mount during MountEfi initialization
+
+    assert len(kwargsDict) == 0
     return ret
 
 
 def create_and_mount(disk_list, mount_dir, kwargsDict):
+    kwargsDict = kwargsDict.copy()
+
     # add disks
     md = EfiMultiDisk()
     HandyMd.checkAndAddDisks(disk_list, Util.fsTypeBtrfs)
@@ -271,6 +279,8 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
     ret._md = md
     ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)       # do mount during MountEfi initialization
+
+    assert len(kwargsDict) == 0
     return ret
 
 

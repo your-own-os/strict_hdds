@@ -312,10 +312,14 @@ def parse(boot_dev, root_dev, mount_dir):
     ret._bcache = Bcache(keyList=hddList, bcacheDevPathList=bcacheDevPathList)
     ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
     ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)
+
+    assert len(kwargsDict) == 0
     return ret
 
 
 def detect_and_mount(disk_list, mount_dir, kwargsDict):
+    kwargsDict = kwargsDict.copy()
+
     # scan
     bcacheDevPathList = BcacheUtil.scanAndRegisterAllAndFilter(disk_list)
     bcacheDevPathList = [x for x in bcacheDevPathList if Util.getBlkDevFsType(x) == Util.fsTypeBtrfs]
@@ -334,10 +338,14 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     ret._bcache = Bcache(keyList=hddList, bcacheDevPathList=bcacheDevPathList)
     ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)    # do mount during MountEfi initialization
+
+    assert len(kwargsDict) == 0
     return ret
 
 
 def create_and_mount(disk_list, mount_dir, kwargsDict):
+    kwargsDict = kwargsDict.copy()
+
     # add disks to cache group
     cg = EfiCacheGroup()
     HandyCg.checkAndAddDisks(cg, *Util.splitSsdAndHddFromFixedDiskDevPathList(disk_list), "bcache")
@@ -361,6 +369,8 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
     ret._bcache = bcache
     ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)    # do mount during MountEfi initialization
+
+    assert len(kwargsDict) == 0
     return ret
 
 

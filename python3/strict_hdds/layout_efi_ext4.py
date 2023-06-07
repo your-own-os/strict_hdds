@@ -146,10 +146,14 @@ def parse(boot_dev, root_dev, mount_dir):
     ret._hddRootParti = root_dev
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, mount_dir)
     ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)
+
+    assert len(kwargsDict) == 0
     return ret
 
 
 def detect_and_mount(disk_list, mount_dir, kwargsDict):
+    kwargsDict = kwargsDict.copy()
+
     # scan for ESP and root partition
     espAndRootPartitionList = []
     for disk in disk_list:
@@ -176,10 +180,14 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     ret._hddRootParti = espAndRootPartitionList[0][2]
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, mount_dir)
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)             # do mount during MountEfi initialization
+
+    assert len(kwargsDict) == 0
     return ret
 
 
 def create_and_mount(disk_list, mount_dir, kwargsDict):
+    kwargsDict = kwargsDict.copy()
+
     # create partitions
     hdd = HandyUtil.checkAndGetHdd(disk_list)
     Util.initializeDisk(hdd, Util.diskPartTableGpt, [
@@ -198,6 +206,8 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
     ret._hddRootParti = rootParti
     ret._swap = SwapFile(False)
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)             # do mount during MountEfi initialization
+
+    assert len(kwargsDict) == 0
     return ret
 
 

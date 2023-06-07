@@ -287,10 +287,14 @@ def parse(boot_dev, root_dev, mount_dir):
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._bcache = Bcache(keyList=hddList, bcacheDevPathList=pvDevPathList)
     ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)
+
+    assert len(kwargsDict) == 0
     return ret
 
 
 def detect_and_mount(disk_list, mount_dir, kwargsDict):
+    kwargsDict = kwargsDict.copy()
+
     BcacheUtil.scanAndRegisterAllAndFilter(disk_list)
     LvmUtil.activateAll()
 
@@ -314,10 +318,14 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._bcache = Bcache(keyList=hddList, bcacheDevPathList=pvDevPathList)
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)             # do mount during MountEfi initialization
+
+    assert len(kwargsDict) == 0
     return ret
 
 
 def create_and_mount(disk_list, mount_dir, kwargsDict):
+    kwargsDict = kwargsDict.copy()
+
     # add disks to cache group
     cg = EfiCacheGroup()
     HandyCg.checkAndAddDisks(cg, *Util.splitSsdAndHddFromFixedDiskDevPathList(disk_list), "bcache")
@@ -340,6 +348,8 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
     ret._cg = cg
     ret._bcache = bcache
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)             # do mount during MountEfi initialization
+
+    assert len(kwargsDict) == 0
     return ret
 
 
