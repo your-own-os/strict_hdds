@@ -22,7 +22,7 @@
 
 
 from .util import Util, PartiUtil, BtrfsUtil, PhysicalDiskMounts
-from .handy import EfiMultiDisk, Snapshot, SnapshotBtrfs, MountEfi, InternalMountParam, HandyMd, DisksChecker
+from .handy import EfiMultiDisk, SubVols, SubVolsBtrfs, MountEfi, InternalMountParam, HandyMd, DisksChecker
 from . import errors
 from . import StorageLayout
 
@@ -46,7 +46,7 @@ class StorageLayoutImpl(StorageLayout):
 
     def __init__(self):
         self._md = None              # MultiDisk
-        self._snapshot = None        # SnapshotBtrfs
+        self._subvols = None         # SubVolsBtrfs
         self._mnt = None             # MountEfi
 
     @property
@@ -66,7 +66,7 @@ class StorageLayoutImpl(StorageLayout):
     def boot_disk(self):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     @property
     def snapshot(self):
         pass
@@ -121,7 +121,7 @@ class StorageLayoutImpl(StorageLayout):
     def get_disk_data_partition(self, disk):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def get_snapshot_list(self):
         pass
 
@@ -172,15 +172,15 @@ class StorageLayoutImpl(StorageLayout):
         else:
             return False
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def create_snapshot(self, snapshot_name):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def remove_snapshot(self, snapshot_name):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def sync_from_snapshot(self, snapshot_name, home=False, var=False):
         pass
 
@@ -192,7 +192,7 @@ class StorageLayoutImpl(StorageLayout):
                 dc.check_boot_sector(auto_fix, error_callback)
                 dc.check_logical_sector_size(auto_fix, error_callback)
             self._md.check_esp(auto_fix, error_callback)
-            self._snapshot.check(auto_fix, error_callback)
+            self._subvols.check(auto_fix, error_callback)
         else:
             assert False
 
@@ -217,14 +217,14 @@ def parse(boot_dev, root_dev, mount_dir):
         if not ret.startswith("/@"):
             raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "sub-volume \"%s\" is invalid" % (ret))
         if len(ret) > 2:
-            kwargsDict["snapshot"] = SnapshotBtrfs.getSnapshotNameFromSubVolPath(ret)
+            kwargsDict["snapshot"] = SubVolsBtrfs.getSnapshotNameFromSubVolPath(ret)
     if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
         kwargsDict["read_only"] = True
 
     # return
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
-    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
+    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
     ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)
     return ret
 
@@ -251,7 +251,7 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     # return
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
-    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
+    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)       # do mount during MountEfi initialization
     return ret
 
@@ -264,12 +264,12 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
     # create and mount
     partiList = [md.get_disk_data_partition(x) for x in md.get_disk_list()]
     Util.cmdCall("mkfs.btrfs", "-f", "-d", "single", "-m", "single", *partiList)
-    SnapshotBtrfs.initializeFs(partiList[0], ["device=%s" % (x) for x in partiList])
+    SubVolsBtrfs.initializeFs(partiList[0], ["device=%s" % (x) for x in partiList])
 
     # return
     ret = StorageLayoutImpl()
     ret._md = md
-    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
+    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)       # do mount during MountEfi initialization
     return ret
 
@@ -286,7 +286,7 @@ def _params_for_mount(obj, kwargsDict):
         tlistBoot += kwargsDict.pop("extra_mount_options_for_boot_dev").split(",")
 
     ret = []
-    for dirPath, dirMode, dirUid, dirGid, mntOptList in obj._snapshot.getParamsForMount():
+    for dirPath, dirMode, dirUid, dirGid, mntOptList in obj._subvols.getParamsForMount():
         ret.append(InternalMountParam(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
     ret.append(InternalMountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
     return ret

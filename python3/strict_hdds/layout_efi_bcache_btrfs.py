@@ -22,7 +22,7 @@
 
 
 from .util import Util, BcacheUtil, BtrfsUtil, PhysicalDiskMounts
-from .handy import EfiCacheGroup, Bcache, Snapshot, SnapshotBtrfs, MountEfi, InternalMountParam, HandyCg, HandyBcache, DisksChecker
+from .handy import EfiCacheGroup, Bcache, SubVols, SubVolsBtrfs, MountEfi, InternalMountParam, HandyCg, HandyBcache, DisksChecker
 from . import errors
 from . import StorageLayout
 
@@ -54,7 +54,7 @@ class StorageLayoutImpl(StorageLayout):
     def __init__(self):
         self._cg = None                     # EfiCacheGroup
         self._bcache = None                 # Bcache
-        self._snapshot = None               # SnapshotBtrfs
+        self._subvols = None                # SubVolsBtrfs
         self._mnt = None                    # MountEfi
 
     @property
@@ -80,7 +80,7 @@ class StorageLayoutImpl(StorageLayout):
     def boot_disk(self):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     @property
     def snapshot(self):
         pass
@@ -170,7 +170,7 @@ class StorageLayoutImpl(StorageLayout):
     def get_swap_size(self):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def get_snapshot_list(self):
         pass
 
@@ -245,15 +245,15 @@ class StorageLayoutImpl(StorageLayout):
 
         assert False
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def create_snapshot(self, snapshot_name):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def remove_snapshot(self, snapshot_name):
         pass
 
-    @Snapshot.proxy
+    @SubVols.proxy
     def sync_from_snapshot(self, snapshot_name, home=False, var=False):
         pass
 
@@ -267,7 +267,7 @@ class StorageLayoutImpl(StorageLayout):
             self._cg.check_ssd(auto_fix, error_callback)
             self._cg.check_esp(auto_fix, error_callback)
             self._bcache.check(auto_fix, error_callback)
-            self._snapshot.check(auto_fix, error_callback)
+            self._subvols.check(auto_fix, error_callback)
         elif check_item == "swap":
             self._cg.check_swap(auto_fix, error_callback)
         elif check_item == "bcache-write-mode":
@@ -302,7 +302,7 @@ def parse(boot_dev, root_dev, mount_dir):
         if not ret.startswith("/@"):
             raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "sub-volume \"%s\" is invalid" % (ret))
         if len(ret) > 2:
-            kwargsDict["snapshot"] = SnapshotBtrfs.getSnapshotNameFromSubVolPath(ret)
+            kwargsDict["snapshot"] = SubVolsBtrfs.getSnapshotNameFromSubVolPath(ret)
     if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
         kwargsDict["read_only"] = True
 
@@ -310,7 +310,7 @@ def parse(boot_dev, root_dev, mount_dir):
     ret = StorageLayoutImpl()
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._bcache = Bcache(keyList=hddList, bcacheDevPathList=bcacheDevPathList)
-    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
+    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
     ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)
     return ret
 
@@ -332,7 +332,7 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     ret = StorageLayoutImpl()
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._bcache = Bcache(keyList=hddList, bcacheDevPathList=bcacheDevPathList)
-    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
+    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)    # do mount during MountEfi initialization
     return ret
 
@@ -353,13 +353,13 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
 
     # create btrfs
     Util.cmdCall("mkfs.btrfs", "-f", "-d", "single", "-m", "single", *bcache.get_all_bcache_dev_list())
-    SnapshotBtrfs.initializeFs(bcache.get_all_bcache_dev_list()[0], _devMntOptList(bcache))
+    SubVolsBtrfs.initializeFs(bcache.get_all_bcache_dev_list()[0], _devMntOptList(bcache))
 
     # return
     ret = StorageLayoutImpl()
     ret._cg = cg
     ret._bcache = bcache
-    ret._snapshot = SnapshotBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
+    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=kwargsDict.pop("snapshot", None))
     ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)    # do mount during MountEfi initialization
     return ret
 
@@ -376,7 +376,7 @@ def _params_for_mount(obj, kwargsDict):
         tlistBoot += kwargsDict.pop("extra_mount_options_for_boot_dev").split(",")
 
     ret = []
-    for dirPath, dirMode, dirUid, dirGid, mntOptList in obj._snapshot.getParamsForMount():
+    for dirPath, dirMode, dirUid, dirGid, mntOptList in obj._subvols.getParamsForMount():
         ret.append(InternalMountParam(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
     ret.append(InternalMountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
     return ret
