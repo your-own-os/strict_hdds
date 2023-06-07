@@ -887,11 +887,6 @@ class SubVolsBtrfs(SubVols):
 class Mount(abc.ABC):
 
     @staticmethod
-    def mntArgsDictSetReadOnly(storageLayoutName, mount_dir, mntArgsDict):
-        if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
-            mntArgsDict["read_only"] = True
-
-    @staticmethod
     def proxy(func):
         if isinstance(func, property):
             def f_get(self):
@@ -971,6 +966,11 @@ class Mount(abc.ABC):
 class MountBios(Mount):
 
     @staticmethod
+    def mntArgsDictSetReadOnly(storageLayoutName, mount_dir, mntArgsDict):
+        if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
+            mntArgsDict["read_only"] = True
+
+    @staticmethod
     def mntParamsMergeMntArgReadOnly(mntParams, mntArgsDict):
         if mntArgsDict.pop("read_only", False):
             mntParams[0].mnt_opt_list.append("ro")
@@ -1005,6 +1005,11 @@ class MountEfi(Mount):
         def to_read_only(self):
             if self._parent._isMountParamWritable(self._parent._pEsp):
                 Util.cmdCall("mount", self._parent._getRealDirPath(self._parent._pEsp), "-o", "ro,remount")
+
+    @staticmethod
+    def mntArgsDictSetReadOnly(storageLayoutName, mount_dir, mntArgsDict):
+        if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
+            mntArgsDict["read_only"] = True
 
     @staticmethod
     def mntParamsMergeMntArgReadOnly(mntParams, mntArgsDict):
