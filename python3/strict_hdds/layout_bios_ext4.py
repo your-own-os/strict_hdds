@@ -78,7 +78,6 @@ class StorageLayoutImpl(StorageLayout):
         del self._hdd
 
     @MountBios.proxy
-    @property
     def get_mount_entries(self):
         pass
 
