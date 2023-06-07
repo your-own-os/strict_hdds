@@ -755,7 +755,8 @@ class SubVols(abc.ABC):
             ret.append(self._getSnapshotFullName(snapshotName, name))
         return ret
 
-    def _getSnapshotFullName(self, snapshotName, name):
+    @staticmethod
+    def _getSnapshotFullName(snapshotName, name):
         return "@snapshots/%s/%s" % (snapshotName, name)
 
     @classmethod
@@ -826,6 +827,19 @@ class SubVolsBtrfs(SubVols):
         if len(ret) > 2:
             mnt_args_dict["snapshot"] = cls.getSnapshotNameFromSubVolPath(ret)
 
+    @classmethod
+    def mntParamsMergeMntArgSnapshot(cls, mntParams, mntArgsDict):
+        snapshotName = mntArgsDict.pop("snapshot", None)
+        if snapshotName is None:
+            return
+
+        for p in mntParams:
+            for i in range(0, len(p.mnt_opt_list)):
+                if p.mnt_opt_list[i].startswith("subvol=/"):
+                    name = p.mnt_opt_list[len("subvol=/"):]
+                    name = cls._getSnapshotFullName(snapshotName, name)
+                    p.mnt_opt_list[i] = "subvol=/%s" % (name)
+
     @staticmethod
     def _createSubVol(mntDir, subVolPath):
         Util.cmdCall("btrfs", "subvolume", "create", os.path.join(mntDir, subVolPath))
@@ -848,6 +862,10 @@ class SubVolsBtrfs(SubVols):
 
 
 # class SubVolsBcachefs(SubVols):
+
+#     @classmethod
+#     def mntArgsDictSetSnapshot(cls, storageLayoutName, mount_dir, mnt_args_dict):
+#         assert False
 
 #     @staticmethod
 #     def _createSubVol(mntDir, subVolPath):
@@ -923,10 +941,6 @@ class Mount(abc.ABC):
     def mount_point(self):
         return self._mntDir
 
-    @abc.abstractmethod
-    def get_mount_params(self, **kwargs):
-        pass
-
     def get_mount_entries(self):
         ret = []
         for p in self._mntParams:
@@ -944,6 +958,11 @@ class Mount(abc.ABC):
 
 class MountBios(Mount):
 
+    @staticmethod
+    def mntParamsMergeMntArgReadOnly(mntParams, mntArgsDict):
+        if mntArgsDict.pop("read_only", False):
+            mntParams[0].mnt_opt_list.append("ro")
+
     def __init__(self, bIsMounted, mntDir, mntParams, mntArgsDict):
         assert len(mntParams) == 1
         assert all(["ro" not in x.mnt_opt_list for x in mntParams])             # avoids conflict with mntArgsDict["read_only"]
@@ -954,12 +973,6 @@ class MountBios(Mount):
 
     def is_read_only(self):
         return self._readOnly
-
-    def get_mount_params(self, **kwargs):
-        ret = [copy.deepcopy(super(MountParam, x)) for x in self._mntParams]
-        if kwargs.get("read_only", False):
-            ret[0].mnt_opt_list.append("ro")
-        return ret
 
 
 class MountEfi(Mount):
@@ -981,6 +994,13 @@ class MountEfi(Mount):
             if self._parent._isMountParamWritable(self._parent._pEsp):
                 Util.cmdCall("mount", self._parent._pEsp.real_dir_path, "-o", "ro,remount")
 
+    @staticmethod
+    def mntParamsMergeMntArgReadOnly(mntParams, mntArgsDict):
+        if mntArgsDict.pop("read_only", False):
+            for p in mntParams:
+                if p.mountpoint != Util.bootDir:
+                    p.mnt_opt_list.append("ro")
+
     def __init__(self, bIsMounted, mntDir, mntParams, mntArgsDict):
         assert len(mntParams) >= 2
 
@@ -998,14 +1018,6 @@ class MountEfi(Mount):
 
     def is_read_only(self):
         return self._readOnly
-
-    def get_mount_params(self, **kwargs):
-        ret = [copy.deepcopy(super(MountParam, x)) for x in self._mntParams]
-        if kwargs.pop("read_only", False):
-            for p in ret:
-                if p.mountpoint != Util.bootDir:
-                    p.mnt_opt_list.append("ro")
-        return ret
 
     def get_bootdir_rw_controller(self):
         return self._rwCtrl
