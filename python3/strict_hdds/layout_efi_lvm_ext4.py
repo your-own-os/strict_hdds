@@ -218,23 +218,22 @@ def parse(boot_dev, root_dev, mount_dir):
     diskList = [PartiUtil.partiToDisk(x) for x in pvDevPathList]
     bootHdd = HandyMd.checkAndGetBootDiskFromBootDev(StorageLayoutImpl.name, boot_dev, diskList)
 
-    # get kwargsDict from mount options
-    kwargsDict = dict()
-    if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
-        kwargsDict["read_only"] = True
+    # get mntArgsDict from mount options
+    mntArgsDict = dict()
+    MountEfi.mntArgsDictSetReadOnly(mount_dir, mntArgsDict)
 
     # return
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
     ret._swap = HandyUtil.swapLvDetectAndNew(StorageLayoutImpl.name)
-    ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)
+    ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret, mntArgsDict), mntArgsDict)
 
-    assert len(kwargsDict) == 0
+    assert len(mntArgsDict) == 0
     return ret
 
 
-def detect_and_mount(disk_list, mount_dir, kwargsDict):
-    kwargsDict = kwargsDict.copy()
+def detect_and_mount(disk_list, mount_dir, mntArgsDict):
+    mntArgsDict = mntArgsDict.copy()
 
     LvmUtil.activateAll()
 
@@ -252,14 +251,14 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
     ret._swap = HandyUtil.swapLvDetectAndNew(StorageLayoutImpl.name)
-    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)   # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, mntArgsDict), mntArgsDict)   # do mount during MountEfi initialization
 
-    assert len(kwargsDict) == 0
+    assert len(mntArgsDict) == 0
     return ret
 
 
-def create_and_mount(disk_list, mount_dir, kwargsDict):
-    kwargsDict = kwargsDict.copy()
+def create_and_mount(disk_list, mount_dir, mntArgsDict):
+    mntArgsDict = mntArgsDict.copy()
 
     # add disks
     md = EfiMultiDisk()
@@ -274,22 +273,22 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
     ret = StorageLayoutImpl()
     ret._md = md
     ret._swap = SwapLvmLv(False)
-    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)   # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, mntArgsDict), mntArgsDict)   # do mount during MountEfi initialization
 
-    assert len(kwargsDict) == 0
+    assert len(mntArgsDict) == 0
     return ret
 
 
-def _params_for_mount(obj, kwargsDict):
+def _params_for_mount(obj, mntArgsDict):
     tlist = []
-    if "extra_mount_options_for_root_dev" in kwargsDict:
-        assert kwargsDict["extra_mount_options_for_root_dev"] != ""
-        tlist += kwargsDict.pop("extra_mount_options_for_root_dev").split(",")
+    if "extra_mount_options_for_root_dev" in mntArgsDict:
+        assert mntArgsDict["extra_mount_options_for_root_dev"] != ""
+        tlist += mntArgsDict.pop("extra_mount_options_for_root_dev").split(",")
 
     tlistBoot = []
-    if "extra_mount_options_for_boot_dev" in kwargsDict:
-        assert kwargsDict["extra_mount_options_for_boot_dev"] != ""
-        tlistBoot += kwargsDict.pop("extra_mount_options_for_boot_dev").split(",")
+    if "extra_mount_options_for_boot_dev" in mntArgsDict:
+        assert mntArgsDict["extra_mount_options_for_boot_dev"] != ""
+        tlistBoot += mntArgsDict.pop("extra_mount_options_for_boot_dev").split(",")
 
     return [
         InternalMountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist),

@@ -277,23 +277,22 @@ def parse(boot_dev, root_dev, mount_dir):
     ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(StorageLayoutImpl.name, ssd)
     bootHdd = HandyCg.checkAndGetBootHddFromBootDev(StorageLayoutImpl.name, boot_dev, ssdEspParti, hddList)
 
-    # get kwargsDict from mount options
-    kwargsDict = dict()
-    if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
-        kwargsDict["read_only"] = True
+    # get mntArgsDict from mount options
+    mntArgsDict = dict()
+    MountEfi.mntArgsDictSetReadOnly(mount_dir, mntArgsDict)
 
     # return
     ret = StorageLayoutImpl()
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._bcache = Bcache(keyList=hddList, bcacheDevPathList=pvDevPathList)
-    ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)
+    ret._mnt = MountEfi(True, mount_dir, _params_for_mount(ret, mntArgsDict), mntArgsDict)
 
-    assert len(kwargsDict) == 0
+    assert len(mntArgsDict) == 0
     return ret
 
 
-def detect_and_mount(disk_list, mount_dir, kwargsDict):
-    kwargsDict = kwargsDict.copy()
+def detect_and_mount(disk_list, mount_dir, mntArgsDict):
+    mntArgsDict = mntArgsDict.copy()
 
     BcacheUtil.scanAndRegisterAllAndFilter(disk_list)
     LvmUtil.activateAll()
@@ -317,14 +316,14 @@ def detect_and_mount(disk_list, mount_dir, kwargsDict):
     ret = StorageLayoutImpl()
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._bcache = Bcache(keyList=hddList, bcacheDevPathList=pvDevPathList)
-    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)             # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, mntArgsDict), mntArgsDict)             # do mount during MountEfi initialization
 
-    assert len(kwargsDict) == 0
+    assert len(mntArgsDict) == 0
     return ret
 
 
-def create_and_mount(disk_list, mount_dir, kwargsDict):
-    kwargsDict = kwargsDict.copy()
+def create_and_mount(disk_list, mount_dir, mntArgsDict):
+    mntArgsDict = mntArgsDict.copy()
 
     # add disks to cache group
     cg = EfiCacheGroup()
@@ -347,9 +346,9 @@ def create_and_mount(disk_list, mount_dir, kwargsDict):
     ret = StorageLayoutImpl()
     ret._cg = cg
     ret._bcache = bcache
-    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)             # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, _params_for_mount(ret, mntArgsDict), mntArgsDict)             # do mount during MountEfi initialization
 
-    assert len(kwargsDict) == 0
+    assert len(mntArgsDict) == 0
     return ret
 
 

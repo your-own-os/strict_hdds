@@ -127,24 +127,23 @@ def parse(boot_dev, root_dev, mount_dir):
     if Util.getBlkDevPartitionTableType(hdd) != Util.diskPartTableMbr:
         raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.PARTITION_TYPE_SHOULD_BE(hdd, Util.diskPartTableMbr))
 
-    # get kwargsDict from mount options
-    kwargsDict = dict()
-    if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
-        kwargsDict["read_only"] = True
+    # get mntArgsDict from mount options
+    mntArgsDict = dict()
+    MountBios.mntArgsDictSetReadOnly(mount_dir, mntArgsDict)
 
     # return
     ret = StorageLayoutImpl()
     ret._hdd = hdd
     ret._hddRootParti = root_dev
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, "/")
-    ret._mnt = MountBios(True, mount_dir, _params_for_mount(ret, kwargsDict), kwargsDict)
+    ret._mnt = MountBios(True, mount_dir, _params_for_mount(ret, mntArgsDict), mntArgsDict)
 
-    assert len(kwargsDict) == 0
+    assert len(mntArgsDict) == 0
     return ret
 
 
-def detect_and_mount(disk_list, mount_dir, kwargsDict):
-    kwargsDict = kwargsDict.copy()
+def detect_and_mount(disk_list, mount_dir, mntArgsDict):
+    kwargsDict = mntArgsDict.copy()
 
     # scan for root partition
     rootPartitionList = []

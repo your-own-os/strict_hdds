@@ -335,11 +335,12 @@ def _parseOneStorageLayout(layoutName, bootDev, rootDev, mountDir):
         raise errors.StorageLayoutParseError("", "unknown storage layout")
 
 
-def _detectAndMountOneStorageLayout(layoutName, diskList, mountDir, kwargsDict):
+def _detectAndMountOneStorageLayout(layoutName, diskList, mountDir, mntArgsDict):
     modname = Util.layoutName2modName(layoutName)
     try:
         exec("from . import %s" % (modname))
         f = eval("%s.detect_and_mount" % (modname))
-        return f(diskList, mountDir, kwargsDict)
+        return f(diskList, mountDir, mntArgsDict)
     except ModuleNotFoundError:
         raise errors.StorageLayoutParseError("", "unknown storage layout")
+

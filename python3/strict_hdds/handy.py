@@ -816,6 +816,16 @@ class Snapshot(abc.ABC):
 
 class SubVolsBtrfs(Snapshot):
 
+    @classmethod
+    def mntArgsDictSetSnapshot(cls, mount_dir, mnt_args_dict):
+        ret = Util.mntGetSubVolPath(mount_dir)
+        if ret is None:
+            raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "sub-volume not used")
+        if not ret.startswith("/@"):
+            raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "sub-volume \"%s\" is invalid" % (ret))
+        if len(ret) > 2:
+            mnt_args_dict["snapshot"] = cls.getSnapshotNameFromSubVolPath(ret)
+
     @staticmethod
     def _createSubVol(mntDir, subVolPath):
         Util.cmdCall("btrfs", "subvolume", "create", os.path.join(mntDir, subVolPath))
@@ -861,6 +871,11 @@ class SubVolsBtrfs(Snapshot):
 class Mount(abc.ABC):
 
     @staticmethod
+    def mntArgsDictSetReadOnly(mount_dir, mnt_args_dict):
+        if "ro" in PhysicalDiskMounts.find_entry_by_mount_point(mount_dir).mnt_opt_list:
+            mnt_args_dict["read_only"] = True
+
+    @staticmethod
     def proxy(func):
         if isinstance(func, property):
             def f_get(self):
@@ -872,7 +887,7 @@ class Mount(abc.ABC):
                 return getattr(self._mnt, func.__name__)(*args)
             return f
 
-    def __init__(self, bIsMounted, mntDir, mntParams, kwargsDict):
+    def __init__(self, bIsMounted, mntDir, mntParams, mntArgsDict):
         assert len(mntParams) > 0
         assert all([isinstance(x, InternalMountParam) for x in mntParams])
         assert mntParams[0].mountpoint == "/"
@@ -885,7 +900,7 @@ class Mount(abc.ABC):
 
         # do mount
         if not bIsMounted:
-            for p in self.get_mount_params(**kwargsDict):
+            for p in self.get_mount_params(**mntArgsDict):
                 if p.mountpoint != "/":
                     if not os.path.exists(p.real_dir_path):
                         os.mkdir(p.real_dir_path)
@@ -929,13 +944,13 @@ class Mount(abc.ABC):
 
 class MountBios(Mount):
 
-    def __init__(self, bIsMounted, mntDir, mntParams, kwargsDict):
+    def __init__(self, bIsMounted, mntDir, mntParams, mntArgsDict):
         assert len(mntParams) == 1
-        assert all(["ro" not in x.mnt_opt_list for x in mntParams])             # avoids conflict with kwargsDict["read_only"]
-        assert all(["rw" not in x.mnt_opt_list for x in mntParams])             # avoids conflict with kwargsDict["read_only"]
+        assert all(["ro" not in x.mnt_opt_list for x in mntParams])             # avoids conflict with mntArgsDict["read_only"]
+        assert all(["rw" not in x.mnt_opt_list for x in mntParams])             # avoids conflict with mntArgsDict["read_only"]
 
-        super().__init__(bIsMounted, mntDir, mntParams, kwargsDict)
-        self._readOnly = kwargsDict.pop("read_only", False)
+        super().__init__(bIsMounted, mntDir, mntParams, mntArgsDict)
+        self._readOnly = mntArgsDict.pop("read_only", False)
 
     def is_read_only(self):
         return self._readOnly
@@ -966,20 +981,20 @@ class MountEfi(Mount):
             if self._parent._isMountParamWritable(self._parent._pEsp):
                 Util.cmdCall("mount", self._parent._pEsp.real_dir_path, "-o", "ro,remount")
 
-    def __init__(self, bIsMounted, mntDir, mntParams, kwargsDict):
+    def __init__(self, bIsMounted, mntDir, mntParams, mntArgsDict):
         assert len(mntParams) >= 2
 
-        # avoids conflict with kwargsDict["read_only"]
+        # avoids conflict with mntArgsDict["read_only"]
         for p in mntParams:
             if p.mountpoint != Util.bootDir:
                 assert "ro" not in p.mnt_opt_list
             assert "rw" not in p.mnt_opt_list
 
-        super().__init__(bIsMounted, mntDir, mntParams, kwargsDict)
+        super().__init__(bIsMounted, mntDir, mntParams, mntArgsDict)
         self._pRootfs = self._findRootfsMountParam()
         self._pEsp = self._findEspMountParam()
         self._rwCtrl = self.RwController(self)
-        self._readOnly = kwargsDict.get("read_only", False)
+        self._readOnly = mntArgsDict.get("read_only", False)
 
     def is_read_only(self):
         return self._readOnly
