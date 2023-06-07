@@ -158,7 +158,7 @@ class MountEntry:
 
     @property
     def mnt_opt_list(self):
-        return self.opts.split(",")
+        return self._opts.split(",")
 
     @property
     def real_dir_path(self):
