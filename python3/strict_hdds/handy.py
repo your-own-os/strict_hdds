@@ -935,7 +935,7 @@ class MountBios(Mount):
         assert all(["rw" not in x.mnt_opt_list for x in mntParams])             # avoids conflict with kwargsDict["read_only"]
 
         super().__init__(bIsMounted, mntDir, mntParams, kwargsDict)
-        self._readOnly = kwargsDict.get("read_only", False)
+        self._readOnly = kwargsDict.pop("read_only", False)
 
     def is_read_only(self):
         return self._readOnly
@@ -986,7 +986,7 @@ class MountEfi(Mount):
 
     def get_mount_params(self, **kwargs):
         ret = [copy.deepcopy(super(MountParam, x)) for x in self._mntParams]
-        if kwargs.get("read_only", False):
+        if kwargs.pop("read_only", False):
             for p in ret:
                 if p.mountpoint != Util.bootDir:
                     p.mnt_opt_list.append("ro")
