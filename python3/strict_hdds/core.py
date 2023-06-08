@@ -127,7 +127,7 @@ class MountParam:
 
 class MountEntry:
 
-    def __init__(self, device, mountpoint, fstype, opts, real_dir_path):
+    def __init__(self, device, mountpoint, fstype, opts, real_opts, real_dir_path):
         assert device is not None
         assert os.path.isabs(mountpoint)
         assert fstype is not None
@@ -138,6 +138,8 @@ class MountEntry:
         self._mountpoint = mountpoint
         self._fstype = fstype
         self._opts = opts
+
+        self._real_opts = real_opts
         self._real_dir_path = real_dir_path
 
     @property
@@ -159,6 +161,14 @@ class MountEntry:
     @property
     def mnt_opt_list(self):
         return self._opts.split(",")
+
+    @property
+    def real_opts(self):
+        return self._real_opts
+
+    @property
+    def real_mnt_opt_list(self):
+        return self._real_opts.split(",")
 
     @property
     def real_dir_path(self):
