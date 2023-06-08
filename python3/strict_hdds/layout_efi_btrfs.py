@@ -218,7 +218,7 @@ def parse(boot_dev, root_dev, mount_dir):
     # return
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
-    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=mntArgsDict.pop("snapshot", None))
+    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=mntArgsDict.get("snapshot", None))
     ret._mnt = MountEfi(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
 
     assert len(mntArgsDict) == 0
@@ -249,7 +249,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     # return
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
-    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=mntArgsDict.pop("snapshot", None))
+    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=mntArgsDict.get("snapshot", None))
     ret._mnt = MountEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)       # do mount during MountEfi initialization
 
     assert len(mntArgsDict) == 0
@@ -271,7 +271,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     # return
     ret = StorageLayoutImpl()
     ret._md = md
-    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=mntArgsDict.pop("snapshot", None))
+    ret._subvols = SubVolsBtrfs(mount_dir, snapshot=mntArgsDict.get("snapshot", None))
     ret._mnt = MountEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)       # do mount during MountEfi initialization
 
     assert len(mntArgsDict) == 0
