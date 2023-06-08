@@ -635,6 +635,13 @@ class SubVols(abc.ABC):
         m = re.fullmatch("/@snapshots/([^/]+)/", subvol)
         return m.group(1)
 
+    @classmethod
+    def getParamsForMountWithoutSnapshot(self):
+        ret = []
+        for path, name, mode, uid, gid in self._allSubVols():
+            ret.append((path, mode, uid, gid, ["subvol=/%s" % (name)]))
+        return ret
+
     @staticmethod
     def proxy(func):
         if isinstance(func, property):
@@ -701,12 +708,6 @@ class SubVols(abc.ABC):
         if var:
             # contents in self._subVolNamesExcludedFromSnapshoting() are not important, they will be lost
             assert False
-
-    def getParamsForMountWithoutSnapshot(self):
-        ret = []
-        for path, name, mode, uid, gid in self._allSubVols():
-            ret.append((path, mode, uid, gid, ["subvol=/%s" % (name)]))
-        return ret
 
     def check(self, auto_fix, error_callback):
         nameList = []
