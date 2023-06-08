@@ -988,7 +988,7 @@ class MountBios(Mount):
         assert all(["rw" not in x.mnt_opt_list for x in mntParams])             # avoids conflict with mntArgsDict["read_only"]
 
     def __init__(self, bIsMounted, mntDir, getMntParamsFunc, mntArgsDict):
-        self._readOnly = mntArgsDict.pop("read_only", False)
+        self._readOnly = mntArgsDict.get("read_only", False)
         super().__init__(bIsMounted, mntDir, getMntParamsFunc, mntArgsDict)
 
     def is_read_only(self):
