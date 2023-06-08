@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 
 
+import functools
 from .util import Util, PartiUtil, BcachefsUtil
 from .handy import EfiCacheGroup, MountEfi, MountParam, HandyCg, DisksChecker
 from . import errors
@@ -263,7 +264,7 @@ def parse(boot_dev, root_dev, mount_dir):
     # return
     ret = StorageLayoutImpl()
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
-    ret._mnt = MountEfi(True, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict, _mntParamsMergeMntArgs)
+    ret._mnt = MountEfi(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
 
     assert len(mntArgsDict) == 0
     return ret
@@ -295,7 +296,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     # return
     ret = StorageLayoutImpl()
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
-    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict, _mntParamsMergeMntArgs)             # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
 
     assert len(mntArgsDict) == 0
     return ret
@@ -319,7 +320,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     # return
     ret = StorageLayoutImpl()
     ret._cg = cg
-    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict, _mntParamsMergeMntArgs)             # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
 
     assert len(mntArgsDict) == 0
     return ret
@@ -336,11 +337,11 @@ def _getMntParams(obj, mntArgsDict):
         assert mntArgsDict["extra_mount_options_for_boot_dev"] != ""
         tlistBoot += mntArgsDict.pop("extra_mount_options_for_boot_dev").split(",")
 
-    return [
+    ret = [
         MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeBcachefs, mnt_opt_list=tlist),
         MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
     ]
 
+    MountEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)
 
-def _mntParamsMergeMntArgs(mntParams, mntArgsDict):
-    MountEfi.mntParamsMergeMntArgReadOnly(mntParams, mntArgsDict)
+    return ret
