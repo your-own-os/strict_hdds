@@ -24,7 +24,6 @@
 import os
 import re
 import abc
-import copy
 import glob
 import time
 import struct
