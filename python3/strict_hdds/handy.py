@@ -898,21 +898,16 @@ class Mount(abc.ABC):
                 return getattr(self._mnt, func.__name__)(*args)
             return f
 
-    # FIXME: should be class method
+    @staticmethod
     @abc.abstractmethod
-    def _assertMntParams(self):
+    def _assertMntParams(mntParams):
         pass
 
     def __init__(self, bIsMounted, mntDir, getMntParamsFunc, mntArgsDict):
         self._mntDir = mntDir
         self._getMntParamsFunc = getMntParamsFunc
 
-        self._mntParams = self._getMntParamsFunc(mntArgsDict)
-        assert len(mntArgsDict) == 0
-        assert len(self._mntParams) > 0
-        assert all([isinstance(x, MountParam) for x in self._mntParams])
-        assert self._mntParams[0].mountpoint == "/"
-        self._assertMntParams(self._mntParams)
+        self._mntParams = self._myGetMntParams(mntArgsDict)
 
         # do mount
         if not bIsMounted:
@@ -941,10 +936,7 @@ class Mount(abc.ABC):
         return self._mntDir
 
     def get_mount_params(self, **kwargs):
-        mntArgsDict = kwargs.copy()
-        mntParams = self._getMntParamsFunc(mntArgsDict)
-        assert len(mntArgsDict) == 0
-        return mntParams
+        return self._myGetMntParams(kwargs.copy())
 
     def get_mount_entries(self):
         ret = []
@@ -960,6 +952,20 @@ class Mount(abc.ABC):
         for p in reversed(self._mntParams):
             if p.device is not None:
                 Util.cmdCall("umount", self._getRealDirPath(p))
+
+    def _myGetMntParams(self, mntArgsDict):
+        mntParams = self._getMntParamsFunc(mntArgsDict)
+
+        # check mntParams
+        assert len(mntParams) > 0
+        assert all([isinstance(x, MountParam) for x in mntParams])
+        assert mntParams[0].mountpoint == "/"
+        self._assertMntParams(mntParams)
+
+        # all items in mntArgDict should be consumed
+        assert len(mntArgsDict) == 0
+
+        return mntParams
 
     def _getRealDirPath(self, p):
         if p.mountpoint != "/":
