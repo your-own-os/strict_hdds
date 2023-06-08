@@ -931,9 +931,7 @@ class Mount(abc.ABC):
                 if p.device is not None:
                     Util.cmdCall("mount", "-t", p.fstype, "-o", p.opts, p.device, real_dir_path)
 
-            self._mntEntries.append(MountEntry(p.device, p.mountpoint, p.fstype, p.opts,
-                                                PhysicalDiskMounts.find_entry_by_mount_point(real_dir_path).opts,
-                                                real_dir_path))
+            self._mntEntries.append(MountEntry(p.device, p.mountpoint, p.fstype, p.opts, real_dir_path))
 
     @property
     def mount_point(self):
@@ -1011,12 +1009,10 @@ class MountEfi(Mount):
             if not self.is_read_only():
                 if "rw" not in self._pEsp.real_mnt_opt_list:
                     Util.cmdCall("mount", self._pEsp.real_dir_path, "-o", "rw,remount")
-                    self._pEsp._real_opts = PhysicalDiskMounts.find_entry_by_mount_point(self._pEsp.real_dir_path).opts
 
         def to_read_only(self):
             if "rw" in self._pEsp.real_mnt_opt_list:
                 Util.cmdCall("mount", self._pEsp.real_dir_path, "-o", "ro,remount")
-                self._pEsp._real_opts = PhysicalDiskMounts.find_entry_by_mount_point(self._pEsp.real_dir_path).opts
 
     @staticmethod
     def mntArgsDictSetReadOnly(storageLayoutName, mount_dir, mntArgsDict):
@@ -1057,14 +1053,12 @@ class MountEfi(Mount):
         assert self._pEsp.device is None
         Util.cmdCall("mount", "-t", self._pEsp.fstype, "-o", self._pEsp.opts, parti, self._pEsp.real_dir_path)
         self._pEsp._device = parti
-        self._pEsp._real_opts = PhysicalDiskMounts.find_entry_by_mount_point(self._pEsp.real_dir_path).opts
 
     def umount_esp(self, parti):
         assert parti == self._pEsp.device
         assert "rw" not in self._pEsp.mnt_opt_list
         Util.cmdCall("umount", self._pEsp.real_dir_path)
         self._pEsp._device = None
-        self._pEsp._real_opts = None
 
     def _findRootfsMountEntry(self):
         for p in self._mntEntries:

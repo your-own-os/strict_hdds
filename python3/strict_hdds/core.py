@@ -27,7 +27,7 @@ import abc
 import glob
 import psutil
 import functools
-from .util import BcacheUtil, Util, GptUtil, BtrfsUtil, LvmUtil
+from .util import BcacheUtil, Util, GptUtil, BtrfsUtil, LvmUtil, PhysicalDiskMounts
 from . import errors
 
 
@@ -127,7 +127,7 @@ class MountParam:
 
 class MountEntry:
 
-    def __init__(self, device, mountpoint, fstype, opts, real_opts, real_dir_path):
+    def __init__(self, device, mountpoint, fstype, opts, real_dir_path):
         assert device is not None
         assert os.path.isabs(mountpoint)
         assert fstype is not None
@@ -139,7 +139,6 @@ class MountEntry:
         self._fstype = fstype
         self._opts = opts
 
-        self._real_opts = real_opts
         self._real_dir_path = real_dir_path
 
     @property
@@ -160,19 +159,20 @@ class MountEntry:
 
     @property
     def mnt_opt_list(self):
-        return self._opts.split(",")
-
-    @property
-    def real_opts(self):
-        return self._real_opts
-
-    @property
-    def real_mnt_opt_list(self):
-        return self._real_opts.split(",")
+        return self.opts.split(",")
 
     @property
     def real_dir_path(self):
         return self._real_dir_path
+
+    @property
+    def real_opts(self):
+        assert self._device is not None
+        return PhysicalDiskMounts.find_entry_by_mount_point(self._real_dir_path).opts
+
+    @property
+    def real_mnt_opt_list(self):
+        return self.real_opts.split(",")
 
 
 class RwController(abc.ABC):
