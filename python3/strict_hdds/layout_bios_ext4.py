@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 
 
+import functools
 from .util import Util, PartiUtil, MbrUtil
 from .handy import SwapFile, MountBios, MountParam, DisksChecker, HandyUtil
 from . import errors
@@ -136,7 +137,7 @@ def parse(boot_dev, root_dev, mount_dir):
     ret._hdd = hdd
     ret._hddRootParti = root_dev
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, "/")
-    ret._mnt = MountBios(True, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict, _mntParamsMergeMntArgs)
+    ret._mnt = MountBios(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
 
     assert len(mntArgsDict) == 0
     return ret
@@ -170,7 +171,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     ret._hdd = PartiUtil.partiToDisk(rootPartitionList[0])
     ret._hddRootParti = rootPartitionList[0]
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, mount_dir)
-    ret._mnt = MountBios(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict, _mntParamsMergeMntArgs)      # do mount during MountBios initialization
+    ret._mnt = MountBios(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)      # do mount during MountBios initialization
 
     assert len(mntArgsDict) == 0
     return ret
@@ -193,7 +194,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     ret._hdd = hdd
     ret._hddRootParti = rootParti
     ret._swap = SwapFile(False)
-    ret._mnt = MountBios(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict, _mntParamsMergeMntArgs)      # do mount during MountBios initialization
+    ret._mnt = MountBios(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)      # do mount during MountBios initialization
 
     assert len(mntArgsDict) == 0
     return ret
@@ -209,10 +210,8 @@ def _getMntParams(obj, mntArgsDict):
         assert "extra_mount_options" not in mntArgsDict
         assert mntArgsDict["extra_mount_options_for_root_dev"] != ""
         tlist += mntArgsDict.pop("extra_mount_options_for_root_dev").split(",")
-    return [
+    mntParams = [
         MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist)
     ]
-
-
-def _mntParamsMergeMntArgs(mntParams, mntArgsDict):
-    MountEfi.mntParamsMergeMntArgReadOnly(mntParams, mntArgsDict)
+    MountBios.mntParamsMergeMntArgReadOnly(mntParams, mntArgsDict)
+    return mntParams

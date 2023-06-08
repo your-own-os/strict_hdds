@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 
 
+import functools
 from .util import Util, BcacheUtil, BtrfsUtil
 from .handy import EfiCacheGroup, Bcache, SubVols, SubVolsBtrfs, MountEfi, MountParam, HandyCg, HandyBcache, DisksChecker
 from . import errors
@@ -304,7 +305,7 @@ def parse(boot_dev, root_dev, mount_dir):
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._bcache = Bcache(keyList=hddList, bcacheDevPathList=bcacheDevPathList)
     ret._subvols = SubVolsBtrfs(mount_dir, snapshot=mntArgsDict.pop("snapshot", None))
-    ret._mnt = MountEfi(True, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict, _mntParamsMergeMntArgs)
+    ret._mnt = MountEfi(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
 
     assert len(mntArgsDict) == 0
     return ret
@@ -330,7 +331,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._bcache = Bcache(keyList=hddList, bcacheDevPathList=bcacheDevPathList)
     ret._subvols = SubVolsBtrfs(mount_dir, snapshot=mntArgsDict.pop("snapshot", None))
-    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict, _mntParamsMergeMntArgs)    # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)    # do mount during MountEfi initialization
 
     assert len(mntArgsDict) == 0
     return ret
@@ -361,7 +362,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     ret._cg = cg
     ret._bcache = bcache
     ret._subvols = SubVolsBtrfs(mount_dir, snapshot=mntArgsDict.pop("snapshot", None))
-    ret._mnt = MountEfi(False, mount_dir, _getMntParams(ret, mntArgsDict), mntArgsDict, _mntParamsMergeMntArgs)    # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)    # do mount during MountEfi initialization
 
     assert len(mntArgsDict) == 0
     return ret
@@ -382,12 +383,11 @@ def _getMntParams(obj, mntArgsDict):
     for dirPath, dirMode, dirUid, dirGid, mntOptList in obj._subvols.getParamsForMountWithoutSnapshot():
         ret.append(MountParam(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
     ret.append(MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
+
+    SubVolsBtrfs.mntParamsMergeMntArgSnapshot(ret, mntArgsDict)
+    MountEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)
+
     return ret
-
-
-def _mntParamsMergeMntArgs(mntParams, mntArgsDict):
-    SubVolsBtrfs.mntParamsMergeMntArgSnapshot(mntParams, mntArgsDict)
-    MountEfi.mntParamsMergeMntArgReadOnly(mntParams, mntArgsDict)
 
 
 def _devMntOptList(bcache):
