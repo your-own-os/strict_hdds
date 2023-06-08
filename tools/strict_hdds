@@ -105,6 +105,8 @@ def doAddHarddisk():
     layout = strict_hdds.get_storage_layout(sys.argv[2])
     if not hasattr(layout, "add_disk"):
         die("Operation is not supported by layout \"%s\"." % (layout.name))
+    if layout.get_bootdir_rw_controller().is_writable():
+        die("Boot directory should be mounted read-only.")
     layout.add_disk(sys.argv[3])
 
 
@@ -116,6 +118,8 @@ def doRemoveHarddisk():
     layout = strict_hdds.get_storage_layout(sys.argv[2])
     if not hasattr(layout, "remove_disk"):
         die("Operation is not supported by storage layout \"%s\"." % (layout.name))
+    if layout.get_bootdir_rw_controller().is_writable():
+        die("Boot directory should be mounted read-only.")
     layout.remove_disk(sys.argv[3])
 
 
