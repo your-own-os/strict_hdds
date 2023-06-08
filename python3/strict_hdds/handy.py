@@ -909,7 +909,10 @@ class Mount(abc.ABC):
 
         # consume mntArgDict, do mount if neccessary, record mount entries
         for p in self._myGetMntParams(mntArgsDict):
-            real_dir_path = self._getRealDirPath(p)
+            if p.mountpoint != "/":
+                real_dir_path = os.path.join(self._mntDir, p.mountpoint[1:])
+            else:
+                real_dir_path = self._mntDir
 
             if not bIsMounted:
                 if p.mountpoint != "/":
@@ -960,12 +963,6 @@ class Mount(abc.ABC):
         assert len(mntArgsDict) == 0
 
         return mntParams
-
-    def _getRealDirPath(self, p):
-        if p.mountpoint != "/":
-            return os.path.join(self._mntDir, p.mountpoint[1:])
-        else:
-            return self._mntDir
 
 
 class MountBios(Mount):
