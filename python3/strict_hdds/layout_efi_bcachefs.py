@@ -265,8 +265,6 @@ def parse(boot_dev, root_dev, mount_dir):
     ret = StorageLayoutImpl()
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._mnt = MountEfi(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
-
-    assert len(mntArgsDict) == 0
     return ret
 
 
@@ -297,8 +295,6 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     ret = StorageLayoutImpl()
     ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._mnt = MountEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
-
-    assert len(mntArgsDict) == 0
     return ret
 
 
@@ -321,8 +317,6 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     ret = StorageLayoutImpl()
     ret._cg = cg
     ret._mnt = MountEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
-
-    assert len(mntArgsDict) == 0
     return ret
 
 

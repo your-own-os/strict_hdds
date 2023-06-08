@@ -138,8 +138,6 @@ def parse(boot_dev, root_dev, mount_dir):
     ret._hddRootParti = root_dev
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, "/")
     ret._mnt = MountBios(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
-
-    assert len(mntArgsDict) == 0
     return ret
 
 
@@ -172,8 +170,6 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     ret._hddRootParti = rootPartitionList[0]
     ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, mount_dir)
     ret._mnt = MountBios(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)      # do mount during MountBios initialization
-
-    assert len(mntArgsDict) == 0
     return ret
 
 
@@ -195,8 +191,6 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     ret._hddRootParti = rootParti
     ret._swap = SwapFile(False)
     ret._mnt = MountBios(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)      # do mount during MountBios initialization
-
-    assert len(mntArgsDict) == 0
     return ret
 
 
