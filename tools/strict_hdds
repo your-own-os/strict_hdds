@@ -218,6 +218,7 @@ def _show(layout):
             swapStr = ""
             bootDiskStr = " (boot disk: %s)" % (layout.boot_disk)
         print("Storage layout: %s, SSD: %s%s, HDDs: %s%s" % (layout.name, ssdStr, swapStr, " ".join(layout.get_hdd_list()), bootDiskStr))
+        print("Boot directory mounted: %s" % ("read-write" if layout.get_bootdir_rw_controller().is_writable() else "read-only"))
         return
 
     if layout.name == "efi-bcache-btrfs":
@@ -233,6 +234,7 @@ def _show(layout):
             swapStr = ""
             bootDiskStr = " (boot disk: %s)" % (layout.boot_disk)
         print("Storage layout: %s, SSD: %s%s, HDDs: %s%s" % (layout.name, ssdStr, swapStr, " ".join(layout.get_hdd_list()), bootDiskStr))
+        print("Boot directory mounted: %s" % ("read-write" if layout.get_bootdir_rw_controller().is_writable() else "read-only"))
         return
 
     if layout.name == "efi-btrfs":
@@ -241,6 +243,7 @@ def _show(layout):
         else:
             bootDiskStr = " (boot disk: %s)" % (layout.boot_disk)
         print("Storage layout: %s, HDDs: %s%s" % (layout.name, " ".join(layout.get_hdd_list()), bootDiskStr))
+        print("Boot directory mounted: %s" % ("read-write" if layout.get_bootdir_rw_controller().is_writable() else "read-only"))
         return
 
     if layout.name == "efi-ext4":
@@ -249,6 +252,7 @@ def _show(layout):
         else:
             swapStr = ""
         print("Storage layout: %s, HDD: %s%s" % (layout.name, layout.boot_disk, swapStr))
+        print("Boot directory mounted: %s" % ("read-write" if layout.get_bootdir_rw_controller().is_writable() else "read-only"))
         return
 
     if layout.name == "bios-ext4":
