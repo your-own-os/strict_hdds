@@ -987,14 +987,14 @@ class MountBios(Mount):
             mntParams[0].mnt_opt_list.append("ro")
 
     @staticmethod
-    def _assertMntParams(self, mntParams):
+    def _assertMntParams(mntParams):
         assert len(mntParams) == 1
         assert all(["ro" not in x.mnt_opt_list for x in mntParams])             # avoids conflict with mntArgsDict["read_only"]
         assert all(["rw" not in x.mnt_opt_list for x in mntParams])             # avoids conflict with mntArgsDict["read_only"]
 
     def __init__(self, bIsMounted, mntDir, getMntParamsFunc, mntArgsDict):
-        super().__init__(bIsMounted, mntDir, getMntParamsFunc, mntArgsDict)
         self._readOnly = mntArgsDict.pop("read_only", False)
+        super().__init__(bIsMounted, mntDir, getMntParamsFunc, mntArgsDict)
 
     def is_read_only(self):
         return self._readOnly
@@ -1032,7 +1032,7 @@ class MountEfi(Mount):
                     p.mnt_opt_list.append("ro")
 
     @staticmethod
-    def _assertMntParams(self, mntParams):
+    def _assertMntParams(mntParams):
         assert len(mntParams) >= 2
 
         # avoids conflict with mntArgsDict["read_only"]
@@ -1042,11 +1042,11 @@ class MountEfi(Mount):
             assert "rw" not in p.mnt_opt_list
 
     def __init__(self, bIsMounted, mntDir, getMntParamsFunc, mntArgsDict):
+        self._readOnly = mntArgsDict.get("read_only", False)
+        self._rwCtrl = self.RwController(self)
         super().__init__(bIsMounted, mntDir, getMntParamsFunc, mntArgsDict)
         self._pRootfs = self._findRootfsMountParam()
         self._pEsp = self._findEspMountParam()
-        self._rwCtrl = self.RwController(self)
-        self._readOnly = mntArgsDict.get("read_only", False)
 
     def is_read_only(self):
         return self._readOnly
