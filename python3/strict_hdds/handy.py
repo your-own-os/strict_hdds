@@ -407,7 +407,7 @@ class EfiCacheGroup:
         if self._ssdSwapParti is None:
             error_callback(errors.CheckCode.SWAP_NOT_ENABLED)
         else:
-            if Util.getBlkDevSize(self._ssdSwapParti) >= Util.getSwapSize():
+            if Util.getBlkDevSize(self._ssdSwapParti) < Util.getSwapSize():
                 # no way to auto fix
                 error_callback(errors.CheckCode.SWAP_SIZE_TOO_SMALL, "partition")
 
