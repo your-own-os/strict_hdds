@@ -1001,13 +1001,14 @@ class MountEfi(Mount):
     class RwController(RwController):
 
         def __init__(self, parent):
-            self._pEsp = parent._pEsp
+            self._parent = parent
+            self._pEsp = self._parent._pEsp
 
         def is_writable(self):
             return "rw" in self._pEsp.real_mnt_opt_list
 
         def to_read_write(self):
-            if not self.is_read_only():
+            if not self._parent.is_read_only():
                 if "rw" not in self._pEsp.real_mnt_opt_list:
                     Util.cmdCall("mount", self._pEsp.real_dir_path, "-o", "rw,remount")
 
