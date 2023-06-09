@@ -88,7 +88,7 @@ class StorageLayout(abc.ABC):
     def get_disk_list(self):
         pass
 
-    def check(self, auto_fix=False, error_callback=None):
+    def check(self, *kargs, auto_fix=False, error_callback=None):
         self._check_impl(Util.checkItemBasic, auto_fix=auto_fix, error_callback=functools.partial(errors.checkErrorCallback, error_callback))
 
     def opt_check(self, check_item, *kargs, auto_fix=False, error_callback=None):

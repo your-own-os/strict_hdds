@@ -186,13 +186,13 @@ def doCheck():
     def __errCb(checkCode, message):
         print(message)
     layout = strict_hdds.get_storage_layout(sys.argv[2])
-    layout.check(False, __errCb)
+    layout.check(auto_fix=False, error_callback=__errCb)
     if layout.name in ["bios-ext4", "efi-ext4", "efi-bcache-btrfs", "efi-bcachefs"]:
-        layout.opt_check("swap", False, __errCb)
+        layout.opt_check("swap", auto_fix=False, error_callback=__errCb)
     if layout.name == "efi-bcache-btrfs":
-        layout.opt_check("bcache-write-mode", "writeback", False, __errCb)
+        layout.opt_check("bcache-write-mode", "writeback", auto_fix=False, error_callback=__errCb)
     if True:
-        layout.opt_check("mount-write-mode", False, __errCb)
+        layout.opt_check("mount-write-mode", auto_fix=False, error_callback=__errCb)
 
 
 def doUmount():
