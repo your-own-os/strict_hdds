@@ -991,6 +991,10 @@ class MountBios(Mount):
     def is_read_only(self):
         return self._readOnly
 
+    def check_mount_read_only(self, auto_fix=False, error_callback=None):
+        if self._readOnly:
+            error_callback(errors.CheckCode.TRIVIAL, "The whole file system is mounted read-only.")
+
 
 class MountEfi(Mount):
 
@@ -1056,6 +1060,12 @@ class MountEfi(Mount):
         assert "rw" not in self._pEsp.mnt_opt_list
         Util.cmdCall("umount", self._pEsp.real_dir_path)
         self._pEsp._device = None
+
+    def check_mount_read_only(self, auto_fix=False, error_callback=None):
+        if self._readOnly:
+            error_callback(errors.CheckCode.TRIVIAL, "The whole file system is mounted read-only.")
+        if self._readOnly._rwCtrl.is_writable():
+            error_callback(errors.CheckCode.TRIVIAL, "Boot directory should be mounted read-only.")
 
     def _findRootfsMountEntry(self):
         for p in self._mntEntries:

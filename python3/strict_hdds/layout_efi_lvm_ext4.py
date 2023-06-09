@@ -202,6 +202,8 @@ class StorageLayoutImpl(StorageLayout):
             self._md.check_esp(auto_fix, error_callback)
         elif check_item == "swap":
             self._swap.check(auto_fix, error_callback)
+        elif check_item == "mount_read_only":
+            self._mnt.check_mount_read_only(auto_fix, error_callback)
         else:
             assert False
 
