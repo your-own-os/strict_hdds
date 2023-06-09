@@ -114,7 +114,7 @@ class EfiMultiDisk:
         parti = PartiUtil.diskToParti(disk, 1)
         Util.cmdCall("mkfs.vfat", parti)
         if self._bootHdd is not None:
-            Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), parti, mountPoint1=Util.bootDir)
+            Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), parti)
         else:
             pass
 
@@ -301,7 +301,7 @@ class EfiCacheGroup:
         # partition1: ESP partition
         Util.cmdCall("mkfs.vfat", self._ssdEspParti)
         if self._bootHdd is not None:
-            Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), self._ssdEspParti, mountPoint1=Util.bootDir)
+            Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), self._ssdEspParti)
         else:
             pass
 
@@ -350,9 +350,9 @@ class EfiCacheGroup:
         parti = PartiUtil.diskToParti(hdd, 1)
         Util.cmdCall("mkfs.vfat", parti)
         if self._ssd is not None:
-            Util.syncBlkDev(self._ssdEspParti, parti, mountPoint1=Util.bootDir)
+            Util.syncBlkDev(self._ssdEspParti, parti)
         elif self._bootHdd is not None:
-            Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), parti, mountPoint1=Util.bootDir)
+            Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), parti)
         else:
             pass
 

@@ -176,7 +176,8 @@ class Util:
     @staticmethod
     def wipeHarddisk(devpath):
         with open(devpath, 'wb') as f:
-            f.write(bytearray(1024))
+            for i in range(0, 1024):
+                f.write(bytearray(4096))
 
     @staticmethod
     def isHarddiskClean(devpath):
