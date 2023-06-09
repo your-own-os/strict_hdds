@@ -192,7 +192,7 @@ def doCheck():
     if layout.name == "efi-bcache-btrfs":
         layout.opt_check("bcache-write-mode", "writeback", False, __errCb)
     if True:
-        layout.opt_check("mount-read-only", False, __errCb)
+        layout.opt_check("mount-write-mode", False, __errCb)
 
 
 def doUmount():
