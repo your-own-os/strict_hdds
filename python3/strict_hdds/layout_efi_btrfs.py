@@ -195,6 +195,8 @@ class StorageLayoutImpl(StorageLayout):
                 dc.check_logical_sector_size(auto_fix, error_callback)
             self._md.check_esp(auto_fix, error_callback)
             self._subvols.check(auto_fix, error_callback)
+        elif check_item == "mount_read_only":
+            pass
         else:
             assert False
 

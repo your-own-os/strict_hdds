@@ -123,6 +123,8 @@ class StorageLayoutImpl(StorageLayout):
             dc.check_logical_sector_size(auto_fix, error_callback)
         elif check_item == "swap":
             self._swap.check(auto_fix, error_callback)
+        elif check_item == "mount_read_only":
+            pass
         else:
             assert False
 

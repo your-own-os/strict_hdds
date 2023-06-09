@@ -239,6 +239,8 @@ class StorageLayoutImpl(StorageLayout):
             self._cg.check_ssd(auto_fix, error_callback)
         elif check_item == "swap":
             self._cg.check_swap(auto_fix, error_callback)
+        elif check_item == "mount_read_only":
+            pass
         else:
             assert False
 
