@@ -175,9 +175,16 @@ class Util:
 
     @staticmethod
     def wipeHarddisk(devpath):
-        with open(devpath, 'wb') as f:
+        # write data to harddisk
+        fd = os.open(devpath, os.O_WRONLY | os.O_EXCL)
+        try:
             for i in range(0, 1024):
-                f.write(bytearray(4096))
+                os.write(fd, bytearray(4096))
+        finally:
+            os.close(fd)
+
+        # FIXME: wait for /dev refresh
+        pass
 
     @staticmethod
     def isHarddiskClean(devpath):
