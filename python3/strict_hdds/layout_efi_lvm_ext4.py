@@ -159,7 +159,7 @@ class StorageLayoutImpl(StorageLayout):
             raise errors.StorageLayoutRemoveDiskError(disk, errors.BOOTDIR_NOT_RO)
 
         # boot disk change
-        if disk == self._md.boot_disk:  
+        if disk == self._md.boot_disk:
             self._mnt.umount_esp(self._md.get_disk_esp_partition(self._md.boot_disk))
             bChange = True
         else:
