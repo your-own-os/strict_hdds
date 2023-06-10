@@ -140,18 +140,13 @@ class StorageLayoutImpl(StorageLayout):
         if disk not in Util.getDevPathListForFixedDisk():
             raise errors.StorageLayoutAddDiskError(disk, errors.NOT_DISK)
 
-        # add
         self._md.add_disk(disk, "lvm")
 
         # create lvm physical volume on partition2 and add it to volume group
         LvmUtil.addPvToVg(self._md.get_disk_data_partition(disk), LvmUtil.vgName)
 
-        # boot disk change
-        if disk == self._md.boot_disk:
-            self._mnt.mount_esp(self._md.get_disk_esp_partition(self._md.boot_disk))
-            return True
-        else:
-            return False
+        assert disk != self._md.boot_disk
+        return False
 
     def remove_disk(self, disk):
         assert disk is not None
@@ -168,8 +163,7 @@ class StorageLayoutImpl(StorageLayout):
 
         # hdd partition 2: remove from volume group
         parti = self._md.get_disk_data_partition(disk)
-        rc, out = Util.cmdCallWithRetCode("lvm", "pvmove", parti)
-        if rc != 5:
+        if Util.cmdCallWithRetCode("lvm", "pvmove", parti)[0] != 5:
             raise errors.StorageLayoutRemoveDiskError("failed")
         Util.cmdCall("lvm", "vgreduce", LvmUtil.vgName, parti)
 
@@ -178,7 +172,6 @@ class StorageLayoutImpl(StorageLayout):
 
         # boot disk change
         if bChange:
-            assert self._md.boot_disk is not None
             self._mnt.mount_esp(self._md.get_disk_esp_partition(self._md.boot_disk))
             return True
         else:

@@ -133,22 +133,16 @@ class StorageLayoutImpl(StorageLayout):
         if disk not in Util.getDevPathListForFixedDisk():
             raise errors.StorageLayoutAddDiskError(disk, errors.NOT_DISK)
 
-        # add
         self._md.add_disk(disk, Util.fsTypeBtrfs)
 
         # hdd partition 2: make it as backing device and add it to btrfs filesystem
         BtrfsUtil.addDiskToBtrfs(self._md.get_disk_data_partition(disk), self._mnt.mount_point)
 
-        # boot disk change
-        if disk == self._md.boot_disk:
-            self._mnt.mount_esp(self._md.get_disk_esp_partition(self._md.boot_disk))
-            return True
-        else:
-            return False
+        assert disk != self._md.boot_disk
+        return False
 
     def remove_disk(self, disk):
         assert disk is not None
-        assert disk in self._md.get_disk_list()
 
         if len(self._md.get_disk_list()) <= 1:
             raise errors.StorageLayoutRemoveDiskError(errors.CAN_NOT_REMOVE_LAST_HDD)
@@ -168,7 +162,6 @@ class StorageLayoutImpl(StorageLayout):
 
         # boot disk change
         if bChange:
-            assert self._md.boot_disk is not None
             self._mnt.mount_esp(self._md.get_disk_esp_partition(self._md.boot_disk))
             return True
         else:
