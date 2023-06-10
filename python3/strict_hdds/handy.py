@@ -332,13 +332,17 @@ class EfiCacheGroup:
         # partition1: ESP partition
         self._ssdEspParti = None
 
-        # wipe disk
-        Util.wipeHarddisk(self._ssd)
+        # remove disk
         self._ssd = None
 
+        # wipe disk
+        Util.wipeHarddisk(self._ssd)
+
         # change boot device
+        assert self._bootHdd is None
         if len(self._hddList) > 0:
-            self._setFirstHddAsBootHdd()
+            Util.toggleEspPartition(PartiUtil.diskToParti(self._hddList[0], 1), True)
+            self._bootHdd = self._hddList[0]
 
     def add_hdd(self, hdd, fsType):
         assert hdd is not None and hdd not in self._hddList
