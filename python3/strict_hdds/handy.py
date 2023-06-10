@@ -106,8 +106,13 @@ class EfiMultiDisk:
 
         # create disk
         if True:
+            if self._bootHdd is None:
+                fsType1 = Util.fsTypeEsp
+            else:
+                fsType1 = Util.fsTypeFat
+
             Util.initializeDisk(disk, "gpt", [
-                ("%dMiB" % (Util.getEspSizeInMb()), Util.fsTypeEsp if self._bootHdd is None else Util.fsTypeFat),
+                ("%dMiB" % (Util.getEspSizeInMb()), fsType1),
                 ("*", fsType),
             ])
 
@@ -129,6 +134,7 @@ class EfiMultiDisk:
 
         # change boot disk if neccessary
         if self._bootHdd is None:
+            assert len(self._hddList) == 1
             self._bootHdd = disk
 
     def remove_disk(self, disk):
@@ -337,51 +343,61 @@ class EfiCacheGroup:
     def add_hdd(self, hdd, fsType):
         assert hdd is not None and hdd not in self._hddList
 
-        # create partitions
-        Util.initializeDisk(hdd, "gpt", [
-            ("%dMiB" % (Util.getEspSizeInMb()), Util.fsTypeFat),
-            ("*", fsType),
-        ])
+        # create disk
+        if True:
+            if self._ssd is None and self._bootHdd is None:
+                fsType1 = Util.fsTypeEsp
+            else:
+                fsType1 = Util.fsTypeFat
 
-        # partition1: pending ESP partition
-        parti = PartiUtil.diskToParti(hdd, 1)
-        Util.cmdCall("mkfs.vfat", parti)
-        if self._ssd is not None:
-            Util.syncBlkDev(self._ssdEspParti, parti, mountPoint1=Util.bootDir)
-        elif self._bootHdd is not None:
-            Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), parti, mountPoint1=Util.bootDir)
-        else:
+            Util.initializeDisk(hdd, "gpt", [
+                ("%dMiB" % (Util.getEspSizeInMb()), fsType1),
+                ("*", fsType),
+            ])
+
+            # partition1: pending ESP partition
+            parti = PartiUtil.diskToParti(hdd, 1)
+            if self._ssd is not None:
+                # FIXME: change to copyFatFs
+                Util.cmdCall("mkfs.vfat", parti)
+                Util.syncBlkDev(self._ssdEspParti, parti, mountPoint1=Util.bootDir)
+            elif self._bootHdd is not None:
+                # FIXME: change to copyFatFs
+                Util.cmdCall("mkfs.vfat", parti)
+                Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), parti, mountPoint1=Util.bootDir)
+            else:
+                Util.cmdCall("mkfs.vfat", parti)
+
+            # partition2: data partition, leave it to user
             pass
 
-        # partition2: data partition, leave it to user
-        pass
-
-        # record result
+        # add disk
         self._hddList.append(hdd)
         self._hddList.sort()
 
-        # change boot disk if needed
+        # change boot disk if neccessary
         if self._ssd is None and self._bootHdd is None:
             assert len(self._hddList) == 1
-            self._setFirstHddAsBootHdd()
+            self._bootHdd = hdd
 
     def remove_hdd(self, hdd):
         assert hdd is not None and hdd in self._hddList
 
-        # boot device change
-        bChange = False
+        # remove disk
+        self._hddList.remove(hdd)
+
+        # wipe disk
+        Util.wipeHarddisk(hdd)
+
+        # change boot disk if neccessary
         if self._ssd is None:
             assert self._bootHdd is not None
             if self._bootHdd == hdd:
-                self._unsetCurrentBootHdd()
-                bChange = True
-
-        self._hddList.remove(hdd)
-        Util.wipeHarddisk(hdd)
-
-        # boot device change
-        if bChange:
-            self._setFirstHddAsBootHdd()
+                if len(self._bootHdd) > 0:
+                    Util.toggleEspPartition(PartiUtil.diskToParti(self._hddList[0], 1), True)
+                    self._bootHdd = self._hddList[0]
+                else:
+                    self._bootHdd = None
 
     def check_ssd(self, auto_fix, error_callback):
         if self._ssd is None:
