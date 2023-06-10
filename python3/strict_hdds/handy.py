@@ -127,14 +127,14 @@ class EfiMultiDisk:
         self._hddList.append(disk)
         self._hddList.sort()
 
-        # change bootHdd if neccessary
+        # change boot disk if neccessary
         if self._bootHdd is None:
             self._bootHdd = disk
 
     def remove_disk(self, disk):
         assert disk is not None and disk in self._hddList
 
-        # change bootHdd if neccessary
+        # change boot disk if neccessary
         if self._bootHdd == disk:
             if len(self._bootHdd) > 0:
                 Util.toggleEspPartition(PartiUtil.diskToParti(self._hddList[0], 1), True)
