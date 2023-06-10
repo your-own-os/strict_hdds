@@ -106,39 +106,39 @@ class EfiMultiDisk:
 
         # create partitions
         Util.initializeDisk(disk, "gpt", [
-            ("%dMiB" % (Util.getEspSizeInMb()), Util.fsTypeFat),
+            ("%dMiB" % (Util.getEspSizeInMb()), Util.fsTypeEsp if self._bootHdd is None else Util.fsTypeFat),
             ("*", fsType),
         ])
 
         # partition1: pending ESP partition
         parti = PartiUtil.diskToParti(disk, 1)
-        Util.cmdCall("mkfs.vfat", parti)
-        if self._bootHdd is not None:
-            Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), parti, mountPoint1=Util.bootDir)
+        if self._bootHdd is None:
+            Util.cmdCall("mkfs.vfat", parti)
         else:
-            pass
+            # FIXME: change to copyFatFs
+            Util.cmdCall("mkfs.vfat", parti)
+            Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), parti, mountPoint1=Util.bootDir)
 
         # partition2: data partition, leave it to user
         pass
 
         # record result
         self._hddList.append(disk)
-        self._hddList.sort()
-
-        # change boot disk if needed
         if self._bootHdd is None:
-            self._setFirstHddAsBootHdd()
+            self._bootHdd = disk        # change boot disk if needed
+        else:
+            self._hddList.sort()
 
     def remove_disk(self, hdd):
         assert hdd is not None and hdd in self._hddList
 
-        # change boot device if needed
+        self._hddList.remove(hdd)
         if self._bootHdd == hdd:
-            self._unsetCurrentBootHdd()
-            self._hddList.remove(hdd)
-            self._setFirstHddAsBootHdd()
-        else:
-            self._hddList.remove(hdd)
+            if len(self._bootHdd) > 0:
+                self._bootHdd = self._hddList[0]
+                Util.toggleEspPartition(PartiUtil.diskToParti(self._bootHdd, 1), True)
+            else:
+                self._bootHdd = None
 
         # wipe disk
         Util.wipeHarddisk(hdd)
@@ -149,14 +149,6 @@ class EfiMultiDisk:
             if Util.getBlkDevSize(parti) != Util.getEspSize():
                 # no way to auto fix
                 error_callback(errors.CheckCode.ESP_SIZE_INVALID, parti)
-
-    def _setFirstHddAsBootHdd(self):
-        self._bootHdd = self._hddList[0]
-        Util.toggleEspPartition(PartiUtil.diskToParti(self._bootHdd, 1), True)
-
-    def _unsetCurrentBootHdd(self):
-        Util.toggleEspPartition(PartiUtil.diskToParti(self._bootHdd, 1), False)
-        self._bootHdd = None
 
 
 class EfiCacheGroup:
@@ -1277,7 +1269,11 @@ class DisksChecker:
     def __init__(self, disk_list):
         assert len(disk_list) > 0
         self._hddList = disk_list
-        self._diskCache = dict()        # avoid create new disk object every time
+        self._cache = dict()        # avoid create new disk object every time
+
+    def dispose(self):
+        for partedDev, partedDisk in self._cache.values():
+            partedDev.close()
 
     def check_partition_type(self, partition_type, auto_fix, error_callback):
         for hdd in self._hddList:
@@ -1377,9 +1373,9 @@ class DisksChecker:
 
     def _partedGetDevAndDisk(self, devPath):
         partedDev = parted.getDevice(devPath)
-        if devPath not in self._diskCache:
-            self._diskCache[devPath] = parted.newDisk(partedDev)
-        return partedDev, self._diskCache[devPath]
+        if devPath not in self._cache:
+            self._cache[devPath] = (partedDev, parted.newDisk(partedDev))
+        return self._cache[devPath]
 
     def _partedReadSectors(self, partedDev, startSector, sectorCount):
         partedDev.open()
@@ -1387,6 +1383,12 @@ class DisksChecker:
             return partedDev.read(startSector, sectorCount)
         finally:
             partedDev.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.dispose()
 
 
 class HandyUtil:

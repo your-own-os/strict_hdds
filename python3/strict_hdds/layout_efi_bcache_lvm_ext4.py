@@ -243,8 +243,7 @@ class StorageLayoutImpl(StorageLayout):
 
     def _check_impl(self, check_item, *kargs, auto_fix=False, error_callback=None):
         if check_item == Util.checkItemBasic:
-            if True:
-                dc = DisksChecker(self._cg.get_disk_list())
+            with DisksChecker(self._cg.get_disk_list()) as dc:
                 dc.check_partition_type("gpt", auto_fix, error_callback)
                 dc.check_boot_sector(auto_fix, error_callback)
                 dc.check_logical_sector_size(auto_fix, error_callback)
