@@ -427,14 +427,6 @@ class EfiCacheGroup:
                 # no way to auto fix
                 error_callback(errors.CheckCode.SWAP_SIZE_TOO_SMALL, "partition")
 
-    def _setFirstHddAsBootHdd(self):
-        self._bootHdd = self._hddList[0]
-        Util.toggleEspPartition(PartiUtil.diskToParti(self._bootHdd, 1), True)
-
-    def _unsetCurrentBootHdd(self):
-        Util.toggleEspPartition(PartiUtil.diskToParti(self._bootHdd, 1), False)
-        self._bootHdd = None
-
 
 class Bcache:
 
