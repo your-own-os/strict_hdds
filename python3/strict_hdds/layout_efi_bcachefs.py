@@ -163,6 +163,8 @@ class StorageLayoutImpl(StorageLayout):
 
         if disk not in Util.getDevPathListForFixedDisk():
             raise errors.StorageLayoutAddDiskError(disk, errors.NOT_DISK)
+        if self._mnt.get_bootdir_rw_controller().is_writable():
+            raise errors.StorageLayoutAddDiskError(disk, errors.BOOTDIR_NOT_RO)
 
         if Util.isBlkDevSsdOrHdd(disk):
             self._mnt.umount_esp(self._cg.get_hdd_esp_partition(self._cg.boot_disk))
@@ -179,11 +181,14 @@ class StorageLayoutImpl(StorageLayout):
     def remove_disk(self, disk):
         assert disk is not None
 
+        if self._mnt.get_bootdir_rw_controller().is_writable():
+            raise errors.StorageLayoutRemoveDiskError(disk, errors.BOOTDIR_NOT_RO)
+
         if disk == self._cg.get_ssd():
             # check if swap is in use
             if self._cg.get_ssd_swap_partition() is not None:
                 if Util.isSwapFileOrPartitionBusy(self._cg.get_ssd_swap_partition()):
-                    raise errors.StorageLayoutRemoveDiskError(errors.SWAP_IS_IN_USE)
+                    raise errors.StorageLayoutRemoveDiskError(disk, errors.SWAP_IS_IN_USE)
 
             # remove
             self._mnt.umount_esp(self._cg.get_ssd_esp_partition())
@@ -197,7 +202,7 @@ class StorageLayoutImpl(StorageLayout):
         if disk in self._cg.get_hdd_list():
             # check for last hdd
             if len(self._cg.get_hdd_list()) <= 1:
-                raise errors.StorageLayoutRemoveDiskError(errors.CAN_NOT_REMOVE_LAST_HDD)
+                raise errors.StorageLayoutRemoveDiskError(disk, errors.CAN_NOT_REMOVE_LAST_HDD)
 
             # test boot disk change
             if self._cg.get_ssd() is None and disk == self._cg.boot_disk:

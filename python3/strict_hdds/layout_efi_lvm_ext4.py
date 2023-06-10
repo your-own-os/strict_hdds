@@ -139,6 +139,8 @@ class StorageLayoutImpl(StorageLayout):
 
         if disk not in Util.getDevPathListForFixedDisk():
             raise errors.StorageLayoutAddDiskError(disk, errors.NOT_DISK)
+        if self._mnt.get_bootdir_rw_controller().is_writable():
+            raise errors.StorageLayoutAddDiskError(disk, errors.BOOTDIR_NOT_RO)
 
         self._md.add_disk(disk, "lvm")
 
@@ -152,10 +154,12 @@ class StorageLayoutImpl(StorageLayout):
         assert disk is not None
 
         if len(self._md.get_disk_list()) <= 1:
-            raise errors.StorageLayoutRemoveDiskError(errors.CAN_NOT_REMOVE_LAST_HDD)
+            raise errors.StorageLayoutRemoveDiskError(disk, errors.CAN_NOT_REMOVE_LAST_HDD)
+        if self._mnt.get_bootdir_rw_controller().is_writable():
+            raise errors.StorageLayoutRemoveDiskError(disk, errors.BOOTDIR_NOT_RO)
 
         # boot disk change
-        if disk == self._md.boot_disk:
+        if disk == self._md.boot_disk:  
             self._mnt.umount_esp(self._md.get_disk_esp_partition(self._md.boot_disk))
             bChange = True
         else:
@@ -164,7 +168,7 @@ class StorageLayoutImpl(StorageLayout):
         # hdd partition 2: remove from volume group
         parti = self._md.get_disk_data_partition(disk)
         if Util.cmdCallWithRetCode("lvm", "pvmove", parti)[0] != 5:
-            raise errors.StorageLayoutRemoveDiskError("failed")
+            raise errors.StorageLayoutRemoveDiskError(disk, "failed")
         Util.cmdCall("lvm", "vgreduce", LvmUtil.vgName, parti)
 
         # remove

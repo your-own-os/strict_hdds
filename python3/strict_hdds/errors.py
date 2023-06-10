@@ -93,6 +93,7 @@ MULTIPLE_SSD = "multiple SSD harddisks"
 
 # common messages for StorageLayoutAddDiskError
 NOT_DISK = "not a fixed harddisk"
+BOOTDIR_NOT_RO = "boot directory should be mounted read-only"
 
 # common messages for StorageLayoutReleaseDiskError and StorageLayoutRemoveDiskError
 SWAP_IS_IN_USE = "swap partition is in use"

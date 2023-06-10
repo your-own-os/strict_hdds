@@ -132,6 +132,8 @@ class StorageLayoutImpl(StorageLayout):
 
         if disk not in Util.getDevPathListForFixedDisk():
             raise errors.StorageLayoutAddDiskError(disk, errors.NOT_DISK)
+        if self._mnt.get_bootdir_rw_controller().is_writable():
+            raise errors.StorageLayoutAddDiskError(disk, errors.BOOTDIR_NOT_RO)
 
         self._md.add_disk(disk, Util.fsTypeBtrfs)
 
@@ -145,7 +147,9 @@ class StorageLayoutImpl(StorageLayout):
         assert disk is not None
 
         if len(self._md.get_disk_list()) <= 1:
-            raise errors.StorageLayoutRemoveDiskError(errors.CAN_NOT_REMOVE_LAST_HDD)
+            raise errors.StorageLayoutRemoveDiskError(disk, errors.CAN_NOT_REMOVE_LAST_HDD)
+        if self._mnt.get_bootdir_rw_controller().is_writable():
+            raise errors.StorageLayoutRemoveDiskError(disk, errors.BOOTDIR_NOT_RO)
 
         # boot disk change
         if disk == self._md.boot_disk:
