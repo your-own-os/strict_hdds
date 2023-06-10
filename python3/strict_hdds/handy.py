@@ -104,41 +104,46 @@ class EfiMultiDisk:
     def add_disk(self, disk, fsType):
         assert disk is not None and disk not in self._hddList
 
-        # create partitions
-        Util.initializeDisk(disk, "gpt", [
-            ("%dMiB" % (Util.getEspSizeInMb()), Util.fsTypeEsp if self._bootHdd is None else Util.fsTypeFat),
-            ("*", fsType),
-        ])
+        # create disk
+        if True:
+            Util.initializeDisk(disk, "gpt", [
+                ("%dMiB" % (Util.getEspSizeInMb()), Util.fsTypeEsp if self._bootHdd is None else Util.fsTypeFat),
+                ("*", fsType),
+            ])
 
-        # partition1: pending ESP partition
-        parti = PartiUtil.diskToParti(disk, 1)
-        if self._bootHdd is None:
-            Util.cmdCall("mkfs.vfat", parti)
-        else:
-            # FIXME: change to copyFatFs
-            Util.cmdCall("mkfs.vfat", parti)
-            Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), parti, mountPoint1=Util.bootDir)
+            # partition1: pending ESP partition
+            parti = PartiUtil.diskToParti(disk, 1)
+            if self._bootHdd is None:
+                Util.cmdCall("mkfs.vfat", parti)
+            else:
+                # FIXME: change to copyFatFs
+                Util.cmdCall("mkfs.vfat", parti)
+                Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), parti, mountPoint1=Util.bootDir)
 
-        # partition2: data partition, leave it to user
-        pass
+            # partition2: data partition, leave it to user
+            pass
 
-        # record result
+        # add disk
         self._hddList.append(disk)
+        self._hddList.sort()
+
+        # change bootHdd if neccessary
         if self._bootHdd is None:
-            self._bootHdd = disk        # change boot disk if needed
-        else:
-            self._hddList.sort()
+            self._bootHdd = disk
 
     def remove_disk(self, disk):
         assert disk is not None and disk in self._hddList
 
-        self._hddList.remove(disk)
+        # change bootHdd if neccessary
         if self._bootHdd == disk:
             if len(self._bootHdd) > 0:
+                Util.toggleEspPartition(PartiUtil.diskToParti(self._hddList[0], 1), True)
                 self._bootHdd = self._hddList[0]
-                Util.toggleEspPartition(PartiUtil.diskToParti(self._bootHdd, 1), True)
             else:
                 self._bootHdd = None
+
+        # remove disk
+        self._hddList.remove(disk)
 
         # wipe disk
         Util.wipeHarddisk(disk)
