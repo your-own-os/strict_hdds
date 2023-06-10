@@ -52,7 +52,6 @@ class Util:
     diskPartTableMbr = "mbr"
     diskPartTableGpt = "gpt"
 
-    fsTypeEsp = "esp"
     fsTypeExt4 = "ext4"
     fsTypeFat = "vfat"
     fsTypeBtrfs = "btrfs"

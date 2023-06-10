@@ -107,7 +107,7 @@ class EfiMultiDisk:
         # create disk
         if True:
             if self._bootHdd is None:
-                fsType1 = Util.fsTypeEsp
+                fsType1 = "esp"
             else:
                 fsType1 = Util.fsTypeFat
 
@@ -286,8 +286,7 @@ class EfiCacheGroup:
         return Util.getBlkDevSize(self._ssdSwapParti)
 
     def add_ssd(self, ssd, fsType):
-        assert self._ssd is None
-        assert ssd is not None and ssd not in self._hddList
+        assert ssd is not None and self._ssd is None and ssd not in self._hddList
 
         self._ssd = ssd
         self._ssdEspParti = PartiUtil.diskToParti(ssd, 1)
@@ -302,11 +301,12 @@ class EfiCacheGroup:
         ])
 
         # partition1: ESP partition
-        Util.cmdCall("mkfs.vfat", self._ssdEspParti)
         if self._bootHdd is not None:
+            # FIXME: change to copyFatFs
+            Util.cmdCall("mkfs.vfat", self._ssdEspParti)
             Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), self._ssdEspParti, mountPoint1=Util.bootDir)
         else:
-            pass
+            Util.cmdCall("mkfs.vfat", self._ssdEspParti)
 
         # partition2: swap partition
         Util.cmdCall("mkswap", self._ssdSwapParti)
@@ -316,27 +316,26 @@ class EfiCacheGroup:
 
         # change boot device
         if self._bootHdd is not None:
-            self._unsetCurrentBootHdd()
+            Util.toggleEspPartition(PartiUtil.diskToParti(self._bootHdd, 1), False)
+            self._bootHdd = None
 
     def remove_ssd(self):
         assert self._ssd is not None
 
-        # partition3: cache partition, the caller should have processed it
-        self._ssdCacheParti = None
+        # partition1: ESP partition
+        self._ssdEspParti = None
 
         # partition2: swap partition
         if self._ssdSwapParti is not None:
             assert not Util.swapDeviceIsBusy(self._ssdSwapParti)
             self._ssdSwapParti = None
 
-        # partition1: ESP partition
-        self._ssdEspParti = None
-
-        # remove disk
-        self._ssd = None
+        # partition3: cache partition, the caller should have processed it
+        self._ssdCacheParti = None
 
         # wipe disk
         Util.wipeHarddisk(self._ssd)
+        self._ssd = None
 
         # change boot device
         assert self._bootHdd is None
@@ -350,7 +349,7 @@ class EfiCacheGroup:
         # create disk
         if True:
             if self._ssd is None and self._bootHdd is None:
-                fsType1 = Util.fsTypeEsp
+                fsType1 = "esp"
             else:
                 fsType1 = Util.fsTypeFat
 
