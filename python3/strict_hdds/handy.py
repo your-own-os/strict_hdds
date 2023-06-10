@@ -129,11 +129,11 @@ class EfiMultiDisk:
         else:
             self._hddList.sort()
 
-    def remove_disk(self, hdd):
-        assert hdd is not None and hdd in self._hddList
+    def remove_disk(self, disk):
+        assert disk is not None and disk in self._hddList
 
-        self._hddList.remove(hdd)
-        if self._bootHdd == hdd:
+        self._hddList.remove(disk)
+        if self._bootHdd == disk:
             if len(self._bootHdd) > 0:
                 self._bootHdd = self._hddList[0]
                 Util.toggleEspPartition(PartiUtil.diskToParti(self._bootHdd, 1), True)
@@ -141,7 +141,7 @@ class EfiMultiDisk:
                 self._bootHdd = None
 
         # wipe disk
-        Util.wipeHarddisk(hdd)
+        Util.wipeHarddisk(disk)
 
     def check_esp(self, auto_fix, error_callback):
         for hdd in self._hddList:
