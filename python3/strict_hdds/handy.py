@@ -134,6 +134,12 @@ class EfiMultiDisk:
     def remove_disk(self, disk):
         assert disk is not None and disk in self._hddList
 
+        # remove disk
+        self._hddList.remove(disk)
+
+        # wipe disk
+        Util.wipeHarddisk(disk)
+
         # change boot disk if neccessary
         if self._bootHdd == disk:
             if len(self._bootHdd) > 0:
@@ -141,12 +147,6 @@ class EfiMultiDisk:
                 self._bootHdd = self._hddList[0]
             else:
                 self._bootHdd = None
-
-        # remove disk
-        self._hddList.remove(disk)
-
-        # wipe disk
-        Util.wipeHarddisk(disk)
 
     def check_esp(self, auto_fix, error_callback):
         for hdd in self._hddList:
