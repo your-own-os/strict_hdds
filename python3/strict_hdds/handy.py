@@ -1285,11 +1285,9 @@ class DisksChecker:
     def __init__(self, disk_list):
         assert len(disk_list) > 0
         self._hddList = disk_list
-        self._cache = dict()        # avoid create new disk object every time
 
     def dispose(self):
-        for partedDev, partedDisk in self._cache.values():
-            partedDev.close()
+        pass
 
     def check_partition_type(self, partition_type, auto_fix, error_callback):
         for hdd in self._hddList:
@@ -1389,9 +1387,7 @@ class DisksChecker:
 
     def _partedGetDevAndDisk(self, devPath):
         partedDev = parted.getDevice(devPath)
-        if devPath not in self._cache:
-            self._cache[devPath] = (partedDev, parted.newDisk(partedDev))
-        return self._cache[devPath]
+        return (partedDev, parted.newDisk(partedDev))
 
     def _partedReadSectors(self, partedDev, startSector, sectorCount):
         partedDev.open()

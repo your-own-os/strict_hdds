@@ -382,70 +382,53 @@ class Util:
             preList = partitionInfoList
             postList = []
 
-        dev = parted.getDevice(devPath)
-        try:
-            dev.lock()
-            try:
-                # delete all partitions
-                disk = parted.freshDisk(dev, partitionTableType)
+        # delete all partitions
+        disk = parted.freshDisk(parted.getDevice(devPath), partitionTableType)
 
-                # process preList
-                for pSize, pType in preList:
-                    region = _getFreeRegion(disk)
-                    constraint = parted.Constraint(maxGeom=region).intersect(disk.device.optimalAlignedConstraint)
-                    pStart = constraint.startAlign.alignUp(region, region.start)
-                    pEnd = constraint.endAlign.alignDown(region, region.end)
+        # process preList
+        for pSize, pType in preList:
+            region = _getFreeRegion(disk)
+            constraint = parted.Constraint(maxGeom=region).intersect(disk.device.optimalAlignedConstraint)
+            pStart = constraint.startAlign.alignUp(region, region.start)
+            pEnd = constraint.endAlign.alignDown(region, region.end)
 
-                    m = re.fullmatch("([0-9]+)(MiB|GiB|TiB)", pSize)
-                    assert m is not None
-                    sectorNum = parted.sizeToSectors(int(m.group(1)), m.group(2), disk.device.sectorSize)
-                    if pEnd < pStart + sectorNum - 1:
-                        raise Exception("not enough space")
+            m = re.fullmatch("([0-9]+)(MiB|GiB|TiB)", pSize)
+            assert m is not None
+            sectorNum = parted.sizeToSectors(int(m.group(1)), m.group(2), disk.device.sectorSize)
+            if pEnd < pStart + sectorNum - 1:
+                raise Exception("not enough space")
 
-                    _addPartition(disk, pType, pStart, pStart + sectorNum - 1)
-                    _erasePartitionSignature(devPath, pStart, pEnd)
+            _addPartition(disk, pType, pStart, pStart + sectorNum - 1)
+            _erasePartitionSignature(devPath, pStart, pEnd)
 
-                # process postList
-                for pSize, pType in postList:
-                    region = _getFreeRegion(disk)
-                    constraint = parted.Constraint(maxGeom=region).intersect(disk.device.optimalAlignedConstraint)
-                    pStart = constraint.startAlign.alignUp(region, region.start)
-                    pEnd = constraint.endAlign.alignDown(region, region.end)
+        # process postList
+        for pSize, pType in postList:
+            region = _getFreeRegion(disk)
+            constraint = parted.Constraint(maxGeom=region).intersect(disk.device.optimalAlignedConstraint)
+            pStart = constraint.startAlign.alignUp(region, region.start)
+            pEnd = constraint.endAlign.alignDown(region, region.end)
 
-                    if pSize == "*":
-                        _addPartition(disk, pType, pStart, pEnd)
-                        _erasePartitionSignature(devPath, pStart, pEnd)
-                    else:
-                        assert False
+            if pSize == "*":
+                _addPartition(disk, pType, pStart, pEnd)
+                _erasePartitionSignature(devPath, pStart, pEnd)
+            else:
+                assert False
 
-                # write to disk, notify kernel (using BLKRRPART ioctl), block until kernel picks up this change
-                disk.commit()
-            finally:
-                dev.unlock()
-        finally:
-            dev.close()
+        # write to disk, notify kernel (using BLKRRPART ioctl), block until kernel picks up this change
+        disk.commit()
 
     @staticmethod
     def toggleEspPartition(devPath, espOrRegular):
         assert isinstance(espOrRegular, bool)
 
         diskDevPath, partId = PartiUtil.partiToDiskAndPartiId(devPath)
-
-        dev = parted.getDevice(diskDevPath)
-        try:
-            dev.lock()
-            try:
-                diskObj = parted.newDisk(dev)
-                partObj = diskObj.partitions[partId - 1]
-                if espOrRegular:
-                    partObj.setFlag(parted.PARTITION_BOOT)
-                else:
-                    partObj.unsetFlag(parted.PARTITION_BOOT)
-                diskObj.commit()
-            finally:
-                dev.unlock()
-        finally:
-            dev.close()
+        diskObj = parted.newDisk(parted.getDevice(diskDevPath))
+        partObj = diskObj.partitions[partId - 1]
+        if espOrRegular:
+            partObj.setFlag(parted.PARTITION_BOOT)
+        else:
+            partObj.unsetFlag(parted.PARTITION_BOOT)
+        diskObj.commit()
 
     @staticmethod
     def isBufferAllZero(buf):
