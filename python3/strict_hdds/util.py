@@ -176,16 +176,28 @@ class Util:
     @staticmethod
     def wipeHarddisk(devpath):
         # write data to harddisk
-        fd = os.open(devpath, os.O_WRONLY | os.O_EXCL)
-        try:
-            # for i in range(0, 1024):
-            #     os.write(fd, bytearray(4096))
-            pass
-        finally:
-            os.close(fd)
+        for i in range(0, 10):
+            fd = None
+            try:
+                fd = os.open(devpath, os.O_WRONLY | os.O_EXCL)
+            except OSError as e:
+                if e.errno == 16:
+                    print("FIXME: %s, errno-16" % (devpath))
+                    time.sleep(1)
+                    continue
+                else:
+                    raise
 
-        # FIXME: wait for /dev refresh
-        pass
+            try:
+                for i in range(0, 1024):
+                    os.write(fd, bytearray(4096))
+            finally:
+                os.close(fd)
+
+        # wait for /dev refresh
+        while PartiUtil.diskHasParti(devpath, 1):
+            print("FIXME: %s, still has partition" % (devpath))
+            time.sleep(1)
 
     @staticmethod
     def isHarddiskClean(devpath):
