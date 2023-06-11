@@ -304,7 +304,7 @@ class EfiCacheGroup:
         if self._bootHdd is not None:
             # FIXME: change to copyFatFs
             Util.cmdCall("mkfs.vfat", self._ssdEspParti)
-            Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), self._ssdEspParti, mountPoint1=Util.bootDir)
+            Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), self._ssdEspParti)
         else:
             Util.cmdCall("mkfs.vfat", self._ssdEspParti)
 
