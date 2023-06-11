@@ -467,14 +467,6 @@ class Util:
         return (ssdList, hddList)
 
     @staticmethod
-    def swapDeviceIsBusy(path):
-        buf = pathlib.Path(path).read_text()
-        for line in buf.split("\n")[1:]:
-            if line.startswith(path + " "):
-                return True
-        return False
-
-    @staticmethod
     def getDevPathListForFixedHdd():
         ret = []
         for line in Util.cmdCall("/bin/lsblk", "-o", "NAME,TYPE", "-n").split("\n"):

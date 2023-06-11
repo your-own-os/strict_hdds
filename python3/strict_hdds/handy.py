@@ -327,7 +327,7 @@ class EfiCacheGroup:
 
         # partition2: swap partition
         if self._ssdSwapParti is not None:
-            assert not Util.swapDeviceIsBusy(self._ssdSwapParti)
+            assert not Util.isSwapFileOrPartitionBusy(self._ssdSwapParti)
             self._ssdSwapParti = None
 
         # partition3: cache partition, the caller should have processed it
