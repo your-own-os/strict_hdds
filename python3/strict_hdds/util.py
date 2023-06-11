@@ -174,25 +174,41 @@ class Util:
         ret.check_returncode()
 
     @staticmethod
-    def wipeHarddisk(devpath):
-        # write data to harddisk
-        for i in range(0, 10):
-            fd = None
+    def isHarddiskBusy(devpath):
+        try:
+            fd = os.open(devpath, os.O_WRONLY | os.O_EXCL)
+            os.close(fd)
+        except OSError as e:
+            if e.errno == 16:
+                return True
+            else:
+                raise
+        return False
+
+    @staticmethod
+    def waitUntilHarddiskNotBusy(devpath, timeout=None):
+        i = 0
+        while timeout is None or i < timeout:
             try:
                 fd = os.open(devpath, os.O_WRONLY | os.O_EXCL)
+                os.close(fd)
+                break
             except OSError as e:
                 if e.errno == 16:
-                    print("FIXME: %s, errno-16" % (devpath))
                     time.sleep(1)
-                    continue
+                    i += 1
                 else:
                     raise
 
-            try:
-                for i in range(0, 1024):
-                    os.write(fd, bytearray(4096))
-            finally:
-                os.close(fd)
+    @staticmethod
+    def wipeHarddisk(devpath):
+        # write data to harddisk
+        fd = os.open(devpath, os.O_WRONLY | os.O_EXCL)
+        try:
+            for i in range(0, 1024):
+                os.write(fd, bytearray(4096))
+        finally:
+            os.close(fd)
 
         # wait for /dev refresh
         while PartiUtil.diskHasParti(devpath, 1):
@@ -394,6 +410,9 @@ class Util:
             preList = partitionInfoList
             postList = []
 
+        # sucks that libparted does not support open device exclusively
+        assert not Util.isHarddiskBusy(devPath)
+
         # delete all partitions
         disk = parted.freshDisk(parted.getDevice(devPath), partitionTableType)
 
@@ -432,6 +451,9 @@ class Util:
     @staticmethod
     def toggleEspPartition(devPath, espOrRegular):
         assert isinstance(espOrRegular, bool)
+
+        # sucks that libparted does not support open device exclusively
+        assert not Util.isHarddiskBusy(devPath)
 
         diskDevPath, partId = PartiUtil.partiToDiskAndPartiId(devPath)
         diskObj = parted.newDisk(parted.getDevice(diskDevPath))
