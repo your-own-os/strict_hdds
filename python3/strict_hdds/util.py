@@ -413,7 +413,11 @@ class Util:
         # sucks that libparted does not support open device exclusively
         assert not Util.isHarddiskBusy(devPath)
 
-        # delete all partitions
+        # delete all partitions, we must do it manually because we need a clean /dev directory to do checks later
+        if PartiUtil.diskHasParti(devPath, 1):
+            Util.wipeHarddisk(devPath)
+
+        # create new disk object
         disk = parted.freshDisk(parted.getDevice(devPath), partitionTableType)
 
         # process preList
@@ -447,6 +451,13 @@ class Util:
 
         # write to disk, notify kernel (using BLKRRPART ioctl), block until kernel picks up this change
         disk.commit()
+
+        # wait partition device nodes appear in /dev
+        # there's still a time gap between kernel and /dev refresh, maybe because udevd?
+        for i in range(0, len(partitionInfoList)):
+            while not PartiUtil.diskHasParti(devPath, i + 1):
+                print("FIXME: partition %d of %s does not exist" % (i + 1, devPath))
+                time.sleep(1)
 
     @staticmethod
     def toggleEspPartition(devPath, espOrRegular):
