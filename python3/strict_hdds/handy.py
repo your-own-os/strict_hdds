@@ -334,7 +334,6 @@ class EfiCacheGroup:
         self._ssdCacheParti = None
 
         # wipe disk
-        Util.waitUntilHarddiskNotBusy(self._ssd)        # sometimes device is still busy after removed from cache set
         Util.wipeHarddisk(self._ssd)
         self._ssd = None
 

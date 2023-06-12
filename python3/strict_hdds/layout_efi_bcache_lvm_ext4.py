@@ -203,6 +203,7 @@ class StorageLayoutImpl(StorageLayout):
             # remove
             self._mnt.umount_esp(self._cg.get_ssd_esp_partition())
             self._bcache.remove_cache(self._cg.get_ssd_cache_partition())
+            Util.waitUntilHarddiskNotBusy(self._cg.get_ssd())        # sometimes device is still busy after removed from cache set
             self._cg.remove_ssd()
 
             # boot disk change
