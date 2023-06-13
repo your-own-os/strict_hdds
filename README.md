@@ -38,6 +38,9 @@ Ensures only some optimized harddisk layouts are used.
 
 
 
+https://pypi.org/project/pyfatfs/
+https://github.com/isislovecruft/pyrsync/blob/master/pyrsync.py
+
 手动解析和修改FAT文件系统中的BPB（Boot Parameter Block）。
 
 FAT文件系统的BPB是一个4096字节的结构，其中包含了与FAT文件系统相关的各种信息，如分区的大小、FAT表的位置、每个簇的大小、OEM名称、卷标以及UUID等等。因此，你可以手动读取和修改BPB以实现更改FAT分区的UUID或LABEL。
