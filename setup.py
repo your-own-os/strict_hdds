@@ -38,9 +38,13 @@ setup(
         'Programming Language :: Python :: 3',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    packages=['strict_hdds'],
+    packages=[
+        'strict_hdds'
+    ],
     package_dir={
         'strict_hdds': 'python3/strict_hdds',
     },
-    scripts=['tools/strict_hdds'],
+    scripts=[
+        'tools/strict_hdds'
+    ],
 )
