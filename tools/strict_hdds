@@ -41,7 +41,7 @@ def usage():
     print('   strict_hdds check <directory>')
     print('   strict_hdds umount <directory>')
     print('')
-    print('Supported layout:')
+    print('Supported layout(s):')
     for layoutName in strict_hdds.get_supported_storage_layout_names():
         print('   %s' % (layoutName))
     print('')
