@@ -591,9 +591,8 @@ class PartiUtil:
 
     @staticmethod
     def diskHasMoreParti(diskDevPath, partitionId):
-        for fn in os.listdir("/dev"):
-            m = re.fullmatch(os.path.basename(diskDevPath) + "([0-9]+)", fn)
-            if m is not None and int(m.group(1)) > partitionId:
+        for i in range(partitionId + 1, partitionId + 10):
+            if os.path.exists(PartiUtil.diskToParti(diskDevPath, i)):
                 return True
         return False
 
