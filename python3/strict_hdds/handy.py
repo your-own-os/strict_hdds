@@ -1295,6 +1295,10 @@ class DisksChecker:
             if disk.type != partition_type:
                 error_callback(errors.CheckCode.TRIVIAL, "Inappopriate partition type for %s" % (hdd))
 
+    def check_partition_uuid(self, auto_fix, error_callback):
+        # FIXME
+        assert False
+
     def check_boot_sector(self, auto_fix, error_callback):
         # struct mbr_partition_record {
         #     uint8_t  boot_indicator;
@@ -1384,6 +1388,10 @@ class DisksChecker:
                 else:
                     if dev.sectorSize not in [512, 4096]:
                         error_callback(errors.CheckCode.TRIVIAL, "%s has inapporiate logical sector size (%d)" % (hdd, dev.sectorSize))
+
+    def check_file_system_uuid(self, auto_fix, error_callback):
+        # FIXME
+        assert False
 
     def _partedGetDevAndDisk(self, devPath):
         partedDev = parted.getDevice(devPath)
