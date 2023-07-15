@@ -1289,15 +1289,19 @@ class DisksChecker:
     def dispose(self):
         pass
 
-    def check_partition_type(self, partition_type, auto_fix, error_callback):
+    def check_logical_sector_size(self, auto_fix, error_callback):
         for hdd in self._hddList:
             dev, disk = self._partedGetDevAndDisk(hdd)
-            if disk.type != partition_type:
-                error_callback(errors.CheckCode.TRIVIAL, "Inappopriate partition type for %s" % (hdd))
-
-    def check_partition_uuid(self, auto_fix, error_callback):
-        # FIXME
-        assert False
+            if disk.type == "msdos":
+                if dev.sectorSize != 512:
+                    error_callback(errors.CheckCode.TRIVIAL, "%s uses MBR partition table, its logical sector size (%d) should be 512" % (hdd, dev.sectorSize))
+            elif disk.type == "gpt":
+                if dev.physicalSectorSize in [512, 4096]:
+                    if dev.sectorSize != dev.physicalSectorSize:
+                        error_callback(errors.CheckCode.TRIVIAL, "%s has different physical sector size (%d) and logical sector size (%d)" % (hdd, dev.physicalSectorSize, dev.sectorSize))
+                else:
+                    if dev.sectorSize not in [512, 4096]:
+                        error_callback(errors.CheckCode.TRIVIAL, "%s has inapporiate logical sector size (%d)" % (hdd, dev.sectorSize))
 
     def check_boot_sector(self, auto_fix, error_callback):
         # struct mbr_partition_record {
@@ -1375,19 +1379,15 @@ class DisksChecker:
                     # ghnt and check primary and backup GPT header
                     pass
 
-    def check_logical_sector_size(self, auto_fix, error_callback):
+    def check_partition_type(self, partition_type, auto_fix, error_callback):
         for hdd in self._hddList:
             dev, disk = self._partedGetDevAndDisk(hdd)
-            if disk.type == "msdos":
-                if dev.sectorSize != 512:
-                    error_callback(errors.CheckCode.TRIVIAL, "%s uses MBR partition table, its logical sector size (%d) should be 512" % (hdd, dev.sectorSize))
-            elif disk.type == "gpt":
-                if dev.physicalSectorSize in [512, 4096]:
-                    if dev.sectorSize != dev.physicalSectorSize:
-                        error_callback(errors.CheckCode.TRIVIAL, "%s has different physical sector size (%d) and logical sector size (%d)" % (hdd, dev.physicalSectorSize, dev.sectorSize))
-                else:
-                    if dev.sectorSize not in [512, 4096]:
-                        error_callback(errors.CheckCode.TRIVIAL, "%s has inapporiate logical sector size (%d)" % (hdd, dev.sectorSize))
+            if disk.type != partition_type:
+                error_callback(errors.CheckCode.TRIVIAL, "Inappopriate partition type for %s" % (hdd))
+
+    def check_partition_uuid(self, auto_fix, error_callback):
+        # FIXME
+        assert False
 
     def check_file_system_uuid(self, auto_fix, error_callback):
         # FIXME
