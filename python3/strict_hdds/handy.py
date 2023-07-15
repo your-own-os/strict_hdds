@@ -1389,10 +1389,6 @@ class DisksChecker:
                     if dev.sectorSize not in [512, 4096]:
                         error_callback(errors.CheckCode.TRIVIAL, "%s has inapporiate logical sector size (%d)" % (hdd, dev.sectorSize))
 
-    def check_file_system_uuid(self, auto_fix, error_callback):
-        # FIXME
-        assert False
-
     def _partedGetDevAndDisk(self, devPath):
         partedDev = parted.getDevice(devPath)
         return (partedDev, parted.newDisk(partedDev))
