@@ -1429,7 +1429,7 @@ class DisksChecker:
     def check_partition_uuid(self, auto_fix, error_callback):
         for hdd in self._hddList:
             partUuidDict = dict()
-            for i in range(1, sys.maxint):
+            for i in range(1, sys.maxsize):
                 partiDevPath = PartiUtil.diskToParti(hdd, i)
                 if not PartiUtil.partiExists(partiDevPath):
                     break
