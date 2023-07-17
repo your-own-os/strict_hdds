@@ -503,20 +503,6 @@ class Util:
                 hddList.append(devpath)
         return (ssdList, hddList)
 
-    @staticmethod
-    def getDevPathListForFixedHdd():
-        ret = []
-        for line in Util.cmdCall("/bin/lsblk", "-o", "NAME,TYPE", "-n").split("\n"):
-            m = re.fullmatch("(\\S+)\\s+(\\S+)", line)
-            if m is None:
-                continue
-            if m.group(2) != "disk":
-                continue
-            if re.search("/usb[0-9]+/", os.path.realpath("/sys/block/%s/device" % (m.group(1)))) is not None:      # USB device
-                continue
-            ret.append("/dev/" + m.group(1))
-        return ret
-
 
 class PartiUtil:
 
