@@ -23,6 +23,7 @@
 
 import os
 import re
+import sys
 import abc
 import glob
 import time
@@ -160,6 +161,23 @@ class EfiMultiDisk:
             if Util.getBlkDevSize(parti) != Util.getEspSize():
                 # no way to auto fix
                 error_callback(errors.CheckCode.ESP_SIZE_INVALID, parti)
+
+    def check_file_system_uuid(self, auto_fix, error_callback):
+        tlist = []
+        for hdd in self._hddList:
+            tlist.append(self.get_disk_esp_partition(hdd))
+            tlist.append(self.get_disk_data_partition(hdd))
+
+        fsUuidDict = dict()
+        for partiDevPath in tlist:
+            fsUuid = Util.getBlkDevFsUuid(partiDevPath)
+            if fsUuid == "":
+                error_callback(errors.CheckCode.TRIVIAL, "%s has no file system UUID" % (partiDevPath))
+                continue
+            if fsUuid in fsUuidDict:
+                error_callback(errors.CheckCode.TRIVIAL, "%s and %s has same file system UUID" % (fsUuidDict[fsUuid], partiDevPath))
+                continue
+            fsUuidDict[fsUuid] = partiDevPath
 
 
 class EfiCacheGroup:
@@ -426,6 +444,29 @@ class EfiCacheGroup:
             if Util.getBlkDevSize(self._ssdSwapParti) < Util.getSwapSize():
                 # no way to auto fix
                 error_callback(errors.CheckCode.SWAP_SIZE_TOO_SMALL, "partition")
+
+    def check_file_system_uuid(self, auto_fix, error_callback):
+        if self._ssd is not None:
+            tlist = [self._ssdEspParti]
+            if self._ssdSwapParti is not None:
+                tlist.append(self._ssdSwapParti)
+            tlist.append(self._ssdCacheParti)
+        else:
+            tlist = []
+        for hdd in self._hddList:
+            tlist.append(self.get_hdd_esp_partition(hdd))
+            tlist.append(self.get_hdd_data_partition(hdd))
+
+        fsUuidDict = dict()
+        for partiDevPath in tlist:
+            fsUuid = Util.getBlkDevFsUuid(partiDevPath)
+            if fsUuid == "":
+                error_callback(errors.CheckCode.TRIVIAL, "%s has no file system UUID" % (partiDevPath))
+                continue
+            if fsUuid in fsUuidDict:
+                error_callback(errors.CheckCode.TRIVIAL, "%s and %s has same file system UUID" % (fsUuidDict[fsUuid], partiDevPath))
+                continue
+            fsUuidDict[fsUuid] = partiDevPath
 
 
 class Bcache:
@@ -1367,13 +1408,13 @@ class DisksChecker:
 
                     # other Partition Record should be filled with zero
                     if not Util.isBufferAllZero(mbrHeader[struct.calcsize(mbrPartitionRecordFmt):]):
-                        error_callback(errors.CheckCode.TRIVIAL, "all Partition Records should be filled with zero")
+                        error_callback(errors.CheckCode.TRIVIAL, "all Partition Records should be filled with zero for %s" % (hdd))
                         continue
 
                     # read to gpt header
                     buf = f.read(dev.sectorSize - struct.calcsize(mbrHeaderFmt))
                     if not Util.isBufferAllZero(buf):
-                        error_callback(errors.CheckCode.TRIVIAL, "space between Protective MBR and GPT header should be filled with zero")
+                        error_callback(errors.CheckCode.TRIVIAL, "space between Protective MBR and GPT header should be filled with zero for %s" % (hdd))
                         continue
 
                     # ghnt and check primary and backup GPT header
@@ -1386,12 +1427,20 @@ class DisksChecker:
                 error_callback(errors.CheckCode.TRIVIAL, "Inappopriate partition type for %s" % (hdd))
 
     def check_partition_uuid(self, auto_fix, error_callback):
-        # FIXME
-        assert False
-
-    def check_file_system_uuid(self, auto_fix, error_callback):
-        # FIXME
-        assert False
+        for hdd in self._hddList:
+            partUuidDict = dict()
+            for i in range(1, sys.maxint):
+                partiDevPath = PartiUtil.diskToParti(hdd, i)
+                if not PartiUtil.partiExists(partiDevPath):
+                    break
+                partUuid = Util.getBlkDevPartUuid(partiDevPath)
+                if partUuid == "":
+                    error_callback(errors.CheckCode.TRIVIAL, "%s has no partition UUID" % (partiDevPath))
+                    continue
+                if partUuid in partUuidDict:
+                    error_callback(errors.CheckCode.TRIVIAL, "%s and %s has same partition UUID" % (partUuidDict[partUuid], partiDevPath))
+                    continue
+                partUuidDict[partUuid] = partiDevPath
 
     def _partedGetDevAndDisk(self, devPath):
         partedDev = parted.getDevice(devPath)

@@ -268,6 +268,26 @@ class Util:
             return ""
 
     @staticmethod
+    def getBlkDevFsUuid(devPath):
+        # use blkid to get fs-uuid
+        ret = Util.cmdCall("blkid", "-o", "export", devPath)
+        m = re.search("^UUID=(\\S+)$", ret, re.M)
+        if m is not None:
+            return m.group(1).lower()
+        else:
+            return ""
+
+    @staticmethod
+    def getBlkDevPartUuid(devPath):
+        # use blkid to get part-uuid
+        ret = Util.cmdCall("blkid", "-o", "export", devPath)
+        m = re.search("^PARTUUID=(\\S+)$", ret, re.M)
+        if m is not None:
+            return m.group(1).lower()
+        else:
+            return ""
+
+    @staticmethod
     def getBlkDevCapacity(devPath):
         ret = Util.cmdCall("df", "-BM", devPath)
         m = re.search("%s +(\\d+)M +(\\d+)M +\\d+M", ret, re.M)

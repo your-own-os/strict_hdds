@@ -196,8 +196,9 @@ class StorageLayoutImpl(StorageLayout):
                 dc.check_boot_sector(auto_fix, error_callback)
                 dc.check_partition_type("gpt", auto_fix, error_callback)
                 dc.check_partition_uuid(auto_fix, error_callback)
-                dc.check_file_system_uuid(auto_fix, error_callback)
-            self._md.check_esp(auto_fix, error_callback)
+            if True:
+                self._md.check_esp(auto_fix, error_callback)
+                self._md.check_file_system_uuid(auto_fix, error_callback)
         elif check_item == "swap":
             self._swap.check(auto_fix, error_callback)
         elif check_item == "mount-write-mode":
