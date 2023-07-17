@@ -483,12 +483,15 @@ class Util:
                 return False
         return True
 
-    # FIXME: not tested
     @staticmethod
     def getDevPathListForFixedDisk():
         context = pyudev.Context()
         ret = []
-        for device in context.list_devices(subsystem='block', DEVTYPE='disk', tag='!seat', is_initialized=True):
+        for device in context.list_devices(subsystem='block', DEVTYPE='disk', is_initialized=True):
+            if "seat" in device.tags:
+                continue
+            if device.device_path.startswith("/devices/virtual/"):
+                continue
             ret.append(device.device_node)
         return ret
 
