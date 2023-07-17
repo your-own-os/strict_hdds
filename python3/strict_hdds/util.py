@@ -483,6 +483,7 @@ class Util:
                 return False
         return True
 
+    # FIXME: not tested
     @staticmethod
     def getDevPathListForFixedDisk():
         context = pyudev.Context()
