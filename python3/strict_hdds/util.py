@@ -29,6 +29,7 @@ import stat
 import psutil
 import crcmod
 import parted
+import pyudev
 import struct
 import pathlib
 import tempfile
@@ -484,21 +485,11 @@ class Util:
 
     @staticmethod
     def getDevPathListForFixedDisk():
+        context = pyudev.Context()
         ret = []
-        for line in Util.cmdCall("lsblk", "-o", "NAME,TYPE", "-n").split("\n"):
-            m = re.fullmatch("(\\S+)\\s+(\\S+)", line)
-            if m is None:
-                continue
-            if m.group(2) != "disk":
-                continue
-            if re.search("/usb[0-9]+/", os.path.realpath("/sys/block/%s/device" % (m.group(1)))) is not None:      # USB device
-                continue
-            ret.append("/dev/" + m.group(1))
+        for device in context.list_devices(subsystem='block', DEVTYPE='disk', tag='!seat', is_initialized=True):
+            ret.append(device.device_node)
         return ret
-
-    @staticmethod
-    def getDevPathListForFixedSsdAndHdd():
-        return Util.getSsdAndHddListFromFixedDiskList(Util.getDevPathListForFixedDisk())
 
     @staticmethod
     def splitSsdAndHddFromFixedDiskDevPathList(diskList):
