@@ -954,11 +954,20 @@ class Mount(abc.ABC):
 
     def __init__(self, bIsMounted, mntDir, getMntParamsFunc, mntArgsDict):
         self._mntDir = mntDir
-        self._getMntParamsFunc = getMntParamsFunc
         self._mntEntries = []
 
-        # consume mntArgDict, do mount if neccessary, record mount entries
-        for p in self._myGetMntParams(mntArgsDict):
+        # get mntParams, consume mntArgDict
+        mntParams = getMntParamsFunc(mntArgsDict)
+        assert len(mntArgsDict) == 0
+
+        # check mntParams
+        assert len(mntParams) > 0
+        assert all([isinstance(x, MountParam) for x in mntParams])
+        assert mntParams[0].mountpoint == "/"
+        self._assertMntParams(mntParams)
+
+        # do mount if neccessary, record mount entries
+        for p in mntParams:
             if p.mountpoint != "/":
                 real_dir_path = os.path.join(self._mntDir, p.mountpoint[1:])
             else:
@@ -999,20 +1008,6 @@ class Mount(abc.ABC):
         for p in reversed(self._mntEntries):
             if p.device is not None:
                 Util.cmdCall("umount", p.real_dir_path)
-
-    def _myGetMntParams(self, mntArgsDict):
-        mntParams = self._getMntParamsFunc(mntArgsDict)
-
-        # check mntParams
-        assert len(mntParams) > 0
-        assert all([isinstance(x, MountParam) for x in mntParams])
-        assert mntParams[0].mountpoint == "/"
-        self._assertMntParams(mntParams)
-
-        # all items in mntArgDict should be consumed
-        assert len(mntArgsDict) == 0
-
-        return mntParams
 
 
 class MountBios(Mount):
