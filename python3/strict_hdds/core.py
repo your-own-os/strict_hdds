@@ -84,6 +84,21 @@ class StorageLayout(abc.ABC):
     def is_read_only(self):
         pass
 
+    def is_dir_persistent_or_transient(self, dir):
+        if dir == "/run":
+            return False
+
+        if dir == "/tmp":
+            return False
+
+        if dir == "/var/tmp":
+            return True
+
+        if dir == "/var/log":
+            return True
+
+        assert False
+
     @abc.abstractmethod
     def get_disk_list(self):
         pass
