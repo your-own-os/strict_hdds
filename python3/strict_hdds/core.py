@@ -250,6 +250,16 @@ def get_storage_layout(mount_dir="/"):
             if Util.getBlkDevFsType(rootDev) == Util.fsTypeExt4:
                 return _parseOneStorageLayout("bios-ext4", bootDev, rootDev, mount_dir)
 
+        # simple layout
+        if Util.anyIn(["bios-ntfs"], allLayoutNames):
+            if Util.getBlkDevFsType(rootDev) == Util.fsTypeNtfs:
+                return _parseOneStorageLayout("bios-ntfs", bootDev, rootDev, mount_dir)
+
+        # simple layout
+        if Util.anyIn(["bios-fat"], allLayoutNames):
+            if Util.getBlkDevFsType(rootDev) == Util.fsTypeFat:
+                return _parseOneStorageLayout("bios-fat", bootDev, rootDev, mount_dir)
+
     raise errors.StorageLayoutParseError("", "unknown storage layout")
 
 
@@ -315,6 +325,16 @@ def mount_storage_layout(mount_dir, layout_name=None, disk_list=None, **kwargs):
         if Util.anyIn(["bios-ext4"], allLayoutNames):
             if any([Util.getBlkDevFsType(x) == Util.fsTypeExt4 for x in normalPartiList]):
                 return _detectAndMountOneStorageLayout("bios-ext4", disk_list, mount_dir, kwargs)
+
+        # simple layout
+        if Util.anyIn(["bios-ntfs"], allLayoutNames):
+            if any([Util.getBlkDevFsType(x) == Util.fsTypeNtfs for x in normalPartiList]):
+                return _detectAndMountOneStorageLayout("bios-ntfs", disk_list, mount_dir, kwargs)
+
+        # simple layout
+        if Util.anyIn(["bios-fat"], allLayoutNames):
+            if any([Util.getBlkDevFsType(x) == Util.fsTypeFat for x in normalPartiList]):
+                return _detectAndMountOneStorageLayout("bios-fat", disk_list, mount_dir, kwargs)
 
     raise errors.StorageLayoutParseError("", "unknown storage layout")
 

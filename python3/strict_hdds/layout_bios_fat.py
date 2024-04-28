@@ -101,7 +101,26 @@ class StorageLayoutImpl(StorageLayout):
 
 
 def parse(boot_dev, root_dev, mount_dir):
-    raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.OS_NOT_COMPATIBLE)
+    if boot_dev is not None:
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_SHOULD_NOT_EXIST)
+    if Util.getBlkDevFsType(root_dev) != Util.fsTypeFat:
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
+
+    # hdd
+    hdd = PartiUtil.partiToDisk(root_dev)
+    if Util.getBlkDevPartitionTableType(hdd) != Util.diskPartTableMbr:
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.PARTITION_TYPE_SHOULD_BE(hdd, Util.diskPartTableMbr))
+
+    # get mntArgsDict from mount options
+    mntArgsDict = dict()
+    MountBios.mntArgsDictSetReadOnly(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir, mntArgsDict)
+
+    # return
+    ret = StorageLayoutImpl()
+    ret._hdd = hdd
+    ret._hddRootParti = root_dev
+    ret._mnt = MountBios(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
+    return ret
 
 
 def detect_and_mount(disk_list, mount_dir, mntArgsDict):
