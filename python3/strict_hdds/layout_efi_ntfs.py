@@ -46,10 +46,10 @@ class StorageLayoutImpl(StorageLayout):
     """
 
     def __init__(self):
-        self._hdd = None              # boot harddisk name
-        self._hddEspParti = None      # ESP partition name
-        self._hddRootParti = False    # root partition name
-        self._mnt = None              # MountEfi
+        self._hdd = None                 # boot harddisk name
+        self._hddEspParti = None         # ESP partition name
+        self._hddWindowsParti = False    # windows partition name
+        self._mnt = None                 # MountEfi
 
     @property
     def boot_mode(self):
@@ -57,7 +57,7 @@ class StorageLayoutImpl(StorageLayout):
 
     @property
     def dev_rootfs(self):
-        return self._hddRootParti
+        return self._hddWindowsParti
 
     @property
     def dev_boot(self):
@@ -76,7 +76,7 @@ class StorageLayoutImpl(StorageLayout):
         if True:
             self._mnt.umount()
             del self._mnt
-        del self._hddRootParti
+        del self._hddWindowsParti
         del self._hddEspParti
         del self._hdd
 
@@ -127,7 +127,7 @@ def parse(boot_dev, root_dev, mount_dir):
     ret = StorageLayoutImpl()
     ret._hdd = PartiUtil.partiToDisk(boot_dev)
     ret._hddEspParti = boot_dev
-    ret._hddRootParti = root_dev
+    ret._hddWindowsParti = root_dev
     ret._mnt = MountWindowsEfi(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
     return ret
 
@@ -158,7 +158,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     ret = StorageLayoutImpl()
     ret._hdd = espAndRootPartitionList[0][0]
     ret._hddEspParti = espAndRootPartitionList[0][1]
-    ret._hddRootParti = espAndRootPartitionList[0][2]
+    ret._hddWindowsParti = espAndRootPartitionList[0][2]
     ret._mnt = MountWindowsEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
     return ret
 
@@ -181,7 +181,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     ret = StorageLayoutImpl()
     ret._hdd = hdd
     ret._hddEspParti = espParti
-    ret._hddRootParti = rootParti
+    ret._hddWindowsParti = rootParti
     ret._mnt = MountWindowsEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
     return ret
 

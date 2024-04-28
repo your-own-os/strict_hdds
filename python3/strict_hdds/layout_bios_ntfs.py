@@ -42,9 +42,9 @@ class StorageLayoutImpl(StorageLayout):
     """
 
     def __init__(self):
-        self._hdd = None              # boot harddisk name
-        self._hddRootParti = False    # root partition name
-        self._mnt = None              # MountBios
+        self._hdd = None                 # boot harddisk name
+        self._hddWindowsParti = False    # windows partition name
+        self._mnt = None                 # MountBios
 
     @property
     def boot_mode(self):
@@ -52,7 +52,7 @@ class StorageLayoutImpl(StorageLayout):
 
     @property
     def dev_rootfs(self):
-        return self._hddRootParti
+        return self._hddWindowsParti
 
     @property
     def dev_boot(self):
@@ -71,7 +71,7 @@ class StorageLayoutImpl(StorageLayout):
         if True:
             self._mnt.umount()
             del self._mnt
-        del self._hddRootParti
+        del self._hddWindowsParti
         del self._hdd
 
     @MountBios.proxy
@@ -119,7 +119,7 @@ def parse(boot_dev, root_dev, mount_dir):
     # return
     ret = StorageLayoutImpl()
     ret._hdd = hdd
-    ret._hddRootParti = root_dev
+    ret._hddWindowsParti = root_dev
     ret._mnt = MountBios(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
     return ret
 
@@ -150,7 +150,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     # return
     ret = StorageLayoutImpl()
     ret._hdd = PartiUtil.partiToDisk(rootPartitionList[0])
-    ret._hddRootParti = rootPartitionList[0]
+    ret._hddWindowsParti = rootPartitionList[0]
     ret._mnt = MountBios(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)      # do mount during MountBios initialization
     return ret
 
@@ -170,7 +170,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     # return
     ret = StorageLayoutImpl(mount_dir)
     ret._hdd = hdd
-    ret._hddRootParti = rootParti
+    ret._hddWindowsParti = rootParti
     ret._mnt = MountBios(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)      # do mount during MountBios initialization
     return ret
 

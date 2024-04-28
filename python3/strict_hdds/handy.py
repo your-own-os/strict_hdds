@@ -1153,6 +1153,18 @@ class MountWindowsEfi(Mount):
             else:
                 error_callback(errors.CheckCode.TRIVIAL, "Boot directory should be mounted read-only.")
 
+    def _findRootfsMountEntry(self):
+        for p in self._mntEntries:
+            if p.mountpoint == "/":
+                return p
+        assert False
+
+    def _findEspMountEntry(self):
+        for p in self._mntEntries:
+            if p.mountpoint == Util.bootDir:
+                return p
+        assert False
+
 
 class HandyMd:
 
