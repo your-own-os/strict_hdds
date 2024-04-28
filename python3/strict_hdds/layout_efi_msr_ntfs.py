@@ -57,14 +57,6 @@ class StorageLayoutImpl(StorageLayout):
         return StorageLayout.BOOT_MODE_EFI
 
     @property
-    def dev_rootfs(self):
-        return self._hddWindowsParti
-
-    @property
-    def dev_boot(self):
-        return self._hddEspParti
-
-    @property
     def boot_disk(self):
         return self._hdd
 
@@ -72,6 +64,14 @@ class StorageLayoutImpl(StorageLayout):
     @property
     def mount_point(self):
         pass
+
+    @property
+    def dev_rootfs(self):
+        return self._hddWindowsParti
+
+    @property
+    def dev_boot(self):
+        return self._hddEspParti
 
     def umount_and_dispose(self):
         if True:

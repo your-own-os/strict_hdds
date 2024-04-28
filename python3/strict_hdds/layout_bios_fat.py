@@ -50,14 +50,6 @@ class StorageLayoutImpl(StorageLayout):
         return StorageLayout.BOOT_MODE_BIOS
 
     @property
-    def dev_rootfs(self):
-        return self._hddWindowsParti
-
-    @property
-    def dev_boot(self):
-        assert False
-
-    @property
     def boot_disk(self):
         return self._hdd
 
@@ -65,6 +57,14 @@ class StorageLayoutImpl(StorageLayout):
     @property
     def mount_point(self):
         pass
+
+    @property
+    def dev_rootfs(self):
+        return self._hddWindowsParti
+
+    @property
+    def dev_boot(self):
+        assert False
 
     def umount_and_dispose(self):
         if True:

@@ -47,22 +47,22 @@ class StorageLayout(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def dev_rootfs(self):
-        pass
-
-    @property
-    @abc.abstractmethod
-    def dev_boot(self):
-        pass
-
-    @property
-    @abc.abstractmethod
     def boot_disk(self):
         pass
 
     @property
     @abc.abstractmethod
     def mount_point(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def dev_rootfs(self):
+        pass
+
+    @property
+    @abc.abstractmethod
+    def dev_boot(self):
         pass
 
     @abc.abstractmethod

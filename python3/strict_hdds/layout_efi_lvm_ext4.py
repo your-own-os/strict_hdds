@@ -58,6 +58,15 @@ class StorageLayoutImpl(StorageLayout):
     def boot_mode(self):
         return StorageLayout.BOOT_MODE_EFI
 
+    @EfiMultiDisk.proxy
+    def boot_disk(self):
+        pass
+
+    @MountEfi.proxy
+    @property
+    def mount_point(self):
+        pass
+
     @property
     def dev_rootfs(self):
         return LvmUtil.rootLvDevPath
@@ -70,15 +79,6 @@ class StorageLayoutImpl(StorageLayout):
     @SwapLvmLv.proxy
     @property
     def dev_swap(self):
-        pass
-
-    @EfiMultiDisk.proxy
-    def boot_disk(self):
-        pass
-
-    @MountEfi.proxy
-    @property
-    def mount_point(self):
         pass
 
     def umount_and_dispose(self):

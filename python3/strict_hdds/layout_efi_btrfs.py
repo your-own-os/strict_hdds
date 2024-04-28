@@ -56,6 +56,15 @@ class StorageLayoutImpl(StorageLayout):
     def boot_mode(self):
         return StorageLayout.BOOT_MODE_EFI
 
+    @EfiMultiDisk.proxy
+    def boot_disk(self):
+        pass
+
+    @MountEfi.proxy
+    @property
+    def mount_point(self):
+        pass
+
     @property
     def dev_rootfs(self):
         return self.get_disk_data_partition(self.get_disk_list()[0])
@@ -65,18 +74,9 @@ class StorageLayoutImpl(StorageLayout):
     def dev_boot(self):
         pass
 
-    @EfiMultiDisk.proxy
-    def boot_disk(self):
-        pass
-
     @SubVols.proxy
     @property
     def snapshot(self):
-        pass
-
-    @MountEfi.proxy
-    @property
-    def mount_point(self):
         pass
 
     def umount_and_dispose(self):

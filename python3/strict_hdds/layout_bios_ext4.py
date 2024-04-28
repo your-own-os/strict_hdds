@@ -51,6 +51,15 @@ class StorageLayoutImpl(StorageLayout):
         return StorageLayout.BOOT_MODE_BIOS
 
     @property
+    def boot_disk(self):
+        return self._hdd
+
+    @MountBios.proxy
+    @property
+    def mount_point(self):
+        pass
+
+    @property
     def dev_rootfs(self):
         return self._hddRootParti
 
@@ -61,15 +70,6 @@ class StorageLayoutImpl(StorageLayout):
     @SwapFile.proxy
     @property
     def dev_swap(self):
-        pass
-
-    @property
-    def boot_disk(self):
-        return self._hdd
-
-    @MountBios.proxy
-    @property
-    def mount_point(self):
         pass
 
     def umount_and_dispose(self):

@@ -64,6 +64,16 @@ class StorageLayoutImpl(StorageLayout):
     def boot_mode(self):
         return StorageLayout.BOOT_MODE_EFI
 
+    @EfiCacheGroup.proxy
+    @property
+    def boot_disk(self):
+        pass
+
+    @MountEfi.proxy
+    @property
+    def mount_point(self):
+        pass
+
     @property
     def dev_rootfs(self):
         return self._bcache.get_all_bcache_dev_list()[0]
@@ -78,19 +88,9 @@ class StorageLayoutImpl(StorageLayout):
     def dev_swap(self):
         pass
 
-    @EfiCacheGroup.proxy
-    @property
-    def boot_disk(self):
-        pass
-
     @SubVols.proxy
     @property
     def snapshot(self):
-        pass
-
-    @MountEfi.proxy
-    @property
-    def mount_point(self):
         pass
 
     def umount_and_dispose(self):
