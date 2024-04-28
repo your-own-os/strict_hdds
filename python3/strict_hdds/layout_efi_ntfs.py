@@ -30,8 +30,9 @@ from . import StorageLayout
 
 class StorageLayoutImpl(StorageLayout):
     """Layout:
-           /dev/sda          stores MBR
-               /dev/sda1     windows partition, FAT32
+           /dev/sda          GPT
+               /dev/sda1     ESP partition
+               /dev/sda2     windows partition, NTFS
        OS:
            1. Microsoft Windows XP
            2. Microsoft Windows 7
@@ -39,6 +40,7 @@ class StorageLayoutImpl(StorageLayout):
            4. Microsoft Windows 11
            5. Microsoft Windows Server 2003
        Description:
-           1. partition number of /dev/sda1 and /dev/sda2 is irrelevant
-           2. extra partition is allowed to exist
+           1. the 3 partition in /dev/sda is order-insensitive
+           2. use optional swap file /var/cache/swap.dat
+           3. extra partition is allowed to exist
     """

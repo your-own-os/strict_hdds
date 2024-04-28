@@ -31,9 +31,10 @@ from . import StorageLayout
 class StorageLayoutImpl(StorageLayout):
     """Layout:
            /dev/sda          stores MBR
-               /dev/sda1     windows partition, FAT32
+               /dev/sda1     windows partition, NTFS
        OS:
            1. Microsoft Windows XP
+           2. Microsoft Windows 7
            2. Microsoft Windows Server 2003
        Description:
            1. partition number of /dev/sda1 and /dev/sda2 is irrelevant
