@@ -55,6 +55,7 @@ class Util:
 
     fsTypeExt4 = "ext4"
     fsTypeFat = "vfat"
+    fsTypeNtfs = "ntfs"
     fsTypeBtrfs = "btrfs"
     fsTypeBcachefs = "bcachefs"
     fsTypeSwap = "swap"

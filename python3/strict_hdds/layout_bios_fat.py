@@ -23,7 +23,7 @@
 
 import functools
 from .util import Util, PartiUtil, MbrUtil
-from .handy import SwapFile, MountBios, MountParam, DisksChecker, HandyUtil
+from .handy import MountBios, MountParam, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
 
@@ -43,7 +43,6 @@ class StorageLayoutImpl(StorageLayout):
     def __init__(self):
         self._hdd = None              # boot harddisk name
         self._hddRootParti = False    # root partition name
-        self._swap = None             # SwapFile
         self._mnt = None              # MountBios
 
     @property
@@ -58,11 +57,6 @@ class StorageLayoutImpl(StorageLayout):
     def dev_boot(self):
         assert False
 
-    @SwapFile.proxy
-    @property
-    def dev_swap(self):
-        pass
-
     @property
     def boot_disk(self):
         return self._hdd
@@ -76,7 +70,6 @@ class StorageLayoutImpl(StorageLayout):
         if True:
             self._mnt.umount()
             del self._mnt
-        del self._swap
         del self._hddRootParti
         del self._hdd
 
@@ -95,26 +88,12 @@ class StorageLayoutImpl(StorageLayout):
     def get_disk_list(self):
         return [self._hdd]
 
-    @SwapFile.proxy
-    def create_swap_file(self):
-        pass
-
-    @SwapFile.proxy
-    def remove_swap_file(self):
-        pass
-
-    @SwapFile.proxy
-    def get_swap_size(self):
-        pass
-
     def _check_impl(self, check_item, *kargs, auto_fix=False, error_callback=None):
         if check_item == Util.checkItemBasic:
             with DisksChecker([self._hdd]) as dc:
                 dc.check_logical_sector_size(auto_fix, error_callback)
                 dc.check_boot_sector(auto_fix, error_callback)
                 dc.check_partition_type("msdos", auto_fix, error_callback)
-        elif check_item == "swap":
-            self._swap.check(auto_fix, error_callback)
         elif check_item == "mount-write-mode":
             self._mnt.check_mount_write_mode(auto_fix, error_callback)
         else:
@@ -122,27 +101,7 @@ class StorageLayoutImpl(StorageLayout):
 
 
 def parse(boot_dev, root_dev, mount_dir):
-    if boot_dev is not None:
-        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_SHOULD_NOT_EXIST)
-    if Util.getBlkDevFsType(root_dev) != Util.fsTypeExt4:
-        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
-
-    # hdd
-    hdd = PartiUtil.partiToDisk(root_dev)
-    if Util.getBlkDevPartitionTableType(hdd) != Util.diskPartTableMbr:
-        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.PARTITION_TYPE_SHOULD_BE(hdd, Util.diskPartTableMbr))
-
-    # get mntArgsDict from mount options
-    mntArgsDict = dict()
-    MountBios.mntArgsDictSetReadOnly(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir, mntArgsDict)
-
-    # return
-    ret = StorageLayoutImpl()
-    ret._hdd = hdd
-    ret._hddRootParti = root_dev
-    ret._swap = HandyUtil.swapFileDetectAndNew(HandyUtil.getStorageLayoutName(StorageLayoutImpl), "/")
-    ret._mnt = MountBios(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
-    return ret
+    raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.OS_NOT_COMPATIBLE)
 
 
 def detect_and_mount(disk_list, mount_dir, mntArgsDict):
@@ -160,7 +119,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
             parti = PartiUtil.diskToParti(disk, i)
             if not PartiUtil.partiExists(parti):
                 break
-            if Util.getBlkDevFsType(parti) == Util.fsTypeExt4:
+            if Util.getBlkDevFsType(parti) == Util.fsTypeFat:
                 rootPartitionList.append(parti)
             i += 1
     if len(rootPartitionList) == 0:
@@ -172,7 +131,6 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     ret = StorageLayoutImpl()
     ret._hdd = PartiUtil.partiToDisk(rootPartitionList[0])
     ret._hddRootParti = rootPartitionList[0]
-    ret._swap = HandyUtil.swapFileDetectAndNew(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir)
     ret._mnt = MountBios(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)      # do mount during MountBios initialization
     return ret
 
@@ -183,7 +141,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     # create partitions
     hdd = HandyUtil.checkAndGetHdd(disk_list)
     Util.initializeDisk(hdd, Util.diskPartTableMbr, [
-        ("*", Util.fsTypeExt4),
+        ("*", Util.fsTypeFat),
     ])
 
     # root partition
@@ -193,7 +151,6 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     ret = StorageLayoutImpl(mount_dir)
     ret._hdd = hdd
     ret._hddRootParti = rootParti
-    ret._swap = SwapFile(False)
     ret._mnt = MountBios(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)      # do mount during MountBios initialization
     return ret
 
@@ -209,7 +166,7 @@ def _getMntParams(obj, mntArgsDict):
         assert mntArgsDict["extra_mount_options_for_root_dev"] != ""
         tlist += mntArgsDict.pop("extra_mount_options_for_root_dev").split(",")
     mntParams = [
-        MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist)
+        MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeFat, mnt_opt_list=tlist)
     ]
     MountBios.mntParamsMergeMntArgReadOnly(mntParams, mntArgsDict)
     return mntParams

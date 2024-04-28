@@ -100,6 +100,7 @@ SWAP_IS_IN_USE = "swap partition is in use"
 CAN_NOT_REMOVE_LAST_HDD = "can not release/remove the last harddisk"
 
 # common messages for StorageLayoutParseError
+OS_NOT_COMPATIBLE = "OS not compatible"
 NO_DISK_WHEN_PARSE = "no fixed harddisk"
 NO_VALID_LAYOUT = "no valid storage layout found"
 ROOT_DEV_MUST_BE = lambda root_dev: f"root device must be \"{root_dev!s}\""
