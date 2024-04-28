@@ -30,9 +30,8 @@ import time
 import struct
 import parted
 from .util import Util, PartiUtil, GptUtil, BcacheUtil, LvmUtil, PhysicalDiskMounts, TmpMount
+from .types import MountParam, RwController
 from . import errors
-from . import MountParam
-from . import RwController
 
 
 class EfiMultiDisk:

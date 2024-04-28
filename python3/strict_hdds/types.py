@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-# strict_hdds - strict harddisks
-#
 # Copyright (c) 2020-2021 Fpemud <fpemud@sina.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,34 +20,46 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-"""
-strict_hdds
 
-@author: Fpemud
-@license: GPLv3 License
-@contact: fpemud@sina.com
-"""
+import os
+import abc
 
 
-__author__ = "fpemud@sina.com (Fpemud)"
-__version__ = "0.0.1"
+class MountParam:
+
+    def __init__(self, dir_path, dir_mode, dir_uid, dir_gid, device, fstype, mnt_opt_list=[]):
+        assert os.path.isabs(dir_path)
+        assert dir_mode is not None
+        assert isinstance(dir_uid, int)
+        assert isinstance(dir_gid, int)
+        assert device is not None
+        assert fstype is not None
+        assert mnt_opt_list is not None
+
+        self.device = device
+        self.mountpoint = dir_path
+        self.fstype = fstype
+
+        self.mnt_opt_list = mnt_opt_list
+        self.mnt_dir_mode = dir_mode
+        self.mnt_dir_uid = dir_uid
+        self.mnt_dir_gid = dir_gid
+
+    @property
+    def opts(self):
+        return ",".join(self.mnt_opt_list)
 
 
-from .types import MountParam
-from .types import RwController
+class RwController(abc.ABC):
 
-from .core import StorageLayout
+    @abc.abstractmethod
+    def is_writable(self):
+        pass
 
-from .core import get_supported_storage_layout_names
+    @abc.abstractmethod
+    def to_read_write(self):
+        pass
 
-from .core import get_storage_layout
-from .core import mount_storage_layout
-from .core import create_and_mount_storage_layout
-
-from .errors import CheckCode
-
-from .errors import StorageLayoutError
-from .errors import StorageLayoutCreateError
-from .errors import StorageLayoutAddDiskError
-from .errors import StorageLayoutRemoveDiskError
-from .errors import StorageLayoutParseError
+    @abc.abstractmethod
+    def to_read_only(self):
+        pass
