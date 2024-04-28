@@ -32,22 +32,23 @@ class StorageLayoutImpl(StorageLayout):
     """Layout:
            /dev/sda          GPT
                /dev/sda1     ESP partition
-               /dev/sda2     windows partition, NTFS
+               /dev/sda2     MSR partition
+               /dev/sda3     windows partition, NTFS
        OS:
-           1. Microsoft Windows XP
-           2. Microsoft Windows 7
-           3. Microsoft Windows 10
-           4. Microsoft Windows 11
-           5. Microsoft Windows Server 2003
-           6. Microsoft Windows Server 2010
+           1. Microsoft Windows 7
+           2. Microsoft Windows 10
+           3. Microsoft Windows 11
+           4. Microsoft Windows Server 2003
+           5. Microsoft Windows Server 2010
        Description:
-           1. the 2 partitions in /dev/sda is order-sensitive
+           1. the 3 partitions in /dev/sda is order-sensitive
            2. extra partition is allowed to exist
     """
 
     def __init__(self):
         self._hdd = None                 # boot harddisk name
         self._hddEspParti = None         # ESP partition name
+        self._hddMsrParti = None         # MSR partition name
         self._hddWindowsParti = False    # windows partition name
         self._mnt = None                 # MountEfi
 
