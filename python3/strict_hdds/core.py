@@ -108,56 +108,6 @@ class MountParam:
         return ",".join(self.mnt_opt_list)
 
 
-class MountEntry:
-
-    def __init__(self, device, mountpoint, fstype, opts, real_dir_path):
-        assert device is not None
-        assert os.path.isabs(mountpoint)
-        assert fstype is not None
-        assert opts is not None
-        assert real_dir_path is not None
-
-        self._device = device
-        self._mountpoint = mountpoint
-        self._fstype = fstype
-        self._opts = opts
-
-        self._real_dir_path = real_dir_path
-
-    @property
-    def device(self):
-        return self._device
-
-    @property
-    def mountpoint(self):
-        return self._mountpoint
-
-    @property
-    def fstype(self):
-        return self._fstype
-
-    @property
-    def opts(self):
-        return self._opts
-
-    @property
-    def mnt_opt_list(self):
-        return self.opts.split(",")
-
-    @property
-    def real_dir_path(self):
-        return self._real_dir_path
-
-    @property
-    def real_opts(self):
-        assert self._device is not None
-        return PhysicalDiskMounts.find_entry_by_mount_point(self._real_dir_path).opts
-
-    @property
-    def real_mnt_opt_list(self):
-        return self.real_opts.split(",")
-
-
 class RwController(abc.ABC):
 
     @abc.abstractmethod

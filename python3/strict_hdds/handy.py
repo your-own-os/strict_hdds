@@ -32,7 +32,6 @@ import parted
 from .util import Util, PartiUtil, GptUtil, BcacheUtil, LvmUtil, PhysicalDiskMounts, TmpMount
 from . import errors
 from . import MountParam
-from . import MountEntry
 from . import RwController
 
 
@@ -935,6 +934,55 @@ class SubVolsBtrfs(SubVols):
 
 class Mount(abc.ABC):
 
+    class MountEntry:
+
+        def __init__(self, device, mountpoint, fstype, opts, real_dir_path):
+            assert device is not None
+            assert os.path.isabs(mountpoint)
+            assert fstype is not None
+            assert opts is not None
+            assert real_dir_path is not None
+
+            self._device = device
+            self._mountpoint = mountpoint
+            self._fstype = fstype
+            self._opts = opts
+
+            self._real_dir_path = real_dir_path
+
+        @property
+        def device(self):
+            return self._device
+
+        @property
+        def mountpoint(self):
+            return self._mountpoint
+
+        @property
+        def fstype(self):
+            return self._fstype
+
+        @property
+        def opts(self):
+            return self._opts
+
+        @property
+        def mnt_opt_list(self):
+            return self.opts.split(",")
+
+        @property
+        def real_dir_path(self):
+            return self._real_dir_path
+
+        @property
+        def real_opts(self):
+            assert self._device is not None
+            return PhysicalDiskMounts.find_entry_by_mount_point(self._real_dir_path).opts
+
+        @property
+        def real_mnt_opt_list(self):
+            return self.real_opts.split(",")
+
     @staticmethod
     def proxy(func):
         if isinstance(func, property):
@@ -983,7 +1031,7 @@ class Mount(abc.ABC):
                 if p.device is not None:
                     Util.cmdCall("mount", "-t", p.fstype, "-o", p.opts, p.device, real_dir_path)
 
-            self._mntEntries.append(MountEntry(p.device, p.mountpoint, p.fstype, p.opts, real_dir_path))
+            self._mntEntries.append(self.MountEntry(p.device, p.mountpoint, p.fstype, p.opts, real_dir_path))
 
     @property
     def mount_point(self):
