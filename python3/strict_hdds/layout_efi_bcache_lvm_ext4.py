@@ -80,11 +80,6 @@ class StorageLayoutImpl(StorageLayout):
 
     @EfiCacheGroup.proxy
     @property
-    def dev_boot(self):
-        pass
-
-    @EfiCacheGroup.proxy
-    @property
     def dev_swap(self):
         pass
 
@@ -364,7 +359,7 @@ def _getMntParams(obj, mntArgsDict):
 
     ret = [
         MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist),
-        MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
+        MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.get_esp(), Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
     ]
 
     MountEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)

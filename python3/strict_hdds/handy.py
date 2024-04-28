@@ -66,10 +66,6 @@ class EfiMultiDisk:
         self._bootHdd = bootHdd
 
     @property
-    def dev_boot(self):
-        return self.get_esp()
-
-    @property
     def boot_disk(self):
         return self._bootHdd
 
@@ -229,10 +225,6 @@ class EfiCacheGroup:
             else:
                 assert bootHdd is None
         self._bootHdd = bootHdd
-
-    @property
-    def dev_boot(self):
-        return self.get_esp()
 
     @property
     def dev_swap(self):

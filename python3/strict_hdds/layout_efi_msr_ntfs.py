@@ -69,10 +69,6 @@ class StorageLayoutImpl(StorageLayout):
     def dev_rootfs(self):
         return self._hddWindowsParti
 
-    @property
-    def dev_boot(self):
-        return self._hddEspParti
-
     def umount_and_dispose(self):
         if True:
             self._mnt.umount()
@@ -200,7 +196,7 @@ def _getMntParams(obj, mntArgsDict):
 
     ret = [
         MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeNtfs, mnt_opt_list=tlist),
-        MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
+        MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.get_esp(), Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
     ]
 
     MountWindowsEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)

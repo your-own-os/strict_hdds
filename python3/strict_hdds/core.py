@@ -60,11 +60,6 @@ class StorageLayout(abc.ABC):
     def dev_rootfs(self):
         pass
 
-    @property
-    @abc.abstractmethod
-    def dev_boot(self):
-        pass
-
     @abc.abstractmethod
     def umount_and_dispose(self):
         pass

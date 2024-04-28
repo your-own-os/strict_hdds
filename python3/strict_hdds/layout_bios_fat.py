@@ -62,10 +62,6 @@ class StorageLayoutImpl(StorageLayout):
     def dev_rootfs(self):
         return self._hddWindowsParti
 
-    @property
-    def dev_boot(self):
-        assert False
-
     def umount_and_dispose(self):
         if True:
             self._mnt.umount()

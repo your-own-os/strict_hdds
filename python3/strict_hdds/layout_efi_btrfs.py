@@ -69,11 +69,6 @@ class StorageLayoutImpl(StorageLayout):
     def dev_rootfs(self):
         return self.get_disk_data_partition(self.get_disk_list()[0])
 
-    @EfiMultiDisk.proxy
-    @property
-    def dev_boot(self):
-        pass
-
     @SubVols.proxy
     @property
     def snapshot(self):
@@ -289,7 +284,7 @@ def _getMntParams(obj, mntArgsDict):
     ret = []
     for dirPath, dirMode, dirUid, dirGid, mntOptList in SubVolsBtrfs.getParamsForMountWithoutSnapshot():
         ret.append(MountParam(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
-    ret.append(MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
+    ret.append(MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.get_esp(), Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
 
     SubVolsBtrfs.mntParamsMergeMntArgSnapshot(ret, mntArgsDict)
     MountEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)
