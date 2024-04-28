@@ -39,8 +39,8 @@ class StorageLayoutImpl(StorageLayout):
            3. Microsoft Windows 10
            4. Microsoft Windows 11
            5. Microsoft Windows Server 2003
+           6. Microsoft Windows Server 2010
        Description:
-           1. the 3 partition in /dev/sda is order-insensitive
-           2. use optional swap file /var/cache/swap.dat
-           3. extra partition is allowed to exist
+           1. the 2 partitions in /dev/sda is order-insensitive
+           2. extra partition is allowed to exist
     """

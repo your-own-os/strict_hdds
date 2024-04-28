@@ -35,7 +35,6 @@ class StorageLayoutImpl(StorageLayout):
        OS:
            1. Microsoft Windows 95
            2. Microsoft Windows 98
-           3. Microsoft Windows XP
        Description:
            1. partition number of /dev/sda1 and /dev/sda2 is irrelevant
            2. extra partition is allowed to exist
