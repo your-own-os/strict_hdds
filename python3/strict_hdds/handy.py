@@ -1036,7 +1036,7 @@ class Mount(abc.ABC):
     def mount_point(self):
         return self._mntDir
 
-    def get_mount_params(self, **kwargs):
+    def get_mount_comands(self, **kwargs):
         return self._myGetMntParams(kwargs.copy())
 
     def umount(self):

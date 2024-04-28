@@ -60,7 +60,7 @@ class StorageLayout(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_mount_params(self, **kwargs):
+    def get_mount_comands(self, **kwargs):
         pass
 
     @abc.abstractmethod

@@ -100,7 +100,7 @@ class StorageLayoutImpl(StorageLayout):
             del self._cg
 
     @MountEfi.proxy
-    def get_mount_params(self, **kwargs):
+    def get_mount_comands(self, **kwargs):
         pass
 
     @MountEfi.proxy
