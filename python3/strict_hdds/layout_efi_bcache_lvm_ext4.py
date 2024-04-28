@@ -103,10 +103,6 @@ class StorageLayoutImpl(StorageLayout):
         pass
 
     @MountEfi.proxy
-    def get_mount_entries(self):
-        pass
-
-    @MountEfi.proxy
     def is_read_only(self):
         pass
 

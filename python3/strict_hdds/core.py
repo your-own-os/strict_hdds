@@ -64,10 +64,6 @@ class StorageLayout(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_mount_entries(self):
-        pass
-
-    @abc.abstractmethod
     def is_read_only(self):
         pass
 

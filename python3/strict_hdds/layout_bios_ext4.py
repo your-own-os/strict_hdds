@@ -81,10 +81,6 @@ class StorageLayoutImpl(StorageLayout):
         pass
 
     @MountBios.proxy
-    def get_mount_entries(self):
-        pass
-
-    @MountBios.proxy
     def is_read_only(self):
         pass
 

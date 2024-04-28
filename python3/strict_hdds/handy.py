@@ -992,9 +992,6 @@ class Mount(abc.ABC):
     def get_mount_params(self, **kwargs):
         return self._myGetMntParams(kwargs.copy())
 
-    def get_mount_entries(self):
-        return self._mntEntries
-
     def umount(self):
         for p in reversed(self._mntEntries):
             if p.device is not None:

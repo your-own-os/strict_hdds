@@ -90,10 +90,6 @@ class StorageLayoutImpl(StorageLayout):
         pass
 
     @MountWindowsEfi.proxy
-    def get_mount_entries(self):
-        pass
-
-    @MountWindowsEfi.proxy
     def is_read_only(self):
         pass
 
