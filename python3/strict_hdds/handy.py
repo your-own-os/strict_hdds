@@ -69,6 +69,10 @@ class EfiMultiDisk:
     def boot_disk(self):
         return self._bootHdd
 
+    @property
+    def dev_boot(self):
+        return self.get_esp()
+
     def get_esp(self):
         if self._bootHdd is not None:
             return PartiUtil.diskToParti(self._bootHdd, 1)
@@ -227,12 +231,16 @@ class EfiCacheGroup:
         self._bootHdd = bootHdd
 
     @property
-    def dev_swap(self):
-        return self._ssdSwapParti if self._ssdSwapParti is not None else None
-
-    @property
     def boot_disk(self):
         return self._ssd if self._ssd is not None else self._bootHdd
+
+    @property
+    def dev_boot(self):
+        return self.get_esp()
+
+    @property
+    def dev_swap(self):
+        return self._ssdSwapParti if self._ssdSwapParti is not None else None
 
     def get_esp(self):
         if self._ssd is not None:
