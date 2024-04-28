@@ -31,7 +31,7 @@ from . import StorageLayout
 class StorageLayoutImpl(StorageLayout):
     """Layout:
            /dev/sda          stores MBR
-               /dev/sda1     windows partition, FAT32
+               /dev/sda1     windows system partition, FAT32
        OS:
            1. Microsoft Windows 95
            2. Microsoft Windows 98
@@ -41,9 +41,9 @@ class StorageLayoutImpl(StorageLayout):
     """
 
     def __init__(self):
-        self._hdd = None                 # boot harddisk name
-        self._hddWindowsParti = False    # windows partition name
-        self._mnt = None                 # MountBios
+        self._hdd = None              # boot harddisk name
+        self._hddSysParti = False     # windows system partition name
+        self._mnt = None              # MountBios
 
     @property
     def boot_mode(self):
@@ -59,14 +59,14 @@ class StorageLayoutImpl(StorageLayout):
         pass
 
     @property
-    def dev_rootfs(self):
-        return self._hddWindowsParti
+    def dev_sys(self):
+        return self._hddSysParti
 
     def umount_and_dispose(self):
         if True:
             self._mnt.umount()
             del self._mnt
-        del self._hddWindowsParti
+        del self._hddSysParti
         del self._hdd
 
     @MountBios.proxy
@@ -114,7 +114,7 @@ def parse(boot_dev, root_dev, mount_dir):
     # return
     ret = StorageLayoutImpl()
     ret._hdd = hdd
-    ret._hddWindowsParti = root_dev
+    ret._hddSysParti = root_dev
     ret._mnt = MountBios(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
     return ret
 
@@ -145,7 +145,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     # return
     ret = StorageLayoutImpl()
     ret._hdd = PartiUtil.partiToDisk(rootPartitionList[0])
-    ret._hddWindowsParti = rootPartitionList[0]
+    ret._hddSysParti = rootPartitionList[0]
     ret._mnt = MountBios(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)      # do mount during MountBios initialization
     return ret
 
@@ -165,7 +165,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     # return
     ret = StorageLayoutImpl(mount_dir)
     ret._hdd = hdd
-    ret._hddWindowsParti = rootParti
+    ret._hddSysParti = rootParti
     ret._mnt = MountBios(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)      # do mount during MountBios initialization
     return ret
 

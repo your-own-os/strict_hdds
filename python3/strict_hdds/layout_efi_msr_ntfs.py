@@ -33,7 +33,7 @@ class StorageLayoutImpl(StorageLayout):
            /dev/sda          GPT
                /dev/sda1     ESP partition
                /dev/sda2     MSR partition
-               /dev/sda3     windows partition, NTFS
+               /dev/sda3     windows system partition, NTFS
        OS:
            1. Microsoft Windows 7
            2. Microsoft Windows 10
@@ -49,7 +49,7 @@ class StorageLayoutImpl(StorageLayout):
         self._hdd = None                 # boot harddisk name
         self._hddEspParti = None         # ESP partition name
         self._hddMsrParti = None         # MSR partition name
-        self._hddWindowsParti = False    # windows partition name
+        self._hddSysParti = False        # windows partition name
         self._mnt = None                 # MountEfi
 
     @property
@@ -66,14 +66,22 @@ class StorageLayoutImpl(StorageLayout):
         pass
 
     @property
-    def dev_rootfs(self):
-        return self._hddWindowsParti
+    def dev_esp(self):
+        return self._hddEspParti
+
+    @property
+    def dev_msr(self):
+        return self._hddMsrParti
+
+    @property
+    def dev_sys(self):
+        return self._hddSysParti
 
     def umount_and_dispose(self):
         if True:
             self._mnt.umount()
             del self._mnt
-        del self._hddWindowsParti
+        del self._hddSysParti
         del self._hddEspParti
         del self._hdd
 
@@ -88,9 +96,6 @@ class StorageLayoutImpl(StorageLayout):
     @MountWindowsEfi.proxy
     def is_read_only(self):
         pass
-
-    def get_esp(self):
-        return self._hddEspParti
 
     def get_disk_list(self):
         return [self._hdd]
@@ -124,7 +129,7 @@ def parse(boot_dev, root_dev, mount_dir):
     ret = StorageLayoutImpl()
     ret._hdd = PartiUtil.partiToDisk(boot_dev)
     ret._hddEspParti = boot_dev
-    ret._hddWindowsParti = root_dev
+    ret._hddSysParti = root_dev
     ret._mnt = MountWindowsEfi(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
     return ret
 
@@ -155,7 +160,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     ret = StorageLayoutImpl()
     ret._hdd = espAndRootPartitionList[0][0]
     ret._hddEspParti = espAndRootPartitionList[0][1]
-    ret._hddWindowsParti = espAndRootPartitionList[0][2]
+    ret._hddSysParti = espAndRootPartitionList[0][2]
     ret._mnt = MountWindowsEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
     return ret
 
@@ -178,7 +183,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     ret = StorageLayoutImpl()
     ret._hdd = hdd
     ret._hddEspParti = espParti
-    ret._hddWindowsParti = rootParti
+    ret._hddSysParti = rootParti
     ret._mnt = MountWindowsEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
     return ret
 
