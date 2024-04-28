@@ -20,14 +20,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from enum import Enum, auto
+import enum
 
 
-class CheckCode(Enum):
-    TRIVIAL = auto()
-    ESP_SIZE_INVALID = auto()
-    SWAP_NOT_ENABLED = auto()
-    SWAP_SIZE_TOO_SMALL = auto()
+class CheckCode(enum.Enum):
+    TRIVIAL = enum.auto()
+    ESP_SIZE_INVALID = enum.auto()
+    SWAP_NOT_ENABLED = enum.auto()
+    SWAP_SIZE_TOO_SMALL = enum.auto()
 
 
 def checkErrorCallback(error_callback, check_code, *kargs):

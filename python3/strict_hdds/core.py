@@ -26,7 +26,7 @@ import abc
 import glob
 import psutil
 import functools
-from .util import BcacheUtil, Util, GptUtil, BtrfsUtil, LvmUtil, PhysicalDiskMounts
+from .util import Util, BcacheUtil, GptUtil, BtrfsUtil, LvmUtil
 from .handy import HandyUtil
 from . import errors
 
