@@ -285,25 +285,25 @@ class StorageLayoutImpl(StorageLayout):
 
 def parse(boot_dev, root_dev, mount_dir):
     if boot_dev is None:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.BOOT_DEV_NOT_EXIST)
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_NOT_EXIST)
     if Util.getBlkDevFsType(root_dev) != Util.fsTypeBtrfs:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeBtrfs))
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeBtrfs))
 
     # bcache device list
     bcacheDevPathList = BtrfsUtil.getSlaveDevPathList(mount_dir)
     for bcacheDevPath in bcacheDevPathList:
         if BcacheUtil.getBcacheDevFromDevPath(bcacheDevPath) is None:
-            raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "\"%s\" has non-bcache slave device" % (root_dev))
+            raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), "\"%s\" has non-bcache slave device" % (root_dev))
 
     # ssd, hdd_list, boot_disk
-    ssd, hddList = HandyBcache.getSsdAndHddListFromBcacheDevPathList(StorageLayoutImpl.name, bcacheDevPathList)
-    ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(StorageLayoutImpl.name, ssd)
-    bootHdd = HandyCg.checkAndGetBootHddFromBootDev(StorageLayoutImpl.name, boot_dev, ssdEspParti, hddList)
+    ssd, hddList = HandyBcache.getSsdAndHddListFromBcacheDevPathList(HandyUtil.getStorageLayoutName(StorageLayoutImpl), bcacheDevPathList)
+    ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssd)
+    bootHdd = HandyCg.checkAndGetBootHddFromBootDev(HandyUtil.getStorageLayoutName(StorageLayoutImpl), boot_dev, ssdEspParti, hddList)
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
-    SubVolsBtrfs.mntArgsDictSetSnapshot(StorageLayoutImpl.name, mount_dir, mntArgsDict)
-    MountEfi.mntArgsDictSetReadOnly(StorageLayoutImpl.name, mount_dir, mntArgsDict)
+    SubVolsBtrfs.mntArgsDictSetSnapshot(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir, mntArgsDict)
+    MountEfi.mntArgsDictSetReadOnly(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir, mntArgsDict)
 
     # return
     ret = StorageLayoutImpl()
@@ -321,13 +321,13 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     bcacheDevPathList = BcacheUtil.scanAndRegisterAllAndFilter(disk_list)
     bcacheDevPathList = [x for x in bcacheDevPathList if Util.getBlkDevFsType(x) == Util.fsTypeBtrfs]
     if len(bcacheDevPathList) == 0:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.DISK_NOT_FOUND)
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.DISK_NOT_FOUND)
 
     # ssd, hdd_list, boot_disk
-    ssd, hddList = HandyBcache.getSsdAndHddListFromBcacheDevPathList(StorageLayoutImpl.name, bcacheDevPathList)
-    HandyCg.checkExtraDisks(StorageLayoutImpl.name, ssd, hddList, disk_list)
-    ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(StorageLayoutImpl.name, ssd)
-    bootHdd = HandyCg.checkAndGetBootHddAndBootDev(StorageLayoutImpl.name, ssdEspParti, hddList)[0]
+    ssd, hddList = HandyBcache.getSsdAndHddListFromBcacheDevPathList(HandyUtil.getStorageLayoutName(StorageLayoutImpl), bcacheDevPathList)
+    HandyCg.checkExtraDisks(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssd, hddList, disk_list)
+    ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssd)
+    bootHdd = HandyCg.checkAndGetBootHddAndBootDev(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssdEspParti, hddList)[0]
 
     # return
     ret = StorageLayoutImpl()

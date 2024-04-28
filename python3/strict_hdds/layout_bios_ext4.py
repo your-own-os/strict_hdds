@@ -123,24 +123,24 @@ class StorageLayoutImpl(StorageLayout):
 
 def parse(boot_dev, root_dev, mount_dir):
     if boot_dev is not None:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.BOOT_DEV_SHOULD_NOT_EXIST)
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_SHOULD_NOT_EXIST)
     if Util.getBlkDevFsType(root_dev) != Util.fsTypeExt4:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
 
     # hdd
     hdd = PartiUtil.partiToDisk(root_dev)
     if Util.getBlkDevPartitionTableType(hdd) != Util.diskPartTableMbr:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.PARTITION_TYPE_SHOULD_BE(hdd, Util.diskPartTableMbr))
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.PARTITION_TYPE_SHOULD_BE(hdd, Util.diskPartTableMbr))
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
-    MountBios.mntArgsDictSetReadOnly(StorageLayoutImpl.name, mount_dir, mntArgsDict)
+    MountBios.mntArgsDictSetReadOnly(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir, mntArgsDict)
 
     # return
     ret = StorageLayoutImpl()
     ret._hdd = hdd
     ret._hddRootParti = root_dev
-    ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, "/")
+    ret._swap = HandyUtil.swapFileDetectAndNew(HandyUtil.getStorageLayoutName(StorageLayoutImpl), "/")
     ret._mnt = MountBios(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
     return ret
 
@@ -164,15 +164,15 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
                 rootPartitionList.append(parti)
             i += 1
     if len(rootPartitionList) == 0:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.ROOT_PARTITION_NOT_FOUND)
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_NOT_FOUND)
     if len(rootPartitionList) > 1:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.ROOT_PARTITIONS_TOO_MANY)
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITIONS_TOO_MANY)
 
     # return
     ret = StorageLayoutImpl()
     ret._hdd = PartiUtil.partiToDisk(rootPartitionList[0])
     ret._hddRootParti = rootPartitionList[0]
-    ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, mount_dir)
+    ret._swap = HandyUtil.swapFileDetectAndNew(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir)
     ret._mnt = MountBios(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)      # do mount during MountBios initialization
     return ret
 

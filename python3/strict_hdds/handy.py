@@ -1463,6 +1463,12 @@ class DisksChecker:
 class HandyUtil:
 
     @staticmethod
+    def getStorageLayoutName(layoutClass):
+        fn = sys.modules.get(layoutClass.__module__).__file__
+        fn = os.path.basename(fn).replace(".py", "")
+        return Util.modName2layoutName(fn)
+
+    @staticmethod
     def checkMntOptList(mntOptList):
         tset = set()
         for mo in mntOptList:

@@ -204,19 +204,19 @@ class StorageLayoutImpl(StorageLayout):
 
 def parse(boot_dev, root_dev, mount_dir):
     if boot_dev is None:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.BOOT_DEV_NOT_EXIST)
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_NOT_EXIST)
     if Util.getBlkDevFsType(root_dev) != Util.fsTypeBtrfs:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeBtrfs))
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeBtrfs))
 
     # disk_list, boot_disk
     partiList = BtrfsUtil.getSlaveDevPathList(mount_dir)
     diskList = [PartiUtil.partiToDisk(x) for x in partiList]
-    bootHdd = HandyMd.checkAndGetBootDiskFromBootDev(StorageLayoutImpl.name, boot_dev, diskList)
+    bootHdd = HandyMd.checkAndGetBootDiskFromBootDev(HandyUtil.getStorageLayoutName(StorageLayoutImpl), boot_dev, diskList)
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
-    SubVolsBtrfs.mntArgsDictSetSnapshot(StorageLayoutImpl.name, mount_dir, mntArgsDict)
-    MountEfi.mntArgsDictSetReadOnly(StorageLayoutImpl.name, mount_dir, mntArgsDict)
+    SubVolsBtrfs.mntArgsDictSetSnapshot(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir, mntArgsDict)
+    MountEfi.mntArgsDictSetReadOnly(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir, mntArgsDict)
 
     # return
     ret = StorageLayoutImpl()
@@ -242,10 +242,10 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
                 break
             i += 1
     if len(diskList) == 0:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.DISK_NOT_FOUND)
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.DISK_NOT_FOUND)
 
     # bootDisk & bootDev
-    bootHdd = HandyMd.checkAndGetBootDiskAndBootDev(StorageLayoutImpl.name, diskList)[0]
+    bootHdd = HandyMd.checkAndGetBootDiskAndBootDev(HandyUtil.getStorageLayoutName(StorageLayoutImpl), diskList)[0]
 
     # return
     ret = StorageLayoutImpl()

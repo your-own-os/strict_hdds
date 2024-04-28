@@ -251,19 +251,19 @@ def parse(boot_dev, root_dev, mount_dir):
     rootDevList = root_dev.split(":")
 
     if boot_dev is None:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.BOOT_DEV_NOT_EXIST)
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_NOT_EXIST)
     for rootDev in rootDevList:
         if Util.getBlkDevFsType(rootDev) != Util.fsTypeBcachefs:
-            raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "file system of root partition %s is not %s" % (Util.fsTypeBcachefs))
+            raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), "file system of root partition %s is not %s" % (Util.fsTypeBcachefs))
 
     # ssd, hdd_list, boot_disk
     ssd, hddList = HandyCg.checkAndGetSsdAndHddList(*BcachefsUtil.getSlaveSsdDevPatListAndHddDevPathList(rootDevList))
-    ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(StorageLayoutImpl.name, ssd)
-    bootHdd = HandyCg.checkAndGetBootHddFromBootDev(StorageLayoutImpl.name, boot_dev, ssdEspParti, hddList)
+    ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssd)
+    bootHdd = HandyCg.checkAndGetBootHddFromBootDev(HandyUtil.getStorageLayoutName(StorageLayoutImpl), boot_dev, ssdEspParti, hddList)
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
-    MountEfi.mntArgsDictSetReadOnly(StorageLayoutImpl.name, mount_dir, mntArgsDict)
+    MountEfi.mntArgsDictSetReadOnly(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir, mntArgsDict)
 
     # return
     ret = StorageLayoutImpl()
@@ -288,12 +288,12 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
                 break
             i += 1
     if len(diskList) == 0:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.DISK_NOT_FOUND)
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.DISK_NOT_FOUND)
 
     # ssd, hdd_list, boot_disk
     ssd, hddList = HandyCg.checkAndGetSsdAndHddList(*Util.splitSsdAndHddFromFixedDiskDevPathList(diskList))
-    ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(StorageLayoutImpl.name, ssd)
-    bootHdd = HandyCg.checkAndGetBootHddAndBootDev(StorageLayoutImpl.name, ssdEspParti, hddList)[0]
+    ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssd)
+    bootHdd = HandyCg.checkAndGetBootHddAndBootDev(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssdEspParti, hddList)[0]
 
     # return
     ret = StorageLayoutImpl()

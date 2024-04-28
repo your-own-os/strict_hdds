@@ -134,22 +134,22 @@ class StorageLayoutImpl(StorageLayout):
 
 def parse(boot_dev, root_dev, mount_dir):
     if PartiUtil.partiToDisk(boot_dev) != PartiUtil.partiToDisk(root_dev):
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "boot device and root device are not on the same harddisk")
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), "boot device and root device are not on the same harddisk")
     if not GptUtil.isEspPartition(boot_dev):
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.BOOT_DEV_IS_NOT_ESP)
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_IS_NOT_ESP)
     if Util.getBlkDevFsType(root_dev) != Util.fsTypeExt4:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
-    MountEfi.mntArgsDictSetReadOnly(StorageLayoutImpl.name, mount_dir, mntArgsDict)
+    MountEfi.mntArgsDictSetReadOnly(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir, mntArgsDict)
 
     # return
     ret = StorageLayoutImpl()
     ret._hdd = PartiUtil.partiToDisk(boot_dev)
     ret._hddEspParti = boot_dev
     ret._hddRootParti = root_dev
-    ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, mount_dir)
+    ret._swap = HandyUtil.swapFileDetectAndNew(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir)
     ret._mnt = MountEfi(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
     return ret
 
@@ -172,16 +172,16 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
             continue
         espAndRootPartitionList.append((disk, espParti, rootParti))
     if len(espAndRootPartitionList) == 0:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.DISK_NOT_FOUND)
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.DISK_NOT_FOUND)
     if len(espAndRootPartitionList) > 1:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.DISK_TOO_MANY)
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.DISK_TOO_MANY)
 
     # return
     ret = StorageLayoutImpl()
     ret._hdd = espAndRootPartitionList[0][0]
     ret._hddEspParti = espAndRootPartitionList[0][1]
     ret._hddRootParti = espAndRootPartitionList[0][2]
-    ret._swap = HandyUtil.swapFileDetectAndNew(StorageLayoutImpl.name, mount_dir)
+    ret._swap = HandyUtil.swapFileDetectAndNew(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir)
     ret._mnt = MountEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
     return ret
 

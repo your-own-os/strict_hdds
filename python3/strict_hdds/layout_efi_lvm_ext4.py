@@ -211,25 +211,25 @@ class StorageLayoutImpl(StorageLayout):
 
 def parse(boot_dev, root_dev, mount_dir):
     if boot_dev is None:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.BOOT_DEV_NOT_EXIST)
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_NOT_EXIST)
     if root_dev != LvmUtil.rootLvDevPath:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.ROOT_DEV_MUST_BE(LvmUtil.rootLvDevPath))
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_DEV_MUST_BE(LvmUtil.rootLvDevPath))
     if Util.getBlkDevFsType(LvmUtil.rootLvDevPath) != Util.fsTypeExt4:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
 
     # disk_list, boot_disk
-    pvDevPathList = HandyUtil.lvmEnsureVgLvAndGetPvList(StorageLayoutImpl.name)
+    pvDevPathList = HandyUtil.lvmEnsureVgLvAndGetPvList(HandyUtil.getStorageLayoutName(StorageLayoutImpl))
     diskList = [PartiUtil.partiToDisk(x) for x in pvDevPathList]
-    bootHdd = HandyMd.checkAndGetBootDiskFromBootDev(StorageLayoutImpl.name, boot_dev, diskList)
+    bootHdd = HandyMd.checkAndGetBootDiskFromBootDev(HandyUtil.getStorageLayoutName(StorageLayoutImpl), boot_dev, diskList)
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
-    MountEfi.mntArgsDictSetReadOnly(StorageLayoutImpl.name, mount_dir, mntArgsDict)
+    MountEfi.mntArgsDictSetReadOnly(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir, mntArgsDict)
 
     # return
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
-    ret._swap = HandyUtil.swapLvDetectAndNew(StorageLayoutImpl.name)
+    ret._swap = HandyUtil.swapLvDetectAndNew(HandyUtil.getStorageLayoutName(StorageLayoutImpl))
     ret._mnt = MountEfi(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
     return ret
 
@@ -240,19 +240,19 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     LvmUtil.activateAll()
 
     # pv list
-    pvDevPathList = HandyUtil.lvmEnsureVgLvAndGetPvList(StorageLayoutImpl.name)
+    pvDevPathList = HandyUtil.lvmEnsureVgLvAndGetPvList(HandyUtil.getStorageLayoutName(StorageLayoutImpl))
     diskList = [PartiUtil.partiToDisk(x) for x in pvDevPathList]
-    HandyMd.checkExtraDisks(StorageLayoutImpl.name, pvDevPathList, disk_list)
-    bootHdd, bootDev = HandyMd.checkAndGetBootDiskAndBootDev(StorageLayoutImpl.name, diskList)
+    HandyMd.checkExtraDisks(HandyUtil.getStorageLayoutName(StorageLayoutImpl), pvDevPathList, disk_list)
+    bootHdd, bootDev = HandyMd.checkAndGetBootDiskAndBootDev(HandyUtil.getStorageLayoutName(StorageLayoutImpl), diskList)
 
     # check root lv
     if Util.getBlkDevFsType(LvmUtil.rootLvDevPath) != Util.fsTypeExt4:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
 
     # return
     ret = StorageLayoutImpl()
     ret._md = EfiMultiDisk(diskList=diskList, bootHdd=bootHdd)
-    ret._swap = HandyUtil.swapLvDetectAndNew(StorageLayoutImpl.name)
+    ret._swap = HandyUtil.swapLvDetectAndNew(HandyUtil.getStorageLayoutName(StorageLayoutImpl))
     ret._mnt = MountEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)   # do mount during MountEfi initialization
     return ret
 

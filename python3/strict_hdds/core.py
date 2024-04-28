@@ -28,6 +28,7 @@ import glob
 import psutil
 import functools
 from .util import BcacheUtil, Util, GptUtil, BtrfsUtil, LvmUtil, PhysicalDiskMounts
+from .handy import HandyUtil
 from . import errors
 
 
@@ -36,12 +37,9 @@ class StorageLayout(abc.ABC):
     BOOT_MODE_BIOS = 1
     BOOT_MODE_EFI = 2
 
-    @classmethod
     @property
-    def name(cls):
-        fn = sys.modules.get(cls.__module__).__file__
-        fn = os.path.basename(fn).replace(".py", "")
-        return Util.modName2layoutName(fn)
+    def name(self):
+        return HandyUtil.getStorageLayoutName(self.__class__)
 
     @property
     @abc.abstractmethod

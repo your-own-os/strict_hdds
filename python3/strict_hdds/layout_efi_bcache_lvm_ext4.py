@@ -265,26 +265,26 @@ class StorageLayoutImpl(StorageLayout):
 
 def parse(boot_dev, root_dev, mount_dir):
     if boot_dev is None:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.BOOT_DEV_NOT_EXIST)
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_NOT_EXIST)
     if root_dev != LvmUtil.rootLvDevPath:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.ROOT_DEV_MUST_BE(LvmUtil.rootLvDevPath))
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_DEV_MUST_BE(LvmUtil.rootLvDevPath))
     if Util.getBlkDevFsType(LvmUtil.rootLvDevPath) != Util.fsTypeExt4:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
 
     # pv list
-    pvDevPathList = HandyUtil.lvmEnsureVgLvAndGetPvList(StorageLayoutImpl.name)
+    pvDevPathList = HandyUtil.lvmEnsureVgLvAndGetPvList(HandyUtil.getStorageLayoutName(StorageLayoutImpl))
     for pvDevPath in pvDevPathList:
         if BcacheUtil.getBcacheDevFromDevPath(pvDevPath) is None:
-            raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "volume group \"%s\" has non-bcache physical volume" % (LvmUtil.vgName))
+            raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), "volume group \"%s\" has non-bcache physical volume" % (LvmUtil.vgName))
 
     # ssd, hdd_list, boot_disk
-    ssd, hddList = HandyBcache.getSsdAndHddListFromBcacheDevPathList(StorageLayoutImpl.name, pvDevPathList)
-    ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(StorageLayoutImpl.name, ssd)
-    bootHdd = HandyCg.checkAndGetBootHddFromBootDev(StorageLayoutImpl.name, boot_dev, ssdEspParti, hddList)
+    ssd, hddList = HandyBcache.getSsdAndHddListFromBcacheDevPathList(HandyUtil.getStorageLayoutName(StorageLayoutImpl), pvDevPathList)
+    ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssd)
+    bootHdd = HandyCg.checkAndGetBootHddFromBootDev(HandyUtil.getStorageLayoutName(StorageLayoutImpl), boot_dev, ssdEspParti, hddList)
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
-    MountEfi.mntArgsDictSetReadOnly(StorageLayoutImpl.name, mount_dir, mntArgsDict)
+    MountEfi.mntArgsDictSetReadOnly(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir, mntArgsDict)
 
     # return
     ret = StorageLayoutImpl()
@@ -301,19 +301,19 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     LvmUtil.activateAll()
 
     # pv list
-    pvDevPathList = HandyUtil.lvmEnsureVgLvAndGetPvList(StorageLayoutImpl.name)
+    pvDevPathList = HandyUtil.lvmEnsureVgLvAndGetPvList(HandyUtil.getStorageLayoutName(StorageLayoutImpl))
     for pvDevPath in pvDevPathList:
         if BcacheUtil.getBcacheDevFromDevPath(pvDevPath) is None:
-            raise errors.StorageLayoutParseError(StorageLayoutImpl.name, "volume group \"%s\" has non-bcache physical volume" % (LvmUtil.vgName))
+            raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), "volume group \"%s\" has non-bcache physical volume" % (LvmUtil.vgName))
     # ssd, hdd_list, boot_disk, boot_device
-    ssd, hddList = HandyBcache.getSsdAndHddListFromBcacheDevPathList(StorageLayoutImpl.name, pvDevPathList)
-    HandyCg.checkExtraDisks(StorageLayoutImpl.name, ssd, hddList, disk_list)
-    ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(StorageLayoutImpl.name, ssd)
-    bootHdd, bootDev = HandyCg.checkAndGetBootHddAndBootDev(StorageLayoutImpl.name, ssdEspParti, hddList)
+    ssd, hddList = HandyBcache.getSsdAndHddListFromBcacheDevPathList(HandyUtil.getStorageLayoutName(StorageLayoutImpl), pvDevPathList)
+    HandyCg.checkExtraDisks(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssd, hddList, disk_list)
+    ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssd)
+    bootHdd, bootDev = HandyCg.checkAndGetBootHddAndBootDev(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssdEspParti, hddList)
 
     # check root lv
     if Util.getBlkDevFsType(LvmUtil.rootLvDevPath) != Util.fsTypeExt4:
-        raise errors.StorageLayoutParseError(StorageLayoutImpl.name, errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
 
     # return
     ret = StorageLayoutImpl()
