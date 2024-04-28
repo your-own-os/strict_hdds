@@ -33,6 +33,8 @@ class StorageLayoutImpl(StorageLayout):
            /dev/sda          GPT
                /dev/sda1     ESP partition
                /dev/sda2     root device, EXT4
+       OS:
+           1. Linux
        Description:
            1. the 3 partition in /dev/sda is order-insensitive
            2. use optional swap file /var/cache/swap.dat

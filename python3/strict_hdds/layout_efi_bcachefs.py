@@ -41,6 +41,8 @@ class StorageLayoutImpl(StorageLayout):
                /dev/sdc1                    reserved ESP partition
                /dev/sdc2                    bcachefs backing device
            /dev/sda3:/dev/sdb2:/dev/sdc2    root device
+       OS:
+           1. Linux
        Description:
            1. /dev/sda1 and /dev/sd{b,c}1 must has the same size
            2. /dev/sda1, /dev/sda2 and /dev/sda3 is order-sensitive, no extra partition is allowed

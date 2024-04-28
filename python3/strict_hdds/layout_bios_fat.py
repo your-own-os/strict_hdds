@@ -31,13 +31,14 @@ from . import StorageLayout
 class StorageLayoutImpl(StorageLayout):
     """Layout:
            /dev/sda          stores MBR
-               /dev/sda1     root device, EXT4
+               /dev/sda1     windows partition, FAT32
        OS:
-           1. Linux
+           1. Microsoft Windows 95
+           2. Microsoft Windows 98
+           3. Microsoft Windows XP
        Description:
            1. partition number of /dev/sda1 and /dev/sda2 is irrelevant
-           2. use optional swap file /var/cache/swap.dat
-           3. extra partition is allowed to exist
+           2. extra partition is allowed to exist
     """
 
     def __init__(self):

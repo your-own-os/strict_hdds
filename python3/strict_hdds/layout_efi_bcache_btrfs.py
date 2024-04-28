@@ -43,6 +43,8 @@ class StorageLayoutImpl(StorageLayout):
            /dev/bcache0:/dev/bcache1     root device, btrfs
               /dev/bcache0               corresponds to /dev/sdb2, btrfs device
               /dev/bcache1               corresponds to /dev/sdc2, btrfs device
+       OS:
+           1. Linux
        Description:
            1. /dev/sda1 and /dev/sd{b,c}1 must has the same size
            2. /dev/sda1, /dev/sda2 and /dev/sda3 is order-sensitive, no extra partition is allowed

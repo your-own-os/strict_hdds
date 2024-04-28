@@ -38,6 +38,8 @@ class StorageLayoutImpl(StorageLayout):
                /dev/sdb2            LVM-PV for VG hdd
            /dev/mapper/hdd.root     root device, EXT4
            /dev/mapper/hdd.swap     swap device
+       OS:
+           1. Linux
        Description:
            1. /dev/sda1 and /dev/sdb1 must has the same size
            2. /dev/sda1 and /dev/sda2 is order-sensitive, no extra partition is allowed

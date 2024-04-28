@@ -37,6 +37,8 @@ class StorageLayoutImpl(StorageLayout):
                /dev/sdb1            reserved ESP partition
                /dev/sdb2            btrfs device
            /dev/sda1:/dev/sda2      root device, btrfs
+       OS:
+           1. Linux
        Description:
            1. /dev/sda1 and /dev/sdb1 must has the same size
            2. /dev/sda1 and /dev/sda2 is order-sensitive, no extra partition is allowed
