@@ -41,6 +41,6 @@ class StorageLayoutImpl(StorageLayout):
            5. Microsoft Windows Server 2003
            6. Microsoft Windows Server 2010
        Description:
-           1. the 2 partitions in /dev/sda is order-insensitive
+           1. the 2 partitions in /dev/sda is order-sensitive
            2. extra partition is allowed to exist
     """

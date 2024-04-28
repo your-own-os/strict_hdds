@@ -36,7 +36,7 @@ class StorageLayoutImpl(StorageLayout):
        OS:
            1. Linux
        Description:
-           1. the 2 partitions in /dev/sda is order-insensitive
+           1. the 2 partitions in /dev/sda is order-sensitive
            2. use optional swap file /var/cache/swap.dat
            3. extra partition is allowed to exist
     """
