@@ -23,7 +23,8 @@
 
 import functools
 from .util import Util, PartiUtil, BtrfsUtil
-from .handy import EfiMultiDisk, SubVols, SubVolsBtrfs, MountEfi, MountParam, HandyMd, DisksChecker, HandyUtil
+from .types import MountCommand
+from .handy import EfiMultiDisk, SubVols, SubVolsBtrfs, MountEfi, HandyMd, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
 
@@ -284,8 +285,8 @@ def _getMntParams(obj, mntArgsDict):
 
     ret = []
     for dirPath, dirMode, dirUid, dirGid, mntOptList in SubVolsBtrfs.getParamsForMountWithoutSnapshot():
-        ret.append(MountParam(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
-    ret.append(MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
+        ret.append(MountCommand.Mount(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
+    ret.append(MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
 
     SubVolsBtrfs.mntParamsMergeMntArgSnapshot(ret, mntArgsDict)
     MountEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)

@@ -23,7 +23,8 @@
 
 import functools
 from .util import Util, PartiUtil, GptUtil
-from .handy import MountWindowsEfi, MountParam, DisksChecker, HandyUtil
+from .types import MountCommand
+from .handy import MountWindowsEfi, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
 
@@ -196,8 +197,8 @@ def _getMntParams(obj, mntArgsDict):
         tlistBoot += mntArgsDict.pop("extra_mount_options_for_boot_dev").split(",")
 
     ret = [
-        MountParam(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeNtfs, mnt_opt_list=tlist),
-        MountParam(Util.bootDir, *Util.bootDirModeUidGid, obj.get_esp(), Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
+        MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeNtfs, mnt_opt_list=tlist),
+        MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.get_esp(), Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
     ]
 
     MountWindowsEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)

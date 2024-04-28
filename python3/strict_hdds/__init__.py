@@ -35,7 +35,7 @@ __author__ = "fpemud@sina.com (Fpemud)"
 __version__ = "0.0.1"
 
 
-from .types import MountParam
+from .types import MountCommand
 from .types import RwController
 
 from .core import StorageLayout

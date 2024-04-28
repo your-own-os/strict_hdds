@@ -30,7 +30,7 @@ import time
 import struct
 import parted
 from .util import Util, PartiUtil, GptUtil, BcacheUtil, LvmUtil, PhysicalDiskMounts, TmpMount
-from .types import MountParam, RwController
+from .types import MountCommand, RwController
 from . import errors
 
 
@@ -1049,7 +1049,7 @@ class Mount(abc.ABC):
 
         # check mntParams
         assert len(mntParams) > 0
-        assert all([isinstance(x, MountParam) for x in mntParams])
+        assert all([isinstance(x, MountCommand.Mount) for x in mntParams])
         assert mntParams[0].mountpoint == "/"
         self._assertMntParams(mntParams)
 

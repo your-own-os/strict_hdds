@@ -25,29 +25,44 @@ import os
 import abc
 
 
-class MountParam:
+class MountCommand:
 
-    def __init__(self, dir_path, dir_mode, dir_uid, dir_gid, device, fstype, mnt_opt_list=[]):
-        assert os.path.isabs(dir_path)
-        assert dir_mode is not None
-        assert isinstance(dir_uid, int)
-        assert isinstance(dir_gid, int)
-        assert device is not None
-        assert fstype is not None
-        assert mnt_opt_list is not None
+    class Mount:
 
-        self.device = device
-        self.mountpoint = dir_path
-        self.fstype = fstype
+        def __init__(self, dir_path, dir_mode, dir_uid, dir_gid, device, fstype, mnt_opt_list=[]):
+            assert os.path.isabs(dir_path)
+            assert dir_mode is not None
+            assert isinstance(dir_uid, int)
+            assert isinstance(dir_gid, int)
+            assert device is not None
+            assert fstype is not None
+            assert mnt_opt_list is not None
 
-        self.mnt_opt_list = mnt_opt_list
-        self.mnt_dir_mode = dir_mode
-        self.mnt_dir_uid = dir_uid
-        self.mnt_dir_gid = dir_gid
+            self.device = device
+            self.mountpoint = dir_path
+            self.fstype = fstype
 
-    @property
-    def opts(self):
-        return ",".join(self.mnt_opt_list)
+            self.mnt_opt_list = mnt_opt_list
+            self.mnt_dir_mode = dir_mode
+            self.mnt_dir_uid = dir_uid
+            self.mnt_dir_gid = dir_gid
+
+        @property
+        def opts(self):
+            return ",".join(self.mnt_opt_list)
+
+    class Mkdir:
+
+        def __init__(self, dir_path, dir_mode, dir_uid, dir_gid):
+            assert os.path.isabs(dir_path)
+            assert dir_mode is not None
+            assert isinstance(dir_uid, int)
+            assert isinstance(dir_gid, int)
+
+            self.path = dir_path
+            self.mode = dir_mode
+            self.uid = dir_uid
+            self.gid = dir_gid
 
 
 class RwController(abc.ABC):
