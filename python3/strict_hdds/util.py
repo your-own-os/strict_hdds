@@ -1259,6 +1259,14 @@ class PhysicalDiskMounts:
                 return cls.Entry(p)
         return None
 
+    @classmethod
+    def find_entry_by_filter(cls, filter):
+        for p in psutil.disk_partitions():
+            ret = cls.Entry(p)
+            if filter(ret):
+                return ret
+        return None
+
 
 class TmpMount:
 
