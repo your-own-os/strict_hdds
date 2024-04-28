@@ -23,7 +23,7 @@
 
 import functools
 from .util import Util, PartiUtil, BtrfsUtil
-from .handy import EfiMultiDisk, SubVols, SubVolsBtrfs, MountEfi, MountParam, HandyMd, DisksChecker
+from .handy import EfiMultiDisk, SubVols, SubVolsBtrfs, MountEfi, MountParam, HandyMd, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
 

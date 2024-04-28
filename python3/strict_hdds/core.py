@@ -22,7 +22,6 @@
 
 
 import os
-import sys
 import abc
 import glob
 import psutil

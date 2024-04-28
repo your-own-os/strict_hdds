@@ -23,7 +23,7 @@
 
 import functools
 from .util import Util, BcacheUtil, BtrfsUtil
-from .handy import EfiCacheGroup, Bcache, SubVols, SubVolsBtrfs, MountEfi, MountParam, HandyCg, HandyBcache, DisksChecker
+from .handy import EfiCacheGroup, Bcache, SubVols, SubVolsBtrfs, MountEfi, MountParam, HandyCg, HandyBcache, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
 

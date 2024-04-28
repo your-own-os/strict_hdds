@@ -23,7 +23,7 @@
 
 import functools
 from .util import Util, PartiUtil, BcachefsUtil
-from .handy import EfiCacheGroup, MountEfi, MountParam, HandyCg, DisksChecker
+from .handy import EfiCacheGroup, MountEfi, MountParam, HandyCg, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
 
