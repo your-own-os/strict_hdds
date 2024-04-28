@@ -1140,7 +1140,6 @@ class MountWindowsEfi(Mount):
         super().__init__(bIsMounted, mntDir, getMntParamsFunc, mntArgsDict)
         self._pRootfs = self._findRootfsMountEntry()
         self._pEsp = self._findEspMountEntry()
-        self._rwCtrl = self.RwController(self)
 
     def is_read_only(self):
         return self._readOnly
