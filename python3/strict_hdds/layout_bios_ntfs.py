@@ -34,9 +34,10 @@ class StorageLayoutImpl(StorageLayout):
            /dev/sda          stores MBR
                /dev/sda1     windows system partition, NTFS
        OS:
-           1. Microsoft Windows XP
-           2. Microsoft Windows 7
-           3. Microsoft Windows Server 2003
+           1. Microsoft Windows 2000
+           2. Microsoft Windows XP
+           3. Microsoft Windows 7
+           4. Microsoft Windows Server 2003
        Description:
            1. partition number of /dev/sda1 and /dev/sda2 is irrelevant
            2. extra partition is allowed to exist
