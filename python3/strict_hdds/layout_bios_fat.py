@@ -32,7 +32,7 @@ from . import StorageLayout
 class StorageLayoutImpl(StorageLayout):
     """Layout:
            /dev/sda          stores MBR
-               /dev/sda1     windows system partition, FAT16
+               /dev/sda1     windows system partition, FAT16-LBA
        OS:
            1. Microsoft Windows 95
            2. Microsoft Windows 98
