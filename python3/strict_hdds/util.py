@@ -963,12 +963,12 @@ class BcacheUtil:
         if len(backingDevPathList) > 0:
             setUuid = BcacheUtil.getSetUuid(cacheDevPath)
             for backingDevPath in backingDevPathList:
-                with open("/sys/block/%s/bcache/attach" % (os.path.basename(backingDevPath)), "w") as f:
+                with open("/sys/class/block/%s/bcache/attach" % (os.path.basename(backingDevPath)), "w") as f:
                     f.write(str(setUuid))
 
     @staticmethod
     def stopBackingDevice(devPath):
-        with open("/sys/block/%s/bcache/stop" % (os.path.basename(devPath)), "w") as f:
+        with open("/sys/class/block/%s/bcache/stop" % (os.path.basename(devPath)), "w") as f:
             f.write("1")
 
     @staticmethod
@@ -993,7 +993,7 @@ class BcacheUtil:
     @staticmethod
     def getMode(devPath):
         assert re.fullmatch("/dev/bcache[0-9]+", devPath)
-        buf = pathlib.Path(os.path.join("/sys", "block", os.path.basename(devPath), "bcache", "cache_mode")).read_text()
+        buf = pathlib.Path(os.path.join("/sys", "class", "block", os.path.basename(devPath), "bcache", "cache_mode")).read_text()
         mode = re.search("\\[(.*)\\]", buf).group(1)
         assert mode in ["writethrough", "writeback"]
         return mode
@@ -1002,7 +1002,7 @@ class BcacheUtil:
     def setMode(devPath, mode):
         assert re.fullmatch("/dev/bcache[0-9]+", devPath)
         assert mode in ["writethrough", "writeback"]
-        with open(os.path.join("/sys", "block", os.path.basename(devPath), "bcache", "cache_mode"), "w") as f:
+        with open(os.path.join("/sys", "class", "block", os.path.basename(devPath), "bcache", "cache_mode"), "w") as f:
             f.write(mode)
 
     @staticmethod

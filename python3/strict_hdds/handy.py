@@ -509,7 +509,7 @@ class Bcache:
                 for fullfn in glob.glob("/dev/bcache*"):
                     if fullfn not in bcacheSet:
                         if re.fullmatch("/dev/bcache[0-9]+", fullfn):
-                            bcachePath = os.path.realpath("/sys/block/" + devName + "/bcache")
+                            bcachePath = os.path.realpath("/sys/class/block/" + devName + "/bcache")
                             if os.path.basename(os.path.dirname(bcachePath)) == devName:
                                 bcacheDevPath = fullfn
                                 break
