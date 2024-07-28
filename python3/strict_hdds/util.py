@@ -958,6 +958,7 @@ class BcacheUtil:
         if len(bcacheDevPathList) > 0:
             setUuid = BcacheUtil.getSetUuid(cacheDevPath)
             for bcacheDevPath in bcacheDevPathList:
+                print(bcacheDevPath)
                 with open("/sys/class/block/%s/bcache/attach" % (os.path.basename(bcacheDevPath)), "w") as f:
                     f.write(str(setUuid))
 
