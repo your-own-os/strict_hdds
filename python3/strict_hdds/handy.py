@@ -497,15 +497,21 @@ class Bcache:
         return list(self._backingDict.values())
 
     def add_cache(self, cacheDevPath):
-        BcacheUtil.makeAndRegisterCacheDevice(cacheDevPath)
-        BcacheUtil.attachCacheDevice(self._backingDict.values(), cacheDevPath)
-        self._cacheDevSet.add(cacheDevPath)
+        BcacheUtil.makeDevice(cacheDevPath, False)
+        BcacheUtil.registerCacheDevice(cacheDevPath)
+        try:
+            BcacheUtil.attachCacheDevice(self._backingDict.values(), cacheDevPath)
+            self._cacheDevSet.add(cacheDevPath)
+        except BaseException:
+            BcacheUtil.unregisterCacheDevice(cacheDevPath)
+            raise
 
     def add_backing(self, cacheDevPath, key, devPath):
-        BcacheUtil.makeAndRegisterBackingDevice(devPath)
+        BcacheUtil.makeDevice(devPath, True)
 
         bcacheDevPath = None
         if True:
+            BcacheUtil.registerBackingDevice(devPath)
             devName = os.path.basename(devPath)
             bcacheSet = set()
             for i in range(0, 10):
@@ -521,13 +527,16 @@ class Bcache:
                     break
                 time.sleep(1)
             if bcacheDevPath is None:
-                raise Exception("corresponding bcache device is not found")
+                raise Exception("register backing device failed, corresponding bcache device is not found")
 
-        if cacheDevPath is not None:
-            BcacheUtil.attachCacheDevice([bcacheDevPath], cacheDevPath)
-
-        self._backingDict[key] = bcacheDevPath
-        return bcacheDevPath
+        try:
+            if cacheDevPath is not None:
+                BcacheUtil.attachCacheDevice([bcacheDevPath], cacheDevPath)
+            self._backingDict[key] = bcacheDevPath
+            return bcacheDevPath
+        except BaseException:
+            BcacheUtil.stopBackingDevice(bcacheDevPath)
+            raise
 
     def remove_cache(self, cacheDevPath):
         BcacheUtil.unregisterCacheDevice(cacheDevPath)

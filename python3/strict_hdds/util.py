@@ -949,16 +949,6 @@ class BcacheUtil:
             f.write(devPath)
 
     @staticmethod
-    def makeAndRegisterBackingDevice(devPath):
-        BcacheUtil.makeDevice(devPath, True)
-        BcacheUtil.registerBackingDevice(devPath)
-
-    @staticmethod
-    def makeAndRegisterCacheDevice(devPath):
-        BcacheUtil.makeDevice(devPath, False)
-        BcacheUtil.registerCacheDevice(devPath)
-
-    @staticmethod
     def attachCacheDevice(backingDevPathList, cacheDevPath):
         if len(backingDevPathList) > 0:
             setUuid = BcacheUtil.getSetUuid(cacheDevPath)
