@@ -104,7 +104,7 @@ class EfiMultiDisk:
         assert disk is not None and disk not in self._hddList
 
         # create disk
-        if True:
+        try:
             if self._bootHdd is None:
                 fsType1 = "esp"
             else:
@@ -126,6 +126,9 @@ class EfiMultiDisk:
 
             # partition2: data partition, leave it to user
             pass
+        except BaseException:
+            Util.wipeHarddisk(disk)
+            raise
 
         # add disk
         self._hddList.append(disk)
