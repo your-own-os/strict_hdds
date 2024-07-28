@@ -939,14 +939,14 @@ class BcacheUtil:
         return BcacheUtil._isBackingDeviceOrCachDevice(devPath, False)
 
     @staticmethod
-    def registerBackingDevice(devPath):
+    def registerBackingDevice(backingDevPath):
         with open("/sys/fs/bcache/register_quiet", "w") as f:
-            f.write(devPath)
+            f.write(backingDevPath)
 
     @staticmethod
-    def registerCacheDevice(devPath):
+    def registerCacheDevice(cacheDevPath):
         with open("/sys/fs/bcache/register_quiet", "w") as f:
-            f.write(devPath)
+            f.write(cacheDevPath)
 
         # wait for sysfs cache set directory appears
         setUuid = BcacheUtil.getSetUuid(cacheDevPath)
