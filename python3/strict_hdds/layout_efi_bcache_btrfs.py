@@ -186,10 +186,22 @@ class StorageLayoutImpl(StorageLayout):
         if Util.isBlkDevSsdOrHdd(disk):
             assert self._cg.get_ssd() is None
             self._mnt.umount_esp(self._cg.get_hdd_esp_partition(self._cg.boot_disk))
-            self._cg.add_ssd(disk, "bcache")
-            self._bcache.add_cache(self._cg.get_ssd_cache_partition())
-            self._mnt.mount_esp(self._cg.get_ssd_esp_partition())
-            return True
+            try:
+                self._cg.add_ssd(disk, "bcache")
+                try:
+                    self._bcache.add_cache(self._cg.get_ssd_cache_partition())
+                    try:
+                        self._mnt.mount_esp(self._cg.get_ssd_esp_partition())
+                        return True
+                    except BaseException:
+                        self._bcache.remove_cache(self._cg.get_ssd_cache_partition())
+                        raise
+                except BaseException:
+                    self._cg.remove_ssd()
+                    raise
+            except BaseException:
+                self._mnt.mount_esp(self._cg.get_hdd_esp_partition(self._cg.boot_disk))
+                raise
         else:
             self._cg.add_hdd(disk, "bcache")
             self._bcache.add_backing(self._cg.get_ssd_cache_partition(), disk, self._cg.get_hdd_data_partition(disk))

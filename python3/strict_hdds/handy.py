@@ -307,44 +307,46 @@ class EfiCacheGroup:
     def add_ssd(self, ssd, fsType):
         assert ssd is not None and self._ssd is None and ssd not in self._hddList
 
-        # create disk
+        self._ssd = ssd
+        self._ssdEspParti = PartiUtil.diskToParti(ssd, 1)
+        self._ssdSwapParti = PartiUtil.diskToParti(ssd, 2)
+        self._ssdCacheParti = PartiUtil.diskToParti(ssd, 3)
+        oldBootHdd = self._bootHdd
         try:
             # create partitions
-            Util.initializeDisk(ssd, "gpt", [
+            Util.initializeDisk(self._ssd, "gpt", [
                 ("%dMiB" % (Util.getEspSizeInMb()), "esp"),
                 ("%dGiB" % (Util.getSwapSizeInGb()), Util.fsTypeSwap),
                 ("*", fsType),
             ])
 
             # partition1: ESP partition
-            ssdEspParti = PartiUtil.diskToParti(ssd, 1)
             if self._bootHdd is not None:
                 # FIXME: change to copyFatFs
-                Util.cmdCall("mkfs.vfat", ssdEspParti)
-                Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), ssdEspParti)
+                Util.cmdCall("mkfs.vfat", self._ssdEspParti)
+                Util.syncBlkDev(PartiUtil.diskToParti(self._bootHdd, 1), self._ssdEspParti)
             else:
-                Util.cmdCall("mkfs.vfat", ssdEspParti)
+                Util.cmdCall("mkfs.vfat", self._ssdEspParti)
 
             # partition2: swap partition
-            ssdSwapParti = PartiUtil.diskToParti(ssd, 2)
-            Util.cmdCall("mkswap", ssdSwapParti)
+            Util.cmdCall("mkswap", self._ssdSwapParti)
 
             # partition3: cache partition, leave it to caller
-            ssdCacheParti = PartiUtil.diskToParti(ssd, 3)
+            pass
+
+            # change boot device
+            if self._bootHdd is not None:
+                Util.toggleEspPartition(PartiUtil.diskToParti(self._bootHdd, 1), False)
+                self._bootHdd = None
         except BaseException:
-            Util.wipeHarddisk(ssd)
+            # FIXME: should assert Util.isEspPartition(PartiUtil.diskToParti(self._bootHdd, 1), True))
+            assert self._bootHdd == oldBootHdd
+            Util.wipeHarddisk(self._ssd)
+            self._ssdCacheParti = None
+            self._ssdSwapParti = None
+            self._ssdEspParti = None
+            self._ssd = None
             raise
-
-        # add disk
-        self._ssd = ssd
-        self._ssdEspParti = ssdEspParti
-        self._ssdSwapParti = ssdSwapParti
-        self._ssdCacheParti = ssdCacheParti
-
-        # change boot device
-        if self._bootHdd is not None:
-            Util.toggleEspPartition(PartiUtil.diskToParti(self._bootHdd, 1), False)
-            self._bootHdd = None
 
     def remove_ssd(self):
         assert self._ssd is not None
@@ -511,18 +513,18 @@ class Bcache:
 
         bcacheDevPath = None
         if True:
+            bcacheList = glob.glob("/dev/bcache*")
             BcacheUtil.registerBackingDevice(devPath)
             devName = os.path.basename(devPath)
-            bcacheSet = set()
             for i in range(0, 10):
                 for fullfn in glob.glob("/dev/bcache*"):
-                    if fullfn not in bcacheSet:
+                    if fullfn not in bcacheList:
                         if re.fullmatch("/dev/bcache[0-9]+", fullfn):
                             bcachePath = os.path.realpath("/sys/class/block/" + devName + "/bcache")
                             if os.path.basename(os.path.dirname(bcachePath)) == devName:
                                 bcacheDevPath = fullfn
                                 break
-                    bcacheSet.add(fullfn)
+                        bcacheList.append(fullfn)
                 if bcacheDevPath is not None:
                     break
                 time.sleep(1)
