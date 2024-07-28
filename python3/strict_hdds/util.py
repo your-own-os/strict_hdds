@@ -948,6 +948,11 @@ class BcacheUtil:
         with open("/sys/fs/bcache/register_quiet", "w") as f:
             f.write(devPath)
 
+        # wait for sysfs cache set directory appears
+        setUuid = BcacheUtil.getSetUuid(cacheDevPath)
+        while not os.path.exists("/sys/fs/bcache/%s" % (setUuid)):
+            time.sleep(1)
+
     @staticmethod
     def attachCacheDevice(bcacheDevPathList, cacheDevPath):
         if len(bcacheDevPathList) > 0:
