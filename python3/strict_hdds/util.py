@@ -949,16 +949,16 @@ class BcacheUtil:
             f.write(devPath)
 
     @staticmethod
-    def attachCacheDevice(backingDevPathList, cacheDevPath):
-        if len(backingDevPathList) > 0:
+    def attachCacheDevice(bcacheDevPathList, cacheDevPath):
+        if len(bcacheDevPathList) > 0:
             setUuid = BcacheUtil.getSetUuid(cacheDevPath)
-            for backingDevPath in backingDevPathList:
-                with open("/sys/class/block/%s/bcache/attach" % (os.path.basename(backingDevPath)), "w") as f:
+            for bcacheDevPath in bcacheDevPathList:
+                with open("/sys/class/block/%s/bcache/attach" % (os.path.basename(bcacheDevPath)), "w") as f:
                     f.write(str(setUuid))
 
     @staticmethod
-    def stopBackingDevice(devPath):
-        with open("/sys/class/block/%s/bcache/stop" % (os.path.basename(devPath)), "w") as f:
+    def stopBackingDevice(bcacheDevPath):
+        with open("/sys/class/block/%s/bcache/stop" % (os.path.basename(bcacheDevPath)), "w") as f:
             f.write("1")
 
     @staticmethod
