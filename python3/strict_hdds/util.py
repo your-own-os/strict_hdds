@@ -513,6 +513,11 @@ class Util:
                 continue
             if device.device_path.startswith("/devices/virtual/"):
                 continue
+            if True:
+                devName = os.path.basename(device.device_path)
+                remFile = "/sys/block/%s/removable" % (devName)
+                if os.path.exists(remFile) and pathlib.Path(remFile).read_text().rstrip("\n") == "1":
+                    continue
             ret.append(device.device_node)
         return ret
 
