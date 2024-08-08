@@ -22,7 +22,9 @@
 # THE SOFTWARE.
 
 import os
+import re
 import sys
+import subprocess
 import strict_hdds
 
 
@@ -55,6 +57,8 @@ def die(msg):
 def doShow():
     if len(sys.argv) < 3:
         die("No mount point directory specified!")
+    if _getMountDeviceForPath(sys.argv[2]) is None:
+        die("Directory \"%s\" is not mounted!")
     layout = strict_hdds.get_storage_layout(sys.argv[2])
     _show(layout)
 
@@ -262,6 +266,15 @@ def _show(layout):
         return
 
     assert False
+
+
+def _getMountDeviceForPath(pathname):
+    buf = subprocess.check_output("mount", text=True)
+    for line in buf.split("\n"):
+        m = re.search("^(.*) on (.*) type ", line)
+        if m is not None and m.group(2) == pathname:
+            return m.group(1)
+    return None
 
 
 if __name__ == '__main__':
