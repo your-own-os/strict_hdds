@@ -183,7 +183,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     rootParti = PartiUtil.diskToParti(hdd, 1)
 
     # return
-    ret = StorageLayoutImpl(mount_dir)
+    ret = StorageLayoutImpl()
     ret._hdd = hdd
     ret._hddRootParti = rootParti
     ret._swap = SwapFile(False)
