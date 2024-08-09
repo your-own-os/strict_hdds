@@ -22,6 +22,7 @@
 
 
 import functools
+import subprocess
 from .util import Util, PartiUtil, BtrfsUtil
 from .types import MountCommand
 from .handy import EfiMultiDisk, SubVols, SubVolsBtrfs, MountEfi, HandyMd, DisksChecker, HandyUtil
@@ -261,7 +262,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
 
     # create and mount
     partiList = [md.get_disk_data_partition(x) for x in md.get_disk_list()]
-    Util.cmdCall("mkfs.btrfs", "-f", "-d", "single", "-m", "single", *partiList)
+    subprocess.check_call(["mkfs.btrfs", "-f", "-d", "single", "-m", "single", *partiList])
     SubVolsBtrfs.initializeFs(partiList[0], ["device=%s" % (x) for x in partiList])
 
     # return

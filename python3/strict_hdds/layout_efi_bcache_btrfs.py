@@ -22,6 +22,7 @@
 
 
 import functools
+import subprocess
 from .util import Util, BcacheUtil, BtrfsUtil
 from .types import MountCommand
 from .handy import EfiCacheGroup, Bcache, SubVols, SubVolsBtrfs, MountEfi, HandyCg, HandyBcache, DisksChecker, HandyUtil
@@ -364,7 +365,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
         bcache.add_cache(cg.get_ssd_cache_partition())
 
     # create btrfs
-    Util.cmdCall("mkfs.btrfs", "-f", "-d", "single", "-m", "single", *bcache.get_all_bcache_dev_list())
+    subprocess.check_call(["mkfs.btrfs", "-f", "-d", "single", "-m", "single", *bcache.get_all_bcache_dev_list()])
     SubVolsBtrfs.initializeFs(bcache.get_all_bcache_dev_list()[0], _devMntOptList(bcache))
 
     # return

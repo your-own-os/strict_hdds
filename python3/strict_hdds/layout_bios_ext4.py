@@ -22,6 +22,7 @@
 
 
 import functools
+import subprocess
 from .util import Util, PartiUtil, MbrUtil
 from .types import MountCommand
 from .handy import SwapFile, MountBios, DisksChecker, HandyUtil
@@ -179,8 +180,9 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
         ("*", Util.fsTypeExt4),
     ])
 
-    # root partition
+    # create file system
     rootParti = PartiUtil.diskToParti(hdd, 1)
+    subprocess.check_call(["mkfs.ext4", "-q", rootParti])
 
     # return
     ret = StorageLayoutImpl()

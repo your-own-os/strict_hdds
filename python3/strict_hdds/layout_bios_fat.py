@@ -22,6 +22,7 @@
 
 
 import functools
+import subprocess
 from .util import Util, PartiUtil, MbrUtil
 from .types import MountCommand
 from .handy import MountBios, DisksChecker, HandyUtil
@@ -156,8 +157,9 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
         ("*", Util.fsTypeFat),
     ])
 
-    # root partition
+    # create file system
     rootParti = PartiUtil.diskToParti(hdd, 1)
+    subprocess.check_call(["mkfs.vfat", rootParti], stdout=subprocess.DEVNULL)                      # mkfs.vfat does not have a quiet option
 
     # return
     ret = StorageLayoutImpl()
