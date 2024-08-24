@@ -108,8 +108,7 @@ class EfiMultiDisk:
             if self._bootHdd is None:
                 fsType1 = "esp"
             else:
-                fsType1 = Util.fsTypeFat
-
+                fsType1 = "fat32"
             Util.initializeDisk(disk, "gpt", [
                 ("%dMiB" % (Util.getEspSizeInMb()), fsType1),
                 ("*", fsType),
@@ -380,7 +379,7 @@ class EfiCacheGroup:
             if self._ssd is None and self._bootHdd is None:
                 fsType1 = "esp"
             else:
-                fsType1 = Util.fsTypeFat
+                fsType1 = "fat32"
 
             Util.initializeDisk(hdd, "gpt", [
                 ("%dMiB" % (Util.getEspSizeInMb()), fsType1),

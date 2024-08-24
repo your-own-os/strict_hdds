@@ -53,6 +53,8 @@ class Util:
     diskPartTableMbr = "mbr"
     diskPartTableGpt = "gpt"
 
+    # these are types of linux file system names
+    # for pypartd, sometimes filesystem name are the same as linux, sometimes are different
     fsTypeExt4 = "ext4"
     fsTypeFat = "vfat"
     fsTypeNtfs = "ntfs"
@@ -395,7 +397,7 @@ class Util:
             elif pType == "lvm":
                 partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
                 partition.setFlag(parted.PARTITION_LVM)
-            elif pType == "vfat":
+            elif pType == "fat32":
                 partition = parted.Partition(disk=disk,
                                              type=parted.PARTITION_NORMAL,
                                              fs=parted.FileSystem(type="fat32", geometry=region),

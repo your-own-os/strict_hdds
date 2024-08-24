@@ -100,7 +100,7 @@ def parse(boot_dev, root_dev, mount_dir):
     if boot_dev is not None:
         raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_SHOULD_NOT_EXIST)
     if Util.getBlkDevFsType(root_dev) != Util.fsTypeNtfs:
-        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeNtfs))
 
     # hdd
     hdd = PartiUtil.partiToDisk(root_dev)

@@ -190,7 +190,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     # create partitions
     hdd = HandyUtil.checkAndGetHdd(disk_list)
     Util.initializeDisk(hdd, Util.diskPartTableGpt, [
-        ("%dMiB" % (Util.getEspSizeInMb()), Util.fsTypeFat),
+        ("%dMiB" % (Util.getEspSizeInMb()), "esp"),
         ("*", Util.fsTypeExt4),
     ])
 
