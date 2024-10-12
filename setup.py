@@ -19,7 +19,7 @@ if not platform.startswith('linux'):
 setup(
     name='strict_hdds',
     version='0.0.1',
-    description='Ensures only some optimized harddisk layouts are used.',
+    description='Ensures only some optimized harddisk layouts are being used.',
     author='Fpemud',
     author_email='fpemud@sina.com',
 	maintainer='Fpemud',
