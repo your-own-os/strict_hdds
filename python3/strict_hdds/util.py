@@ -336,11 +336,16 @@ class Util:
     @staticmethod
     def getSwapSizeInGb():
         # see https://opensource.com/article/19/2/swap-space-poll
+        # we believe that as long as an on-disk swap exists, it should be ready to be used for hibernation
+        # zswap can always be used if our on-disk swap is not favored due to its (potentially) excessive consumption of disk space, and we think it should be undarstandable that hibernation is not possible in such cases
         sz = Util.getPhysicalMemorySizeInGb()
-        if sz <= 4:
-            return sz * 2               # 3GB -> 6GB, 4GB -> 8GB
-        else:
-            return (sz + 3) // 2 * 2    # 5GB -> 8GB, 6GB -> 8GB, 7GB -> 10GB, 8GB -> 10GB
+        if sz <= 2:
+            return sz * 3
+        if sz <= 8:
+            return max(2 * 3, sz * 2)
+        if sz <= 64:
+            return max(8 * 2, sz * 3 // 2)
+        return max(64 * 3 // 2, sz)
 
     @staticmethod
     def getSwapSize():
