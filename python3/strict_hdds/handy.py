@@ -231,10 +231,6 @@ class EfiCacheGroup:
     def dev_boot(self):
         return self.get_esp()
 
-    @property
-    def dev_swap(self):
-        return None
-
     def get_esp(self):
         if self._ssd is not None:
             return self._ssdEspParti
@@ -553,10 +549,6 @@ class SwapFile:
     def __init__(self, bSwapFile):
         self._bSwapFile = bSwapFile
 
-    @property
-    def dev_swap(self):
-        return Util.swapFilepath if self._bSwapFile else None
-
     def create_swap_file(self):
         assert not self._bSwapFile
         Util.createSwapFile(Util.swapFilepath)
@@ -567,7 +559,14 @@ class SwapFile:
         os.remove(Util.swapFilepath)
         self._bSwapFile = False
 
-    def get_swap_size(self):
+    def has_swap_file(self):
+        return self._bSwapFile
+
+    def get_swap_file(self):
+        assert self._bSwapFile
+        return Util.swapFilepath
+
+    def get_swap_file_size(self):
         assert self._bSwapFile
         return os.path.getsize(Util.swapFilepath)
 

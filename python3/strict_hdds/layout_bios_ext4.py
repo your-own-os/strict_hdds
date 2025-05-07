@@ -65,11 +65,6 @@ class StorageLayoutImpl(StorageLayout):
     def dev_rootfs(self):
         return self._hddRootParti
 
-    @SwapFile.proxy
-    @property
-    def dev_swap(self):
-        pass
-
     def umount_and_dispose(self):
         if True:
             self._mnt.umount()
@@ -98,7 +93,15 @@ class StorageLayoutImpl(StorageLayout):
         pass
 
     @SwapFile.proxy
-    def get_swap_size(self):
+    def has_swap_file(self):
+        pass
+
+    @SwapFile.proxy
+    def get_swap_file(self):
+        pass
+
+    @SwapFile.proxy
+    def get_swap_file_size(self):
         pass
 
     def _check_impl(self, check_item, *kargs, auto_fix=False, error_callback=None):

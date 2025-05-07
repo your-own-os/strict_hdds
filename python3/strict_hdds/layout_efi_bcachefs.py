@@ -83,11 +83,6 @@ class StorageLayoutImpl(StorageLayout):
     def dev_boot(self):
         pass
 
-    @EfiCacheGroup.proxy
-    @property
-    def dev_swap(self):
-        pass
-
     def umount_and_dispose(self):
         if True:
             self._mnt.umount()

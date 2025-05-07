@@ -239,7 +239,7 @@ def _show(layout):
         return
 
     if layout.name == "efi-ext4":
-        if layout.dev_swap is not None:
+        if layout.has_swap_file():
             swapStr = " (with swap)"
         else:
             swapStr = ""
@@ -248,7 +248,7 @@ def _show(layout):
         return
 
     if layout.name == "bios-ext4":
-        if layout.dev_swap is not None:
+        if layout.has_swap_file():
             swapStr = " (with swap)"
         else:
             swapStr = ""
