@@ -1229,7 +1229,7 @@ class HandyCg:
                 raise errors.StorageLayoutParseError(storageLayoutName, "SSD has no cache partition")
 
             # redundant partitions
-            if PartiUtil.diskHasMoreParti(disk, 2):
+            if PartiUtil.diskHasMoreParti(ssd, 2):
                 raise errors.StorageLayoutParseError(storageLayoutName, errors.DISK_HAS_REDUNDANT_PARTITION(ssd))
 
             return ssdEspParti, ssdCacheParti
