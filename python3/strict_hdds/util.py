@@ -26,6 +26,7 @@ import re
 import uuid
 import time
 import stat
+import fcntl
 import psutil
 import crcmod
 import parted
@@ -196,15 +197,15 @@ class Util:
 
     @staticmethod
     def wipeHarddisk(devpath):
-        # write data to harddisk
+        # write data to harddisk, and tell kernel to re-read partition table
         fd = os.open(devpath, os.O_WRONLY | os.O_EXCL)
         try:
             for i in range(0, 1024):
                 os.write(fd, bytearray(4096))
+            os.fsync(fd)
+            fcntl.ioctl(fd, 0x125F)         # 0x125F is the value of macro BLKRRPART from <linux/fs.h>
         finally:
             os.close(fd)
-
-        os.sync()
 
         # wait for /dev refresh
         while PartiUtil.diskHasParti(devpath, 1):
