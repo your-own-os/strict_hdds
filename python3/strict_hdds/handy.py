@@ -549,6 +549,9 @@ class SwapFile:
     def __init__(self, bSwapFile):
         self._bSwapFile = bSwapFile
 
+    def get_swap_size(self):
+        return Util.getSwapSize()
+
     def create_swap_file(self):
         assert not self._bSwapFile
         Util.createSwapFile(Util.swapFilepath)

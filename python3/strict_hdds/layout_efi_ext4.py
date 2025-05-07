@@ -99,6 +99,10 @@ class StorageLayoutImpl(StorageLayout):
         return [self._hdd]
 
     @SwapFile.proxy
+    def get_swap_size(self):
+        pass
+
+    @SwapFile.proxy
     def create_swap_file(self):
         pass
 
