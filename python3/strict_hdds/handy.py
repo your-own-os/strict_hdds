@@ -1238,7 +1238,7 @@ class HandyCg:
 
             return ssdEspParti, ssdCacheParti
         else:
-            return None, None, None
+            return None, None
 
     @staticmethod
     def checkExtraDisks(storageLayoutName, ssd, hddList, origDiskList):
