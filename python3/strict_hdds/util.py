@@ -214,6 +214,8 @@ class Util:
         finally:
             os.close(fd)
 
+        os.sync()
+
         # wait for /dev refresh
         while PartiUtil.diskHasParti(devpath, 1):
             print("FIXME: %s, still has partition" % (devpath))

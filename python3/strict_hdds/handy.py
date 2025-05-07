@@ -194,23 +194,16 @@ class EfiCacheGroup:
                 return getattr(self._cg, func.__name__)(*args)
             return f
 
-    def __init__(self, ssd=None, ssdEspParti=None, ssdSwapParti=None, ssdCacheParti=None, hddList=[], bootHdd=None):
+    def __init__(self, ssd=None, ssdEspParti=None, ssdCacheParti=None, hddList=[], bootHdd=None):
         # assign self._ssd and friends
         self._ssd = ssd
         if self._ssd is not None:
             self._ssdEspParti = PartiUtil.diskToParti(ssd, 1)
-            if ssdSwapParti is not None:
-                self._ssdSwapParti = PartiUtil.diskToParti(ssd, 2)
-                self._ssdCacheParti = PartiUtil.diskToParti(ssd, 3)
-            else:
-                self._ssdSwapParti = None
-                self._ssdCacheParti = PartiUtil.diskToParti(ssd, 2)
+            self._ssdCacheParti = PartiUtil.diskToParti(ssd, 2)
         else:
             self._ssdEspParti = None
-            self._ssdSwapParti = None
             self._ssdCacheParti = None
         assert self._ssdEspParti == ssdEspParti
-        assert self._ssdSwapParti == ssdSwapParti
         assert self._ssdCacheParti == ssdCacheParti
 
         # assign self._hddList
@@ -240,7 +233,7 @@ class EfiCacheGroup:
 
     @property
     def dev_swap(self):
-        return self._ssdSwapParti if self._ssdSwapParti is not None else None
+        return None
 
     def get_esp(self):
         if self._ssd is not None:
@@ -277,11 +270,6 @@ class EfiCacheGroup:
         assert self._bootHdd is None
         return self._ssdEspParti
 
-    def get_ssd_swap_partition(self):
-        assert self._ssd is not None
-        assert self._bootHdd is None
-        return self._ssdSwapParti
-
     def get_ssd_cache_partition(self):
         assert self._ssd is not None
         assert self._ssdCacheParti is not None
@@ -299,23 +287,17 @@ class EfiCacheGroup:
         assert disk in self._hddList
         return PartiUtil.diskToParti(disk, 2)
 
-    def get_swap_size(self):
-        assert self._ssdSwapParti is not None
-        return Util.getBlkDevSize(self._ssdSwapParti)
-
     def add_ssd(self, ssd, fsType):
         assert ssd is not None and self._ssd is None and ssd not in self._hddList
 
         self._ssd = ssd
         self._ssdEspParti = PartiUtil.diskToParti(ssd, 1)
-        self._ssdSwapParti = PartiUtil.diskToParti(ssd, 2)
-        self._ssdCacheParti = PartiUtil.diskToParti(ssd, 3)
+        self._ssdCacheParti = PartiUtil.diskToParti(ssd, 2)
         oldBootHdd = self._bootHdd
         try:
             # create partitions
             Util.initializeDisk(self._ssd, "gpt", [
                 ("%dMiB" % (Util.getEspSizeInMb()), "esp"),
-                ("%dGiB" % (Util.getSwapSizeInGb()), Util.fsTypeSwap),
                 ("*", fsType),
             ])
 
@@ -327,10 +309,7 @@ class EfiCacheGroup:
             else:
                 Util.cmdCall("mkfs.vfat", self._ssdEspParti)
 
-            # partition2: swap partition
-            Util.cmdCall("mkswap", self._ssdSwapParti)
-
-            # partition3: cache partition, leave it to caller
+            # partition2: cache partition, leave it to caller
             pass
 
             # change boot device
@@ -342,7 +321,6 @@ class EfiCacheGroup:
             assert self._bootHdd == oldBootHdd
             Util.wipeHarddisk(self._ssd)
             self._ssdCacheParti = None
-            self._ssdSwapParti = None
             self._ssdEspParti = None
             self._ssd = None
             raise
@@ -353,12 +331,7 @@ class EfiCacheGroup:
         # partition1: ESP partition
         self._ssdEspParti = None
 
-        # partition2: swap partition
-        if self._ssdSwapParti is not None:
-            assert not Util.isSwapFileOrPartitionBusy(self._ssdSwapParti)
-            self._ssdSwapParti = None
-
-        # partition3: cache partition, the caller should have processed it
+        # partition2: cache partition, the caller should have processed it
         self._ssdCacheParti = None
 
         # wipe disk
@@ -450,20 +423,9 @@ class EfiCacheGroup:
                 # no way to auto fix
                 error_callback(errors.CheckCode.ESP_SIZE_INVALID)
 
-    def check_swap(self, auto_fix, error_callback):
-        if self._ssdSwapParti is None:
-            error_callback(errors.CheckCode.SWAP_NOT_ENABLED)
-        else:
-            if Util.getBlkDevSize(self._ssdSwapParti) < Util.getSwapSize():
-                # no way to auto fix
-                error_callback(errors.CheckCode.SWAP_SIZE_TOO_SMALL, "partition")
-
     def check_file_system_uuid(self, auto_fix, error_callback):
         if self._ssd is not None:
-            tlist = [self._ssdEspParti]
-            if self._ssdSwapParti is not None:
-                tlist.append(self._ssdSwapParti)
-            tlist.append(self._ssdCacheParti)
+            tlist = [self._ssdEspParti, self._ssdCacheParti]
         else:
             tlist = []
         for hdd in self._hddList:
@@ -1303,26 +1265,15 @@ class HandyCg:
     def checkAndGetSsdPartitions(storageLayoutName, ssd):
         if ssd is not None:
             ssdEspParti = PartiUtil.diskToParti(ssd, 1)
-            if PartiUtil.diskHasParti(ssd, 3):
-                ssdSwapParti = PartiUtil.diskToParti(ssd, 2)
-                ssdCacheParti = PartiUtil.diskToParti(ssd, 3)
-                if PartiUtil.diskHasMoreParti(ssd, 3):
-                    raise errors.StorageLayoutParseError(storageLayoutName, errors.DISK_HAS_REDUNDANT_PARTITION(ssd))
-            else:
-                ssdCacheParti = PartiUtil.diskToParti(ssd, 2)
+            ssdCacheParti = PartiUtil.diskToParti(ssd, 2)
+            if PartiUtil.diskHasMoreParti(ssd, 2):
+                raise errors.StorageLayoutParseError(storageLayoutName, errors.DISK_HAS_REDUNDANT_PARTITION(ssd))
 
             # ssdEspParti
             if not GptUtil.isEspPartition(ssdEspParti):
                 raise errors.StorageLayoutParseError(storageLayoutName, errors.BOOT_DEV_IS_NOT_ESP)
             if Util.getBlkDevSize(ssdEspParti) != Util.getEspSize():
                 raise errors.StorageLayoutParseError(storageLayoutName, errors.PARTITION_SIZE_INVALID(ssdEspParti))
-
-            # ssdSwapParti
-            if ssdSwapParti is not None:
-                if not PartiUtil.partiExists(ssdSwapParti):
-                    raise errors.StorageLayoutParseError(storageLayoutName, "SSD has no swap partition")
-                if Util.getBlkDevFsType(ssdSwapParti) != Util.fsTypeSwap:
-                    raise errors.StorageLayoutParseError(storageLayoutName, errors.SWAP_DEV_HAS_INVALID_FS_FLAG(ssdSwapParti))
 
             # ssdCacheParti
             if not PartiUtil.partiExists(ssdCacheParti):
@@ -1334,7 +1285,7 @@ class HandyCg:
                 if PartiUtil.diskHasMoreParti(disk, partId):
                     raise errors.StorageLayoutParseError(storageLayoutName, errors.DISK_HAS_REDUNDANT_PARTITION(ssd))
 
-            return ssdEspParti, ssdSwapParti, ssdCacheParti
+            return ssdEspParti, ssdCacheParti
         else:
             return None, None, None
 

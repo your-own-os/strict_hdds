@@ -187,7 +187,7 @@ def doCheck():
         print(message)
     layout = strict_hdds.get_storage_layout(sys.argv[2])
     layout.check(auto_fix=False, error_callback=__errCb)
-    if layout.name in ["bios-ext4", "efi-ext4", "efi-bcache-btrfs", "efi-bcachefs"]:
+    if layout.name in ["bios-ext4", "efi-ext4"]:
         layout.opt_check("swap", auto_fix=False, error_callback=__errCb)
     if layout.name == "efi-bcache-btrfs":
         layout.opt_check("bcache-write-mode", "writeback", auto_fix=False, error_callback=__errCb)
@@ -210,32 +210,22 @@ def _show(layout):
     if layout.name == "efi-bcachefs":
         if layout.get_ssd() is not None:
             ssdStr = layout.get_ssd()
-            if layout.get_ssd_swap_partition() is not None:
-                swapStr = "(with swap)"
-            else:
-                swapStr = ""
             bootDiskStr = ""
         else:
             ssdStr = "None"
-            swapStr = ""
             bootDiskStr = " (boot disk: %s)" % (layout.boot_disk)
-        print("Storage layout: %s, SSD: %s%s, HDDs: %s%s" % (layout.name, ssdStr, swapStr, " ".join(layout.get_hdd_list()), bootDiskStr))
+        print("Storage layout: %s, SSD: %s, HDDs: %s%s" % (layout.name, ssdStr, " ".join(layout.get_hdd_list()), bootDiskStr))
         print("Boot directory: %s" % ("read-write" if layout.get_bootdir_rw_controller().is_writable() else "read-only"))
         return
 
     if layout.name == "efi-bcache-btrfs":
         if layout.get_ssd() is not None:
             ssdStr = layout.get_ssd()
-            if layout.get_ssd_swap_partition() is not None:
-                swapStr = "(with swap)"
-            else:
-                swapStr = ""
             bootDiskStr = ""
         else:
             ssdStr = "None"
-            swapStr = ""
             bootDiskStr = " (boot disk: %s)" % (layout.boot_disk)
-        print("Storage layout: %s, SSD: %s%s, HDDs: %s%s" % (layout.name, ssdStr, swapStr, " ".join(layout.get_hdd_list()), bootDiskStr))
+        print("Storage layout: %s, SSD: %s, HDDs: %s%s" % (layout.name, ssdStr, " ".join(layout.get_hdd_list()), bootDiskStr))
         print("Boot directory: %s" % ("read-write" if layout.get_bootdir_rw_controller().is_writable() else "read-only"))
         return
 

@@ -33,24 +33,22 @@ class StorageLayoutImpl(StorageLayout):
     """Layout:
            /dev/sda                         SSD, GPT (cache-disk)
                /dev/sda1                    ESP partition
-               /dev/sda2                    swap device
-               /dev/sda3                    bcachefs cache device
+               /dev/sda2                    bcachefs cache device
            /dev/sdb                         Non-SSD, GPT
                /dev/sdb1                    reserved ESP partition
                /dev/sdb2                    bcachefs backing device
            /dev/sdc                         Non-SSD, GPT
                /dev/sdc1                    reserved ESP partition
                /dev/sdc2                    bcachefs backing device
-           /dev/sda3:/dev/sdb2:/dev/sdc2    root device
+           /dev/sda2:/dev/sdb2:/dev/sdc2    root device
        OS:
            1. Linux
        Description:
            1. /dev/sda1 and /dev/sd{b,c}1 must has the same size
-           2. /dev/sda1, /dev/sda2 and /dev/sda3 is order-sensitive, no extra partition is allowed
-           3. /dev/sd{b,c}1 and /dev/sd{b,c}2 is order-sensitive, no extra partition is allowed
+           2. /dev/sda1 and /dev/sda2 are order-sensitive, no extra partition is allowed
+           3. /dev/sd{b,c}1 and /dev/sd{b,c}2 are order-sensitive, no extra partition is allowed
            4. cache-disk is optional, and only one cache-disk is allowed at most
-           5. cache-disk can have no swap partition, /dev/sda2 would be the cache device then
-           6. extra harddisk is allowed to exist
+           5. extra harddisk is allowed to exist
     """
 
     def __init__(self):
@@ -134,10 +132,6 @@ class StorageLayoutImpl(StorageLayout):
         pass
 
     @EfiCacheGroup.proxy
-    def get_ssd_swap_partition(self):
-        pass
-
-    @EfiCacheGroup.proxy
     def get_ssd_cache_partition(self):
         pass
 
@@ -151,10 +145,6 @@ class StorageLayoutImpl(StorageLayout):
 
     @EfiCacheGroup.proxy
     def get_hdd_data_partition(self, disk):
-        pass
-
-    @EfiCacheGroup.proxy
-    def get_swap_size(self):
         pass
 
     def add_disk(self, disk):
@@ -184,11 +174,6 @@ class StorageLayoutImpl(StorageLayout):
             raise errors.StorageLayoutRemoveDiskError(disk, errors.BOOTDIR_NOT_RO)
 
         if disk == self._cg.get_ssd():
-            # check if swap is in use
-            if self._cg.get_ssd_swap_partition() is not None:
-                if Util.isSwapFileOrPartitionBusy(self._cg.get_ssd_swap_partition()):
-                    raise errors.StorageLayoutRemoveDiskError(disk, errors.SWAP_IS_IN_USE)
-
             # remove
             self._mnt.umount_esp(self._cg.get_ssd_esp_partition())
             BcachefsUtil.removeDevice(self._cg.get_ssd_cache_partition())
@@ -236,8 +221,6 @@ class StorageLayoutImpl(StorageLayout):
                 self._cg.check_file_system_uuid(auto_fix, error_callback)
         elif check_item == "ssd":
             self._cg.check_ssd(auto_fix, error_callback)
-        elif check_item == "swap":
-            self._cg.check_swap(auto_fix, error_callback)
         elif check_item == "mount-write-mode":
             self._mnt.check_mount_write_mode(auto_fix, error_callback)
         else:
@@ -255,7 +238,7 @@ def parse(boot_dev, root_dev, mount_dir):
 
     # ssd, hdd_list, boot_disk
     ssd, hddList = HandyCg.checkAndGetSsdAndHddList(*BcachefsUtil.getSlaveSsdDevPatListAndHddDevPathList(rootDevList))
-    ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssd)
+    ssdEspParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssd)
     bootHdd = HandyCg.checkAndGetBootHddFromBootDev(HandyUtil.getStorageLayoutName(StorageLayoutImpl), boot_dev, ssdEspParti, hddList)
 
     # get mntArgsDict from mount options
@@ -264,7 +247,7 @@ def parse(boot_dev, root_dev, mount_dir):
 
     # return
     ret = StorageLayoutImpl()
-    ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
+    ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._mnt = MountEfi(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
     return ret
 
@@ -289,12 +272,12 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
 
     # ssd, hdd_list, boot_disk
     ssd, hddList = HandyCg.checkAndGetSsdAndHddList(*Util.splitSsdAndHddFromFixedDiskDevPathList(diskList))
-    ssdEspParti, ssdSwapParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssd)
+    ssdEspParti, ssdCacheParti = HandyCg.checkAndGetSsdPartitions(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssd)
     bootHdd = HandyCg.checkAndGetBootHddAndBootDev(HandyUtil.getStorageLayoutName(StorageLayoutImpl), ssdEspParti, hddList)[0]
 
     # return
     ret = StorageLayoutImpl()
-    ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdSwapParti=ssdSwapParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
+    ret._cg = EfiCacheGroup(ssd=ssd, ssdEspParti=ssdEspParti, ssdCacheParti=ssdCacheParti, hddList=hddList, bootHdd=bootHdd)
     ret._mnt = MountEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
     return ret
 
