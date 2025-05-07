@@ -335,9 +335,11 @@ class Util:
 
     @staticmethod
     def getSwapSizeInGb():
-        # see https://opensource.com/article/19/2/swap-space-poll
+        # see: https://opensource.com/article/19/2/swap-space-poll
         # we believe that as long as an on-disk swap exists, it should be ready (have enough capacity) to be used for hibernation
         # zram can always be used if our on-disk swap is not favored due to its (potentially) excessive consumption of disk space, and we think it should be understandable that hibernation is not possible in such cases
+        # see also:
+        #   https://wiki.manjaro.org/index.php?title=Swap
         sz = Util.getPhysicalMemorySizeInGb()
         if sz <= 2:
             return sz * 3
