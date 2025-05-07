@@ -97,16 +97,6 @@ class Util:
         return None
 
     @staticmethod
-    def getPhysicalMemorySizeInGb():
-        with open("/proc/meminfo", "r") as f:
-            # We return memory size in GB.
-            # Since the memory size shown in /proc/meminfo is always a
-            # little less than the real size because various sort of
-            # reservation, so we do a "+1"
-            m = re.search("^MemTotal:\\s+(\\d+)", f.read())
-            return int(m.group(1)) // 1024 // 1024 + 1
-
-    @staticmethod
     def cmdCall(cmd, *kargs):
         # call command to execute backstage job
         #
@@ -322,8 +312,8 @@ class Util:
                     Util.shellExec(cmd % (mp1.mountpoint, mp2.mountpoint))
 
     @staticmethod
-    def createSwapFile(path):
-        Util.cmdCall("dd", "if=/dev/zero", "of=%s" % (path), "bs=%d" % (1024 * 1024), "count=%d" % (Util.getSwapSizeInGb() * 1024))
+    def createSwapFile(path, sizeInGb):
+        Util.cmdCall("dd", "if=/dev/zero", "of=%s" % (path), "bs=%d" % (1024 * 1024), "count=%d" % (sizeInGb * 1024))
         Util.cmdCall("chmod", "600", path)
         Util.cmdCall("mkswap", "-f", path)
 
@@ -334,26 +324,6 @@ class Util:
                 if line.split(" ")[0] == path:
                     return True
         return False
-
-    @staticmethod
-    def getSwapSizeInGb():
-        # see: https://opensource.com/article/19/2/swap-space-poll
-        # we believe that as long as an on-disk swap exists, it should be ready (have enough capacity) to be used for hibernation
-        # zram can always be used if our on-disk swap is not favored due to its (potentially) excessive consumption of disk space, and we think it should be understandable that hibernation is not possible in such cases
-        # see also:
-        #   https://wiki.manjaro.org/index.php?title=Swap
-        sz = Util.getPhysicalMemorySizeInGb()
-        if sz <= 2:
-            return sz * 3
-        if sz <= 8:
-            return max(2 * 3, sz * 2)
-        if sz <= 64:
-            return max(8 * 2, sz * 3 // 2)
-        return max(64 * 3 // 2, sz)
-
-    @staticmethod
-    def getSwapSize():
-        return Util.getSwapSizeInGb() * 1024 * 1024 * 1024
 
     @staticmethod
     def getEspSizeInMb():

@@ -26,8 +26,6 @@ import enum
 class CheckCode(enum.Enum):
     TRIVIAL = enum.auto()
     ESP_SIZE_INVALID = enum.auto()
-    SWAP_NOT_ENABLED = enum.auto()
-    SWAP_SIZE_TOO_SMALL = enum.auto()
 
 
 def checkErrorCallback(error_callback, check_code, *kargs):
@@ -37,8 +35,6 @@ def checkErrorCallback(error_callback, check_code, *kargs):
     errDict = {
         CheckCode.TRIVIAL: (1, "{0}"),
         CheckCode.ESP_SIZE_INVALID: (1, "Invalid size for ESP partition \"{0}\"."),
-        CheckCode.SWAP_NOT_ENABLED: (0, "Swap is not enabled."),
-        CheckCode.SWAP_SIZE_TOO_SMALL: (1, "Swap {0} size is too small."),
     }
 
     argNum, fstr = errDict[check_code]

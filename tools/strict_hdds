@@ -35,7 +35,7 @@ def usage():
     print('   strict_hdds create-and-mount <directory> <layout-name> [--disk-list=dev1,dev2...] [--read-only] [--extra-mount-options-for-root-dev=opt1,opt2...] [--extra-mount-options-for-boot-dev=opt1,opt2...]')
     print('   strict_hdds add-harddisk <directory> <devpath>')
     print('   strict_hdds remove-harddisk <directory> <devpath>')
-    print('   strict_hdds create-swap-file <directory>')
+    print('   strict_hdds create-swap-file <directory> <size>')
     print('   strict_hdds remove-swap-file <directory>')
     print('   strict_hdds create-snapshot <directory> <snapshot-name>')
     print('   strict_hdds remove-snapshot <directory> <snapshot-name>')
@@ -126,10 +126,21 @@ def doRemoveHarddisk():
 def doCreateSwapFile():
     if len(sys.argv) < 3:
         die("No mount point directory specified!")
+
+    if len(sys.argv) < 4:
+        die('No size (eg: "4G") specified!')
+
+    sizeInGb = None
+    if True:
+        m = re.fullmatch("([0-9]+)G", sys.argv[3])
+        if m is None:
+            die('Invalid size (eg: "4G") specified!')
+        sizeInGb = int(m.group(1))
+
     layout = strict_hdds.get_storage_layout(sys.argv[2])
     if not hasattr(layout, "create_swap_file"):
         die("Operation is not supported by layout \"%s\"." % (layout.name))
-    layout.create_swap_file()
+    layout.create_swap_file(sizeInGb)
 
 
 def doRemoveSwapFile():

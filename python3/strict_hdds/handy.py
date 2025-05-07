@@ -549,12 +549,10 @@ class SwapFile:
     def __init__(self, bSwapFile):
         self._bSwapFile = bSwapFile
 
-    def get_swap_size(self):
-        return Util.getSwapSize()
-
-    def create_swap_file(self):
+    def create_swap_file(self, swap_size):
         assert not self._bSwapFile
-        Util.createSwapFile(Util.swapFilepath)
+        m = re.fullmatch("([0-9]+)G", swap_size)
+        Util.createSwapFile(Util.swapFilepath, int(m.group(1)))
         self._bSwapFile = True
 
     def remove_swap_file(self):
@@ -570,16 +568,7 @@ class SwapFile:
         return Util.swapFilepath
 
     def check(self, auto_fix, error_callback):
-        if not self._bSwapFile:
-            error_callback(errors.CheckCode.SWAP_NOT_ENABLED)
-        else:
-            if os.path.getsize(Util.swapFilepath) < Util.getSwapSize():
-                if auto_fix:
-                    if not Util.isSwapFileOrPartitionBusy(Util.swapFilepath):
-                        self.remove_swap_file()
-                        self.create_swap_file()
-                        return
-                error_callback(errors.CheckCode.SWAP_SIZE_TOO_SMALL, "file")
+        pass
 
 
 class SubVols(abc.ABC):
