@@ -111,11 +111,7 @@ class StorageLayoutImpl(StorageLayout):
         pass
 
     @SwapFile.proxy
-    def get_swap_file(self):
-        pass
-
-    @SwapFile.proxy
-    def get_swap_file_size(self):
+    def get_swap_file_path(self):
         pass
 
     def _check_impl(self, check_item, *kargs, auto_fix=False, error_callback=None):

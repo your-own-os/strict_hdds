@@ -562,13 +562,9 @@ class SwapFile:
     def has_swap_file(self):
         return self._bSwapFile
 
-    def get_swap_file(self):
+    def get_swap_file_path(self):
         assert self._bSwapFile
         return Util.swapFilepath
-
-    def get_swap_file_size(self):
-        assert self._bSwapFile
-        return os.path.getsize(Util.swapFilepath)
 
     def check(self, auto_fix, error_callback):
         if not self._bSwapFile:
