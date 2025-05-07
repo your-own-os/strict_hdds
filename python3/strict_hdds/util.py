@@ -403,9 +403,6 @@ class Util:
                     pass            # don't know why, it says gpt partition has no way to setFlag(SWAP)
                 else:
                     assert False
-            elif pType == "lvm":
-                partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
-                partition.setFlag(parted.PARTITION_LVM)
             elif pType == "fat32":
                 partition = parted.Partition(disk=disk,
                                              type=parted.PARTITION_NORMAL,
@@ -1149,71 +1146,6 @@ class BtrfsUtil:
             for i in range(0, 1024):
                 f.write(bytearray(4096))            # we found -f is not enough for robustly adding disk
         Util.cmdCall("btrfs", "device", "add", "-f", disk, mountPoint)
-
-
-class LvmUtil:
-
-    vgName = "hdd"
-
-    rootLvName = "root"
-    rootLvDevPath = "/dev/mapper/hdd.root"
-
-    swapLvName = "swap"
-    swapLvDevPath = "/dev/mapper/hdd.swap"
-
-    class Error(Exception):
-        pass
-
-    @classmethod
-    def getSlaveDevPathList(cls, vgName):
-        ret = []
-        out = Util.cmdCall("lvm", "pvdisplay", "-c")
-        for m in re.finditer("^\\s*(\\S+):%s:.*" % (vgName), out, re.M):
-            if m.group(1) == "[unknown]":
-                raise cls.Error("volume group %s not fully loaded" % (vgName))
-            ret.append(m.group(1))
-        return ret
-
-    @staticmethod
-    def addPvToVg(pvDevPath, vgName, mayCreate=False):
-        Util.cmdCall("lvm", "pvcreate", pvDevPath)
-        if mayCreate and not Util.cmdCallTestSuccess("lvm", "vgdisplay", vgName):
-            Util.cmdCall("lvm", "vgcreate", vgName, pvDevPath)
-        else:
-            Util.cmdCall("lvm", "vgextend", vgName, pvDevPath)
-
-    @classmethod
-    def removePvFromVg(cls, pvDevPath, vgName):
-        rc, out = Util.cmdCallWithRetCode("lvm", "pvmove", pvDevPath)
-        if rc != 5:
-            raise cls.Error("failed")
-
-        if pvDevPath in LvmUtil.getSlaveDevPathList(vgName):
-            Util.cmdCall("lvm", "vgreduce", vgName, pvDevPath)
-
-    @staticmethod
-    def createLvWithDefaultSize(vgName, lvName):
-        out = Util.cmdCall("lvm", "vgdisplay", "-c", vgName)
-        freePe = int(out.split(":")[15])
-        Util.cmdCall("lvm", "lvcreate", "-l", "%d" % (freePe // 2), "-n", lvName, vgName)
-
-    @staticmethod
-    def activateAll():
-        Util.cmdCall("lvm", "vgchange", "-ay")
-
-    @staticmethod
-    def getVgList():
-        out = Util.cmdCall("lvm", "vgdisplay", "-s")
-        return [x for x in out.split("\n") if x != ""]
-
-    @staticmethod
-    def autoExtendLv(lvDevPath):
-        total, used = Util.getBlkDevCapacity(lvDevPath)
-        if used / total < 0.9:
-            return
-        added = int(used / 0.7) - total
-        added = (added // 1024 + 1) * 1024      # change unit from MB to GB
-        Util.cmdCall("lvm", "lvextend", "-L+%dG" % (added), lvDevPath)
 
 
 class PhysicalDiskMounts:

@@ -26,7 +26,7 @@ import abc
 import glob
 import psutil
 import functools
-from .util import Util, BcacheUtil, GptUtil, BtrfsUtil, LvmUtil
+from .util import Util, BcacheUtil, GptUtil, BtrfsUtil
 from .handy import HandyUtil
 from . import errors
 
@@ -122,25 +122,11 @@ def get_storage_layout(mount_dir="/"):
                 else:
                     return _parseOneStorageLayout("efi-btrfs", bootDev, rootDev, mount_dir)
 
-        # lvm related
-        if Util.anyIn(["efi-bcache-lvm-ext4", "efi-lvm-ext4"], allLayoutNames):
-            if Util.cmdCallTestSuccess("lvm", "vgdisplay", LvmUtil.vgName):         # only call lvm related procedure when corresponding storage layout exists
-                tlist = LvmUtil.getSlaveDevPathList(LvmUtil.vgName)
-                if any(BcacheUtil.getBcacheDevFromDevPath(x) is not None for x in tlist):
-                    return _parseOneStorageLayout("efi-bcache-lvm-ext4", bootDev, rootDev, mount_dir)
-                else:
-                    return _parseOneStorageLayout("efi-lvm-ext4", bootDev, rootDev, mount_dir)
-
         # simple layout
         if Util.anyIn(["efi-ext4"], allLayoutNames):
             if Util.getBlkDevFsType(rootDev) == Util.fsTypeExt4:
                 return _parseOneStorageLayout("efi-ext4", bootDev, rootDev, mount_dir)
     else:
-        # lvm related
-        if Util.anyIn(["bios-lvm-ext4"], allLayoutNames):
-            if Util.cmdCallTestSuccess("lvm", "vgdisplay", LvmUtil.vgName):         # only call lvm related procedure when corresponding storage layout exists
-                return _parseOneStorageLayout("bios-lvm-ext4", bootDev, rootDev, mount_dir)
-
         # simple layout
         if Util.anyIn(["bios-ext4"], allLayoutNames):
             if Util.getBlkDevFsType(rootDev) == Util.fsTypeExt4:
@@ -192,31 +178,16 @@ def mount_storage_layout(mount_dir, layout_name=None, disk_list=None, **kwargs):
                 return _detectAndMountOneStorageLayout("efi-btrfs", disk_list, mount_dir, kwargs)
 
         # bcache related
-        if Util.anyIn(["efi-bcache-btrfs", "efi-bcache-lvm-ext4"], allLayoutNames):
+        if Util.anyIn(["efi-bcache-btrfs"], allLayoutNames):
             bcacheDevPathList = BcacheUtil.scanAndRegisterAllAndFilter(disk_list)    # only call bcache related procedure when corresponding storage layout exists
-            if len(bcacheDevPathList) > 0:
-                if any(Util.getBlkDevFsType(x) == Util.fsTypeBtrfs for x in bcacheDevPathList):
-                    return _detectAndMountOneStorageLayout("efi-bcache-btrfs", disk_list, mount_dir, kwargs)
-                else:
-                    return _detectAndMountOneStorageLayout("efi-bcache-lvm-ext4", disk_list, mount_dir, kwargs)
-
-        # lvm related
-        if Util.anyIn(["efi-lvm-ext4"], allLayoutNames):
-            LvmUtil.activateAll()                                           # only call lvm related procedure when corresponding storage layout exists
-            if LvmUtil.vgName in LvmUtil.getVgList():
-                return _detectAndMountOneStorageLayout("efi-lvm-ext4", disk_list, mount_dir, kwargs)
+            if any(Util.getBlkDevFsType(x) == Util.fsTypeBtrfs for x in bcacheDevPathList):
+                return _detectAndMountOneStorageLayout("efi-bcache-btrfs", disk_list, mount_dir, kwargs)
 
         # simple layout
         if Util.anyIn(["efi-ext4"], allLayoutNames):
             if any([Util.getBlkDevFsType(x) == Util.fsTypeExt4 for x in normalPartiList]):
                 return _detectAndMountOneStorageLayout("efi-ext4", disk_list, mount_dir, kwargs)
     else:
-        # lvm related
-        if Util.anyIn(["bios-lvm-ext4"], allLayoutNames):
-            LvmUtil.activateAll()                                       # only call lvm related procedure when corresponding storage layout exists
-            if LvmUtil.vgName in LvmUtil.getVgList():
-                return _detectAndMountOneStorageLayout("bios-lvm-ext4", disk_list, mount_dir, kwargs)
-
         # simple layout
         if Util.anyIn(["bios-ext4"], allLayoutNames):
             if any([Util.getBlkDevFsType(x) == Util.fsTypeExt4 for x in normalPartiList]):

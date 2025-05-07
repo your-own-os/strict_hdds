@@ -29,7 +29,7 @@ import glob
 import time
 import struct
 import parted
-from .util import Util, PartiUtil, GptUtil, BcacheUtil, LvmUtil, PhysicalDiskMounts, TmpMount
+from .util import Util, PartiUtil, GptUtil, BcacheUtil, PhysicalDiskMounts, TmpMount
 from .types import MountCommand, RwController
 from . import errors
 
@@ -534,54 +534,6 @@ class Bcache:
                     Bcache.setMode(mode)
                 else:
                     error_callback(errors.CheckCode.TRIVIAL, "BCACHE device %s should be configured as writeback mode." % (bcacheDevPath))
-
-
-class SwapLvmLv:
-
-    @staticmethod
-    def proxy(func):
-        if isinstance(func, property):
-            def f_get(self):
-                return getattr(self._swap, func.fget.__name__)
-            f_get.__name__ = func.fget.__name__
-            return property(f_get)
-        else:
-            def f(self, *args):
-                return getattr(self._swap, func.__name__)(*args)
-            return f
-
-    def __init__(self, bSwapLv):
-        self._bSwapLv = bSwapLv
-
-    @property
-    def dev_swap(self):
-        return LvmUtil.swapLvDevPath if self._bSwapLv else None
-
-    def create_swap_lv(self):
-        assert not self._bSwapLv
-        Util.cmdCall("lvm", "lvcreate", "-L", "%dGiB" % (Util.getSwapSizeInGb()), "-n", LvmUtil.swapLvName, LvmUtil.vgName)
-        self._bSwapLv = True
-
-    def remove_swap_lv(self):
-        assert self._bSwapLv
-        Util.cmdCall("lvm", "lvremove", LvmUtil.swapLvDevPath)
-        self._bSwapLv = False
-
-    def get_swap_size(self):
-        assert self._bSwapLv
-        return Util.getBlkDevSize(LvmUtil.swapLvDevPath)
-
-    def check(self, auto_fix, error_callback):
-        if not self._bSwapLv:
-            error_callback(errors.CheckCode.SWAP_NOT_ENABLED)
-        else:
-            if Util.getBlkDevSize(LvmUtil.swapLvDevPath) < Util.getSwapSize():
-                if auto_fix:
-                    if not Util.isSwapFileOrPartitionBusy(LvmUtil.swapLvDevPath):
-                        self.remove_swap_lv()
-                        self.create_swap_lv()
-                        return
-                error_callback(errors.CheckCode.SWAP_SIZE_TOO_SMALL, "LV")
 
 
 class SwapFile:
@@ -1544,25 +1496,6 @@ class HandyUtil:
         return diskList[0]
 
     @staticmethod
-    def lvmEnsureVgLvAndGetPvList(storageLayoutName):
-        # check vg
-        if not Util.cmdCallTestSuccess("lvm", "vgdisplay", LvmUtil.vgName):
-            raise errors.StorageLayoutParseError(storageLayoutName, errors.LVM_VG_NOT_FOUND(LvmUtil.vgName))
-
-        # get pv list
-        pvList = []
-        out = Util.cmdCall("lvm", "pvdisplay", "-c")
-        for m in re.finditer("(/dev/\\S+):%s:.*" % (LvmUtil.vgName), out, re.M):
-            pvList.append(m.group(1))
-
-        # find root lv
-        out = Util.cmdCall("lvm", "lvdisplay", "-c")
-        if re.search("/dev/hdd/root:%s:.*" % (LvmUtil.vgName), out, re.M) is None:
-            raise errors.StorageLayoutParseError(storageLayoutName, errors.LVM_LV_NOT_FOUND(LvmUtil.rootLvDevPath))
-
-        return pvList
-
-    @staticmethod
     def swapFileDetectAndNew(storageLayoutName, rootfs_mount_dir):
         fullfn = rootfs_mount_dir.rstrip("/") + Util.swapFilepath
         if os.path.exists(fullfn):
@@ -1571,16 +1504,6 @@ class HandyUtil:
             return SwapFile(True)
         else:
             return SwapFile(False)
-
-    @staticmethod
-    def swapLvDetectAndNew(storageLayoutName):
-        out = Util.cmdCall("lvm", "lvdisplay", "-c")
-        if re.search("/dev/hdd/swap:%s:.*" % (LvmUtil.vgName), out, re.M) is not None:
-            if Util.getBlkDevFsType(LvmUtil.swapLvDevPath) != Util.fsTypeSwap:
-                raise errors.StorageLayoutParseError(storageLayoutName, errors.SWAP_DEV_HAS_INVALID_FS_FLAG(LvmUtil.swapLvDevPath))
-            return SwapLvmLv(True)
-        else:
-            return SwapLvmLv(False)
 
     @staticmethod
     def _mcCheckHddOrDiskList(storageLayoutName, diskOrHddList):
