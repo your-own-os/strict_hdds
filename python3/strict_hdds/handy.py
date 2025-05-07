@@ -1217,8 +1217,6 @@ class HandyCg:
         if ssd is not None:
             ssdEspParti = PartiUtil.diskToParti(ssd, 1)
             ssdCacheParti = PartiUtil.diskToParti(ssd, 2)
-            if PartiUtil.diskHasMoreParti(ssd, 2):
-                raise errors.StorageLayoutParseError(storageLayoutName, errors.DISK_HAS_REDUNDANT_PARTITION(ssd))
 
             # ssdEspParti
             if not GptUtil.isEspPartition(ssdEspParti):
@@ -1231,10 +1229,8 @@ class HandyCg:
                 raise errors.StorageLayoutParseError(storageLayoutName, "SSD has no cache partition")
 
             # redundant partitions
-            if True:
-                disk, partId = PartiUtil.partiToDiskAndPartiId(ssdCacheParti)
-                if PartiUtil.diskHasMoreParti(disk, partId):
-                    raise errors.StorageLayoutParseError(storageLayoutName, errors.DISK_HAS_REDUNDANT_PARTITION(ssd))
+            if PartiUtil.diskHasMoreParti(disk, 2):
+                raise errors.StorageLayoutParseError(storageLayoutName, errors.DISK_HAS_REDUNDANT_PARTITION(ssd))
 
             return ssdEspParti, ssdCacheParti
         else:
