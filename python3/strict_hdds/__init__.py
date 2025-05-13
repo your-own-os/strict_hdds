@@ -54,6 +54,8 @@ from .errors import StorageLayoutAddDiskError
 from .errors import StorageLayoutRemoveDiskError
 from .errors import StorageLayoutParseError
 
+from .misc import BootDirWriter
+
 
 __all__ = [
     "MountCommand",
@@ -69,4 +71,5 @@ __all__ = [
     "StorageLayoutAddDiskError",
     "StorageLayoutRemoveDiskError",
     "StorageLayoutParseError",
+    "BootDirWriter",
 ]
