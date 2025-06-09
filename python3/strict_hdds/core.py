@@ -33,8 +33,8 @@ from . import errors
 
 class StorageLayout(abc.ABC):
 
-    BOOT_MODE_BIOS = 1
-    BOOT_MODE_EFI = 2
+    BOOT_MODE_BIOS = "bios"
+    BOOT_MODE_EFI = "efi"
 
     @property
     def name(self):
