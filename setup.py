@@ -19,7 +19,7 @@ setup(
     author_email='fpemud@sina.com',
 	maintainer='Fpemud',
 	maintainer_email='fpemud@sina.com',
-    url='http://github.com/fpemud/strict_hdds',
+    url='https://github.com/fpemud/strict_hdds',
     download_url='',
     license='GPLv3 License',
     platforms='Linux',
