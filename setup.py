@@ -2,18 +2,13 @@
 
 import sys
 import distutils.util
-try:
-    # First try to load most advanced setuptools setup.
-    from setuptools import setup
-except:
-    # Fall back if setuptools is not installed.
-    from distutils.core import setup
+from setuptools import setup
 
 # check linux platform
 platform = distutils.util.get_platform()
 if not platform.startswith('linux'):
-    sys.stderr.write("This module is not available on %s\n" % platform)
-    sys.exit(1)
+    sys.stderr.write("This module is not available on %s\n" % (platform))
+        sys.exit(1)
 
 # Do setup
 setup(
