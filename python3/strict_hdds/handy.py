@@ -753,7 +753,6 @@ class SubVols(abc.ABC):
             ("/var/lib",   "@var_lib",   0o40755, 0, 0),
             ("/var/log",   "@var_log",   0o40755, 0, 0),
             ("/var/spool", "@var_spool", 0o40755, 0, 0),
-            ("/var/tmp",   "@var_tmp",   0o41777, 0, 0),
             ("/var/www",   "@var_www",   0o40755, 0, 0),     # FIXME
         ]
 
@@ -761,7 +760,6 @@ class SubVols(abc.ABC):
     def _subVolNamesExcludedFromSnapshoting():
         return [
             "@var_log",
-            "@var_tmp",
         ]
 
     @staticmethod
