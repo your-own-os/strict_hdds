@@ -221,6 +221,7 @@ def create_and_mount_storage_layout(layout_name, mount_dir, disk_list=None, **kw
 
     return f(disk_list, mount_dir, kwargs)
 
+
 def _parseOneStorageLayout(layoutName, bootDev, rootDev, mountDir):
     modname = Util.layoutName2modName(layoutName)
 
@@ -231,6 +232,7 @@ def _parseOneStorageLayout(layoutName, bootDev, rootDev, mountDir):
         raise errors.StorageLayoutParseError("", "unknown storage layout")
 
     return f(bootDev, rootDev, mountDir)
+
 
 def _detectAndMountOneStorageLayout(layoutName, diskList, mountDir, mntArgsDict):
     modname = Util.layoutName2modName(layoutName)
