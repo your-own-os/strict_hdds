@@ -212,26 +212,33 @@ def create_and_mount_storage_layout(layout_name, mount_dir, disk_list=None, **kw
         disk_list = Util.getDevPathListForFixedDisk()
 
     modname = Util.layoutName2modName(layout_name)
+
+    f = None
     try:
         f = getattr(importlib.import_module(".%s" % (modname), package=__package__), "create_and_mount")
-        return f(disk_list, mount_dir, kwargs)
     except ModuleNotFoundError:
         raise errors.StorageLayoutCreateError("layout \"%s\" not supported" % (layout_name))
 
+    return f(disk_list, mount_dir, kwargs)
 
 def _parseOneStorageLayout(layoutName, bootDev, rootDev, mountDir):
     modname = Util.layoutName2modName(layoutName)
+
+    f = None
     try:
         f = getattr(importlib.import_module(".%s" % (modname), package=__package__), "parse")
-        return f(bootDev, rootDev, mountDir)
     except ModuleNotFoundError:
         raise errors.StorageLayoutParseError("", "unknown storage layout")
 
+    return f(bootDev, rootDev, mountDir)
 
 def _detectAndMountOneStorageLayout(layoutName, diskList, mountDir, mntArgsDict):
     modname = Util.layoutName2modName(layoutName)
+
+    f = None
     try:
         f = getattr(importlib.import_module(".%s" % (modname), package=__package__), "detect_and_mount")
-        return f(diskList, mountDir, mntArgsDict)
     except ModuleNotFoundError:
         raise errors.StorageLayoutParseError("", "unknown storage layout")
+
+    return f(diskList, mountDir, mntArgsDict)
