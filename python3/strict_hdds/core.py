@@ -25,6 +25,7 @@ import os
 import abc
 import glob
 import psutil
+import importlib
 import functools
 from .util import Util, BcacheUtil, GptUtil, BtrfsUtil
 from .handy import HandyUtil
@@ -212,8 +213,7 @@ def create_and_mount_storage_layout(layout_name, mount_dir, disk_list=None, **kw
 
     modname = Util.layoutName2modName(layout_name)
     try:
-        exec("from . import %s" % (modname))
-        f = eval("%s.create_and_mount" % (modname))
+        f = getattr(importlib.import_module(modname, package=__package__), "create_and_mount")
         return f(disk_list, mount_dir, kwargs)
     except ModuleNotFoundError:
         raise errors.StorageLayoutCreateError("layout \"%s\" not supported" % (layout_name))
@@ -222,8 +222,7 @@ def create_and_mount_storage_layout(layout_name, mount_dir, disk_list=None, **kw
 def _parseOneStorageLayout(layoutName, bootDev, rootDev, mountDir):
     modname = Util.layoutName2modName(layoutName)
     try:
-        exec("from . import %s" % (modname))
-        f = eval("%s.parse" % (modname))
+        f = getattr(importlib.import_module(modname, package=__package__), "parse")
         return f(bootDev, rootDev, mountDir)
     except ModuleNotFoundError:
         raise errors.StorageLayoutParseError("", "unknown storage layout")
@@ -232,8 +231,7 @@ def _parseOneStorageLayout(layoutName, bootDev, rootDev, mountDir):
 def _detectAndMountOneStorageLayout(layoutName, diskList, mountDir, mntArgsDict):
     modname = Util.layoutName2modName(layoutName)
     try:
-        exec("from . import %s" % (modname))
-        f = eval("%s.detect_and_mount" % (modname))
+        f = getattr(importlib.import_module(modname, package=__package__), "detect_and_mount")
         return f(diskList, mountDir, mntArgsDict)
     except ModuleNotFoundError:
         raise errors.StorageLayoutParseError("", "unknown storage layout")
