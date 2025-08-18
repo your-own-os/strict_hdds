@@ -1184,13 +1184,13 @@ class PhysicalDiskMounts:
 
 class TmpMount:
 
-    def __init__(self, path, options=None):
+    def __init__(self, path, options=""):
         self._path = path
         self._tmppath = tempfile.mkdtemp()
 
         try:
             cmd = ["mount"]
-            if options is not None:
+            if options != "":
                 cmd.append("-o")
                 cmd.append(options)
             cmd.append(self._path)
