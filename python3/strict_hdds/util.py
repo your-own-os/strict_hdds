@@ -354,7 +354,7 @@ class Util:
 
         def _addPartition(disk, pType, pStart, pEnd):
             region = parted.Geometry(device=disk.device, start=pStart, end=pEnd)
-            if pType == "":
+            if pType is None:
                 partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
             elif pType == "esp":
                 assert partitionTableType == "gpt"
@@ -402,7 +402,7 @@ class Util:
         preList = None
         postList = None
         for i in range(0, len(partitionInfoList)):
-            pSize, pType = partitionInfoList[i]
+            pSize, _ = partitionInfoList[i]
             if pSize == "*":
                 assert preList is None
                 preList = partitionInfoList[:i]
