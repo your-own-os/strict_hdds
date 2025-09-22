@@ -24,7 +24,7 @@
 import functools
 from .util import Util, PartiUtil, GptUtil
 from .types import MountCommand
-from .handy import MountWindowsEfi, DisksChecker, HandyUtil
+from .handy import MountEfi, DisksChecker, HandyUtil
 from . import errors
 from . import StorageLayout
 
@@ -61,7 +61,7 @@ class StorageLayoutImpl(StorageLayout):
     def boot_disk(self):
         return self._hdd
 
-    @MountWindowsEfi.proxy
+    @MountEfi.proxy
     @property
     def mount_point(self):
         pass
@@ -86,11 +86,11 @@ class StorageLayoutImpl(StorageLayout):
         del self._hddEspParti
         del self._hdd
 
-    @MountWindowsEfi.proxy
+    @MountEfi.proxy
     def get_mount_commands(self, **kwargs):
         pass
 
-    @MountWindowsEfi.proxy
+    @MountEfi.proxy
     def is_read_only(self):
         pass
 
@@ -120,14 +120,14 @@ def parse(boot_dev, root_dev, mount_dir):
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
-    MountWindowsEfi.mntArgsDictSetReadOnly(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir, mntArgsDict)
+    MountEfi.mntArgsDictSetReadOnly(HandyUtil.getStorageLayoutName(StorageLayoutImpl), mount_dir, mntArgsDict)
 
     # return
     ret = StorageLayoutImpl()
     ret._hdd = PartiUtil.partiToDisk(boot_dev)
     ret._hddEspParti = boot_dev
     ret._hddSysParti = root_dev
-    ret._mnt = MountWindowsEfi(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
+    ret._mnt = MountEfi(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
     return ret
 
 
@@ -158,7 +158,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     ret._hdd = espAndRootPartitionList[0][0]
     ret._hddEspParti = espAndRootPartitionList[0][1]
     ret._hddSysParti = espAndRootPartitionList[0][2]
-    ret._mnt = MountWindowsEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
     return ret
 
 
@@ -182,7 +182,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     ret._hdd = hdd
     ret._hddEspParti = espParti
     ret._hddSysParti = rootParti
-    ret._mnt = MountWindowsEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
+    ret._mnt = MountEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
     return ret
 
 
@@ -202,6 +202,6 @@ def _getMntParams(obj, mntArgsDict):
         MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.get_esp(), Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
     ]
 
-    MountWindowsEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)
+    MountEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)
 
     return ret
