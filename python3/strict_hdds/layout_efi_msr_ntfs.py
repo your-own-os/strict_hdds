@@ -198,7 +198,7 @@ def _getMntParams(obj, mntArgsDict):
         tlistBoot += mntArgsDict.pop("extra_mount_options_for_boot_dev").split(",")
 
     ret = [
-        MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeNtfs, mnt_opt_list=tlist),
+        MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_sys, Util.fsTypeNtfs, mnt_opt_list=tlist),
         MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.get_esp(), Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
     ]
 
