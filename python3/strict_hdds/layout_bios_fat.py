@@ -154,7 +154,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     # create partitions
     hdd = HandyUtil.checkAndGetHdd(disk_list)
     Util.initializeDisk(hdd, "msdos", [
-        ("*", "fat32"),
+        ("*", "fat32"),                             # FIXME: should use FAT16-LBA?
     ])
 
     # create file system
