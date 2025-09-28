@@ -176,6 +176,8 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     # get esp partition and root partition
     espParti = PartiUtil.diskToParti(hdd, 1)
     rootParti = PartiUtil.diskToParti(hdd, 2)
+    subprocess.check_call(["mkfs.vfat", espParti], stdout=subprocess.DEVNULL)                             # mkfs.vfat does not have a quiet option
+    # FIXME: mkfs.ntfs
 
     # return
     ret = StorageLayoutImpl()
