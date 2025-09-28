@@ -343,7 +343,7 @@ class Util:
                                              fs=parted.FileSystem(type="fat32", geometry=region),
                                              geometry=region)
                 partition.setFlag(parted.PARTITION_BOOT)
-            elif pType in ["bcache", "bcachefs"]:
+            elif pType in ["bcache", "bcachefs", "btrfs"]:
                 assert partitionTableType == "gpt"
                 partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
             elif pType == "swap":
@@ -354,12 +354,7 @@ class Util:
                     pass            # don't know why, it says gpt partition has no way to setFlag(SWAP)
                 else:
                     assert False
-            elif pType == "fat32":
-                partition = parted.Partition(disk=disk,
-                                             type=parted.PARTITION_NORMAL,
-                                             fs=parted.FileSystem(type="fat32", geometry=region),
-                                             geometry=region)
-            elif pType in ["ext4", "btrfs", "ntfs"]:
+            elif pType in ["ext4", "fat32", "ntfs"]:
                 partition = parted.Partition(disk=disk,
                                              type=parted.PARTITION_NORMAL,
                                              fs=parted.FileSystem(type=pType, geometry=region),

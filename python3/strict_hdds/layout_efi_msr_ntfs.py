@@ -22,6 +22,7 @@
 
 
 import functools
+import subprocess
 from .util import Util, PartiUtil, GptUtil
 from .types import MountCommand
 from .handy import MountEfi, DisksChecker, HandyUtil
