@@ -319,7 +319,7 @@ class Util:
 
     @staticmethod
     def initializeDisk(devPath, partitionTableType, partitionInfoList):
-        assert partitionTableType in ["msdos", "gpt"]
+        assert partitionTableType in ["msdos", "gpt"]       # msdos - mbr partition table type ; gpt - gpt partition table type
         assert len(partitionInfoList) >= 1
 
         def _getFreeRegion(disk):
