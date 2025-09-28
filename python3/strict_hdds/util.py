@@ -51,18 +51,6 @@ class Util:
 
     swapFilepath = "/var/cache/swap.dat"
 
-    diskPartTableMbr = "mbr"
-    diskPartTableGpt = "gpt"
-
-    # these are types of linux file system names
-    # for pypartd, sometimes filesystem name are the same as linux, sometimes are different
-    fsTypeExt4 = "ext4"
-    fsTypeFat = "vfat"
-    fsTypeNtfs = "ntfs"
-    fsTypeBtrfs = "btrfs"
-    fsTypeBcachefs = "bcachefs"
-    fsTypeSwap = "swap"
-
     checkItemBasic = "basic"
 
     @staticmethod
@@ -239,12 +227,7 @@ class Util:
         ret = Util.cmdCall("blkid", "-o", "export", devPath)
         m = re.search("^PTTYPE=(\\S+)$", ret, re.M)
         if m is not None:
-            if m.group(1) == "gpt":
-                return Util.diskPartTableGpt
-            elif m.group(1) == "dos":
-                return Util.diskPartTableMbr
-            else:
-                return m.group(1)
+            return m.group(1)       # dos - mbr partition table type ; gpt - gpt partition table type
         else:
             return ""
 
@@ -336,11 +319,8 @@ class Util:
 
     @staticmethod
     def initializeDisk(devPath, partitionTableType, partitionInfoList):
-        assert partitionTableType in ["mbr", "gpt"]
+        assert partitionTableType in ["msdos", "gpt"]
         assert len(partitionInfoList) >= 1
-
-        if partitionTableType == "mbr":
-            partitionTableType = "msdos"
 
         def _getFreeRegion(disk):
             region = None
@@ -368,7 +348,7 @@ class Util:
                 partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
             elif pType == "swap":
                 partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
-                if partitionTableType == "mbr":
+                if partitionTableType == "msdos":
                     partition.setFlag(parted.PARTITION_SWAP)
                 elif partitionTableType == "gpt":
                     pass            # don't know why, it says gpt partition has no way to setFlag(SWAP)

@@ -152,12 +152,12 @@ class StorageLayoutImpl(StorageLayout):
 
         if Util.isBlkDevSsdOrHdd(disk):
             self._mnt.umount_esp(self._cg.get_hdd_esp_partition(self._cg.boot_disk))
-            self._cg.add_ssd(disk, Util.fsTypeBcachefs)
+            self._cg.add_ssd(disk, "bcachefs")
             BcachefsUtil.addSsdToBcachefs(self._cg.get_ssd_cache_partition(), self._mnt.mount_point)
             self._mnt.mount_esp(self._cg.get_ssd_esp_partition())
             return True
         else:
-            self._cg.add_hdd(disk, Util.fsTypeBcachefs)
+            self._cg.add_hdd(disk, "bcachefs")
             BcachefsUtil.addHddToBcachefs(self._cg.get_hdd_data_partition(disk), self._mnt.mount_point)
             assert disk != self._cg.boot_disk
             return False
@@ -228,8 +228,8 @@ def parse(boot_dev, root_dev, mount_dir):
     if boot_dev is None:
         raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_NOT_EXIST)
     for rootDev in rootDevList:
-        if Util.getBlkDevFsType(rootDev) != Util.fsTypeBcachefs:
-            raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), "file system of root partition %s is not %s" % (Util.fsTypeBcachefs))
+        if Util.getBlkDevFsType(rootDev) != "bcachefs":
+            raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), "file system of root partition %s is not %s" % ("bcachefs"))
 
     # ssd, hdd_list, boot_disk
     ssd, hddList = HandyCg.checkAndGetSsdAndHddList(*BcachefsUtil.getSlaveSsdDevPatListAndHddDevPathList(rootDevList))
@@ -258,7 +258,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
             parti = PartiUtil.diskToParti(d, i)
             if not PartiUtil.partiExists(parti):
                 break
-            if Util.getBlkDevFsType(parti) == Util.fsTypeBcachefs:
+            if Util.getBlkDevFsType(parti) == "bcachefs":
                 diskList.append(d)
                 break
             i += 1
@@ -282,7 +282,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
 
     # add disks to cache group
     cg = EfiCacheGroup()
-    HandyCg.checkAndAddDisks(cg, *Util.splitSsdAndHddFromFixedDiskDevPathList(disk_list), Util.fsTypeBcachefs)
+    HandyCg.checkAndAddDisks(cg, *Util.splitSsdAndHddFromFixedDiskDevPathList(disk_list), "bcachefs")
 
     # create bcachefs
     if cg.get_ssd() is not None:
@@ -311,8 +311,8 @@ def _getMntParams(obj, mntArgsDict):
         tlistBoot += mntArgsDict.pop("extra_mount_options_for_boot_dev").split(",")
 
     ret = [
-        MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeBcachefs, mnt_opt_list=tlist),
-        MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
+        MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, "bcachefs", mnt_opt_list=tlist),
+        MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, "vfat", mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
     ]
 
     MountEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)

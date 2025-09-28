@@ -99,13 +99,13 @@ class StorageLayoutImpl(StorageLayout):
 def parse(boot_dev, root_dev, mount_dir):
     if boot_dev is not None:
         raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_SHOULD_NOT_EXIST)
-    if Util.getBlkDevFsType(root_dev) != Util.fsTypeNtfs:
-        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeNtfs))
+    if Util.getBlkDevFsType(root_dev) != "ntfs":
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE("ntfs"))
 
     # hdd
     hdd = PartiUtil.partiToDisk(root_dev)
-    if Util.getBlkDevPartitionTableType(hdd) != Util.diskPartTableMbr:
-        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.PARTITION_TYPE_SHOULD_BE(hdd, Util.diskPartTableMbr))
+    if Util.getBlkDevPartitionTableType(hdd) != "dos":
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.PARTITION_TYPE_SHOULD_BE(hdd, "mbr"))
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
@@ -125,16 +125,16 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     # scan for root partition
     rootPartitionList = []
     for disk in disk_list:
-        if not MbrUtil.hasBootCode(disk):                                           # no boot code, ignore unbootable disk
+        if not MbrUtil.hasBootCode(disk):                           # no boot code, ignore unbootable disk
             continue
-        if Util.getBlkDevPartitionTableType(disk) != Util.diskPartTableMbr:         # only accept disk with MBR partition table
+        if Util.getBlkDevPartitionTableType(disk) != "dos":         # only accept disk with MBR partition table
             continue
         i = 1
         while True:
             parti = PartiUtil.diskToParti(disk, i)
             if not PartiUtil.partiExists(parti):
                 break
-            if Util.getBlkDevFsType(parti) == Util.fsTypeNtfs:
+            if Util.getBlkDevFsType(parti) == "ntfs":
                 rootPartitionList.append(parti)
             i += 1
     if len(rootPartitionList) == 0:
@@ -155,8 +155,8 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
 
     # create partitions
     hdd = HandyUtil.checkAndGetHdd(disk_list)
-    Util.initializeDisk(hdd, Util.diskPartTableMbr, [
-        ("*", Util.fsTypeNtfs),
+    Util.initializeDisk(hdd, "msdos", [
+        ("*", "ntfs"),
     ])
 
     # create file system
@@ -191,7 +191,7 @@ def _getMntParams(obj, mntArgsDict):
         assert mntArgsDict["extra_mount_options_for_root_dev"] != ""
         tlist += mntArgsDict.pop("extra_mount_options_for_root_dev").split(",")
     mntParams = [
-        MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_sys, Util.fsTypeNtfs, mnt_opt_list=tlist)
+        MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_sys, "ntfs3", mnt_opt_list=tlist)
     ]
     MountBios.mntParamsMergeMntArgReadOnly(mntParams, mntArgsDict)
     return mntParams

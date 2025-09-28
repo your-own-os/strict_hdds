@@ -134,8 +134,8 @@ def parse(boot_dev, root_dev, mount_dir):
         raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), "boot device and root device are not on the same harddisk")
     if not GptUtil.isEspPartition(boot_dev):
         raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_IS_NOT_ESP)
-    if Util.getBlkDevFsType(root_dev) != Util.fsTypeExt4:
-        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeExt4))
+    if Util.getBlkDevFsType(root_dev) != "ext4":
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE("ext4"))
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
@@ -165,7 +165,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
             continue
         if not GptUtil.isEspPartition(espParti):
             continue
-        if Util.getBlkDevFsType(rootParti) != Util.fsTypeExt4:
+        if Util.getBlkDevFsType(rootParti) != "ext4":
             continue
         espAndRootPartitionList.append((disk, espParti, rootParti))
     if len(espAndRootPartitionList) == 0:
@@ -188,9 +188,9 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
 
     # create partitions
     hdd = HandyUtil.checkAndGetHdd(disk_list)
-    Util.initializeDisk(hdd, Util.diskPartTableGpt, [
+    Util.initializeDisk(hdd, "gpt", [
         ("%dMiB" % (Util.getEspSizeInMb()), "esp"),
-        ("*", Util.fsTypeExt4),
+        ("*", "ext4"),
     ])
 
     # get esp partition and root partition
@@ -221,8 +221,8 @@ def _getMntParams(obj, mntArgsDict):
         tlistBoot += mntArgsDict.pop("extra_mount_options_for_boot_dev").split(",")
 
     ret = [
-        MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, Util.fsTypeExt4, mnt_opt_list=tlist),
-        MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
+        MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_rootfs, "ext4", mnt_opt_list=tlist),
+        MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, "vfat", mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
     ]
 
     MountEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)

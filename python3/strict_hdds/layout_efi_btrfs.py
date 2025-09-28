@@ -135,7 +135,7 @@ class StorageLayoutImpl(StorageLayout):
         if self._mnt.get_bootdir_rw_controller().is_writable():
             raise errors.StorageLayoutAddDiskError(disk, errors.BOOTDIR_NOT_RO)
 
-        self._md.add_disk(disk, Util.fsTypeBtrfs)
+        self._md.add_disk(disk, "btrfs")
 
         # hdd partition 2: make it as backing device and add it to btrfs filesystem
         BtrfsUtil.addDiskToBtrfs(self._md.get_disk_data_partition(disk), self._mnt.mount_point)
@@ -203,8 +203,8 @@ class StorageLayoutImpl(StorageLayout):
 def parse(boot_dev, root_dev, mount_dir):
     if boot_dev is None:
         raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_NOT_EXIST)
-    if Util.getBlkDevFsType(root_dev) != Util.fsTypeBtrfs:
-        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeBtrfs))
+    if Util.getBlkDevFsType(root_dev) != "btrfs":
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE("btrfs"))
 
     # disk_list, boot_disk
     partiList = BtrfsUtil.getSlaveDevPathList(mount_dir)
@@ -235,7 +235,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
             parti = PartiUtil.diskToParti(d, i)
             if not PartiUtil.partiExists(parti):
                 break
-            if Util.getBlkDevFsType(parti) == Util.fsTypeBtrfs:
+            if Util.getBlkDevFsType(parti) == "btrfs":
                 diskList.append(d)
                 break
             i += 1
@@ -258,7 +258,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
 
     # add disks
     md = EfiMultiDisk()
-    HandyMd.checkAndAddDisks(disk_list, Util.fsTypeBtrfs)
+    HandyMd.checkAndAddDisks(disk_list, "btrfs")
 
     # create and mount
     partiList = [md.get_disk_data_partition(x) for x in md.get_disk_list()]
@@ -286,8 +286,8 @@ def _getMntParams(obj, mntArgsDict):
 
     ret = []
     for dirPath, dirMode, dirUid, dirGid, mntOptList in SubVolsBtrfs.getParamsForMountWithoutSnapshot():
-        ret.append(MountCommand.Mount(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
-    ret.append(MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
+        ret.append(MountCommand.Mount(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, "btrfs", mnt_opt_list=(mntOptList + tlist)))
+    ret.append(MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, "vfat", mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
 
     SubVolsBtrfs.mntParamsMergeMntArgSnapshot(ret, mntArgsDict)
     MountEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)

@@ -274,8 +274,8 @@ class StorageLayoutImpl(StorageLayout):
 def parse(boot_dev, root_dev, mount_dir):
     if boot_dev is None:
         raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_NOT_EXIST)
-    if Util.getBlkDevFsType(root_dev) != Util.fsTypeBtrfs:
-        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeBtrfs))
+    if Util.getBlkDevFsType(root_dev) != "btrfs":
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE("btrfs"))
 
     # bcache device list
     bcacheDevPathList = BtrfsUtil.getSlaveDevPathList(mount_dir)
@@ -307,7 +307,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
 
     # scan
     bcacheDevPathList = BcacheUtil.scanAndRegisterAllAndFilter(disk_list)
-    bcacheDevPathList = [x for x in bcacheDevPathList if Util.getBlkDevFsType(x) == Util.fsTypeBtrfs]
+    bcacheDevPathList = [x for x in bcacheDevPathList if Util.getBlkDevFsType(x) == "btrfs"]
     if len(bcacheDevPathList) == 0:
         raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.DISK_NOT_FOUND)
 
@@ -368,8 +368,8 @@ def _getMntParams(obj, mntArgsDict):
 
     ret = []
     for dirPath, dirMode, dirUid, dirGid, mntOptList in SubVolsBtrfs.getParamsForMountWithoutSnapshot():
-        ret.append(MountCommand.Mount(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, Util.fsTypeBtrfs, mnt_opt_list=(mntOptList + tlist)))
-    ret.append(MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
+        ret.append(MountCommand.Mount(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, "btrfs", mnt_opt_list=(mntOptList + tlist)))
+    ret.append(MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, "vfat", mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
 
     SubVolsBtrfs.mntParamsMergeMntArgSnapshot(ret, mntArgsDict)
     MountEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)

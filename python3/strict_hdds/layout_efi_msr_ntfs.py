@@ -115,8 +115,8 @@ def parse(boot_dev, root_dev, mount_dir):
         raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), "boot device and root device are not on the same harddisk")
     if not GptUtil.isEspPartition(boot_dev):
         raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_IS_NOT_ESP)
-    if Util.getBlkDevFsType(root_dev) != Util.fsTypeNtfs:
-        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE(Util.fsTypeNtfs))
+    if Util.getBlkDevFsType(root_dev) != "ntfs":
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE("ntfs"))
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
@@ -145,7 +145,7 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
             continue
         if not GptUtil.isEspPartition(espParti):
             continue
-        if Util.getBlkDevFsType(rootParti) != Util.fsTypeNtfs:
+        if Util.getBlkDevFsType(rootParti) != "ntfs":
             continue
         espAndRootPartitionList.append((disk, espParti, rootParti))
     if len(espAndRootPartitionList) == 0:
@@ -167,10 +167,10 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
 
     # create partitions
     hdd = HandyUtil.checkAndGetHdd(disk_list)
-    Util.initializeDisk(hdd, Util.diskPartTableGpt, [
-        ("%dMiB" % (Util.getEspSizeInMb()), Util.fsTypeFat),
+    Util.initializeDisk(hdd, "gpt", [
+        ("%dMiB" % (Util.getEspSizeInMb()), "esp"),
         ("128MiB", None),
-        ("*", Util.fsTypeNtfs),
+        ("*", "ntfs"),
     ])
 
     # get esp partition and root partition
@@ -200,8 +200,8 @@ def _getMntParams(obj, mntArgsDict):
         tlistBoot += mntArgsDict.pop("extra_mount_options_for_boot_dev").split(",")
 
     ret = [
-        MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_sys, Util.fsTypeNtfs, mnt_opt_list=tlist),
-        MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.get_esp(), Util.fsTypeFat, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
+        MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_sys, "ntfs3", mnt_opt_list=tlist),
+        MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.get_esp(), "vfat", mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
     ]
 
     MountEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)

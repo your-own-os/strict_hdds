@@ -111,12 +111,12 @@ def get_storage_layout(mount_dir="/"):
     if bootDev is not None:
         # bcachefs related
         if Util.anyIn(["efi-bcachefs"], allLayoutNames):
-            if rootDevFs == Util.fsTypeBcachefs:
+            if rootDevFs == "bcachefs":
                 return _parseOneStorageLayout("efi-bcachefs", bootDev, rootDev, mount_dir)
 
         # btrfs related
         if Util.anyIn(["efi-bcache-btrfs", "efi-btrfs"], allLayoutNames):
-            if rootDevFs == Util.fsTypeBtrfs:
+            if rootDevFs == "btrfs":
                 tlist = BtrfsUtil.getSlaveDevPathList(mount_dir)                    # only call btrfs related procedure when corresponding storage layout exists
                 if any(BcacheUtil.getBcacheDevFromDevPath(x) is not None for x in tlist):
                     return _parseOneStorageLayout("efi-bcache-btrfs", bootDev, rootDev, mount_dir)
@@ -125,22 +125,22 @@ def get_storage_layout(mount_dir="/"):
 
         # simple layout
         if Util.anyIn(["efi-ext4"], allLayoutNames):
-            if Util.getBlkDevFsType(rootDev) == Util.fsTypeExt4:
+            if Util.getBlkDevFsType(rootDev) == "ext4":
                 return _parseOneStorageLayout("efi-ext4", bootDev, rootDev, mount_dir)
     else:
         # simple layout
         if Util.anyIn(["bios-ext4"], allLayoutNames):
-            if Util.getBlkDevFsType(rootDev) == Util.fsTypeExt4:
+            if Util.getBlkDevFsType(rootDev) == "ext4":
                 return _parseOneStorageLayout("bios-ext4", bootDev, rootDev, mount_dir)
 
         # simple layout
         if Util.anyIn(["bios-ntfs"], allLayoutNames):
-            if Util.getBlkDevFsType(rootDev) == Util.fsTypeNtfs:
+            if Util.getBlkDevFsType(rootDev) == "ntfs":
                 return _parseOneStorageLayout("bios-ntfs", bootDev, rootDev, mount_dir)
 
         # simple layout
         if Util.anyIn(["bios-fat"], allLayoutNames):
-            if Util.getBlkDevFsType(rootDev) == Util.fsTypeFat:
+            if Util.getBlkDevFsType(rootDev) == "vfat":
                 return _parseOneStorageLayout("bios-fat", bootDev, rootDev, mount_dir)
 
     raise errors.StorageLayoutParseError("", "unknown storage layout")
@@ -170,38 +170,38 @@ def mount_storage_layout(mount_dir, layout_name=None, disk_list=None, **kwargs):
     if len(espPartiList) > 0:
         # bcachefs related
         if Util.anyIn(["efi-bcachefs"], allLayoutNames):
-            if any(Util.getBlkDevFsType(x) == Util.fsTypeBcachefs for x in normalPartiList):
+            if any(Util.getBlkDevFsType(x) == "bcachefs" for x in normalPartiList):
                 return _detectAndMountOneStorageLayout("efi-bcachefs", disk_list, mount_dir, kwargs)
 
         # btrfs related
         if Util.anyIn(["efi-btrfs"], allLayoutNames):
-            if any(Util.getBlkDevFsType(x) == Util.fsTypeBtrfs for x in normalPartiList):
+            if any(Util.getBlkDevFsType(x) == "btrfs" for x in normalPartiList):
                 return _detectAndMountOneStorageLayout("efi-btrfs", disk_list, mount_dir, kwargs)
 
         # bcache related
         if Util.anyIn(["efi-bcache-btrfs"], allLayoutNames):
             bcacheDevPathList = BcacheUtil.scanAndRegisterAllAndFilter(disk_list)    # only call bcache related procedure when corresponding storage layout exists
-            if any(Util.getBlkDevFsType(x) == Util.fsTypeBtrfs for x in bcacheDevPathList):
+            if any(Util.getBlkDevFsType(x) == "btrfs" for x in bcacheDevPathList):
                 return _detectAndMountOneStorageLayout("efi-bcache-btrfs", disk_list, mount_dir, kwargs)
 
         # simple layout
         if Util.anyIn(["efi-ext4"], allLayoutNames):
-            if any([Util.getBlkDevFsType(x) == Util.fsTypeExt4 for x in normalPartiList]):
+            if any([Util.getBlkDevFsType(x) == "ext4" for x in normalPartiList]):
                 return _detectAndMountOneStorageLayout("efi-ext4", disk_list, mount_dir, kwargs)
     else:
         # simple layout
         if Util.anyIn(["bios-ext4"], allLayoutNames):
-            if any([Util.getBlkDevFsType(x) == Util.fsTypeExt4 for x in normalPartiList]):
+            if any([Util.getBlkDevFsType(x) == "ext4" for x in normalPartiList]):
                 return _detectAndMountOneStorageLayout("bios-ext4", disk_list, mount_dir, kwargs)
 
         # simple layout
         if Util.anyIn(["bios-ntfs"], allLayoutNames):
-            if any([Util.getBlkDevFsType(x) == Util.fsTypeNtfs for x in normalPartiList]):
+            if any([Util.getBlkDevFsType(x) == "ntfs" for x in normalPartiList]):
                 return _detectAndMountOneStorageLayout("bios-ntfs", disk_list, mount_dir, kwargs)
 
         # simple layout
         if Util.anyIn(["bios-fat"], allLayoutNames):
-            if any([Util.getBlkDevFsType(x) == Util.fsTypeFat for x in normalPartiList]):
+            if any([Util.getBlkDevFsType(x) == "vfat" for x in normalPartiList]):
                 return _detectAndMountOneStorageLayout("bios-fat", disk_list, mount_dir, kwargs)
 
     raise errors.StorageLayoutParseError("", "unknown storage layout")

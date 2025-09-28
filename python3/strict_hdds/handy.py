@@ -1489,13 +1489,13 @@ class HandyUtil:
     @staticmethod
     def _mcCheckHddOrDiskList(storageLayoutName, diskOrHddList):
         for disk in diskOrHddList:
-            if Util.getBlkDevPartitionTableType(disk) != Util.diskPartTableGpt:
-                raise errors.StorageLayoutParseError(storageLayoutName, errors.PARTITION_TYPE_SHOULD_BE(disk, Util.diskPartTableGpt))
+            if Util.getBlkDevPartitionTableType(disk) != "gpt":
+                raise errors.StorageLayoutParseError(storageLayoutName, errors.PARTITION_TYPE_SHOULD_BE(disk, "gpt"))
 
             # esp partition
             espParti = PartiUtil.diskToParti(disk, 1)
-            if Util.getBlkDevFsType(espParti) != Util.fsTypeFat:
-                raise errors.StorageLayoutParseError(storageLayoutName, errors.PARTITION_TYPE_SHOULD_BE(espParti, Util.fsTypeFat))
+            if Util.getBlkDevFsType(espParti) != "vfat":
+                raise errors.StorageLayoutParseError(storageLayoutName, errors.PARTITION_TYPE_SHOULD_BE(espParti, "vfat"))
             if Util.getBlkDevSize(espParti) != Util.getEspSize():
                 raise errors.StorageLayoutParseError(storageLayoutName, errors.PARTITION_SIZE_INVALID(espParti))
 
