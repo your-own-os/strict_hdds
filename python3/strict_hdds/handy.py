@@ -954,7 +954,7 @@ class Mount(abc.ABC):
                 if p.device is not None:
                     Util.cmdCall("mount", "-t", p.fstype.value, "-o", p.opts, p.device, real_dir_path)
 
-            self._mntEntries.append(self.MountEntry(p.device, p.mountpoint, p.fstype.value, p.opts, real_dir_path))
+            self._mntEntries.append(self.MountEntry(p.device, p.mountpoint, p.fstype, p.opts, real_dir_path))
 
     @property
     def mount_point(self):
