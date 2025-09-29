@@ -29,7 +29,7 @@ import glob
 import time
 import struct
 import parted
-from .util import Util, PartiUtil, GptUtil, BcacheUtil, PhysicalDiskMounts, TmpMount
+from .util import Util, PartiUtil, GptUtil, BcacheUtil, InitDisk, PhysicalDiskMounts, TmpMount
 from .types import MountCommand, RwController
 from . import errors
 
@@ -106,10 +106,10 @@ class EfiMultiDisk:
         # create disk
         try:
             if self._bootHdd is None:
-                fsType1 = "esp"
+                fsType1 = InitDisk.FsType.ESP
             else:
-                fsType1 = "fat32"
-            Util.initializeDisk(disk, "gpt", [
+                fsType1 = InitDisk.FsType.FAT32
+            InitDisk.initGptDisk(disk, [
                 ("%dMiB" % (Util.getEspSizeInMb()), fsType1),
                 ("*", fsType),
             ])
@@ -292,8 +292,8 @@ class EfiCacheGroup:
         oldBootHdd = self._bootHdd
         try:
             # create partitions
-            Util.initializeDisk(self._ssd, "gpt", [
-                ("%dMiB" % (Util.getEspSizeInMb()), "esp"),
+            InitDisk.initGptDisk(self._ssd, [
+                ("%dMiB" % (Util.getEspSizeInMb()), InitDisk.FsType.ESP),
                 ("*", fsType),
             ])
 
@@ -346,11 +346,11 @@ class EfiCacheGroup:
         # create disk
         try:
             if self._ssd is None and self._bootHdd is None:
-                fsType1 = "esp"
+                fsType1 = InitDisk.FsType.ESP
             else:
-                fsType1 = "fat32"
+                fsType1 = InitDisk.FsType.FAT32
 
-            Util.initializeDisk(hdd, "gpt", [
+            InitDisk.initGptDisk(hdd, [
                 ("%dMiB" % (Util.getEspSizeInMb()), fsType1),
                 ("*", fsType),
             ])

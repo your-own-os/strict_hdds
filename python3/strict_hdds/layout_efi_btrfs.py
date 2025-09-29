@@ -23,7 +23,7 @@
 
 import functools
 import subprocess
-from .util import Util, PartiUtil, BtrfsUtil
+from .util import Util, PartiUtil, BtrfsUtil, InitDisk
 from .types import MountCommand
 from .handy import EfiMultiDisk, SubVols, SubVolsBtrfs, MountEfi, HandyMd, DisksChecker, HandyUtil
 from . import errors
@@ -135,7 +135,7 @@ class StorageLayoutImpl(StorageLayout):
         if self._mnt.get_bootdir_rw_controller().is_writable():
             raise errors.StorageLayoutAddDiskError(disk, errors.BOOTDIR_NOT_RO)
 
-        self._md.add_disk(disk, "btrfs")
+        self._md.add_disk(disk, InitDisk.FsType.BTRFS)
 
         # hdd partition 2: make it as backing device and add it to btrfs filesystem
         BtrfsUtil.addDiskToBtrfs(self._md.get_disk_data_partition(disk), self._mnt.mount_point)

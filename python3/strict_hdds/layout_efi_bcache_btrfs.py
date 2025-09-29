@@ -23,7 +23,7 @@
 
 import functools
 import subprocess
-from .util import Util, BcacheUtil, BtrfsUtil
+from .util import Util, BcacheUtil, BtrfsUtil, InitDisk
 from .types import MountCommand
 from .handy import EfiCacheGroup, Bcache, SubVols, SubVolsBtrfs, MountEfi, HandyCg, HandyBcache, DisksChecker, HandyUtil
 from . import errors
@@ -173,7 +173,7 @@ class StorageLayoutImpl(StorageLayout):
             assert self._cg.get_ssd() is None
             self._mnt.umount_esp(self._cg.get_hdd_esp_partition(self._cg.boot_disk))
             try:
-                self._cg.add_ssd(disk, "bcache")
+                self._cg.add_ssd(disk, InitDisk.FsType.BCACHE)
                 try:
                     self._bcache.add_cache(self._cg.get_ssd_cache_partition())
                     try:
@@ -189,7 +189,7 @@ class StorageLayoutImpl(StorageLayout):
                 self._mnt.mount_esp(self._cg.get_hdd_esp_partition(self._cg.boot_disk))
                 raise
         else:
-            self._cg.add_hdd(disk, "bcache")
+            self._cg.add_hdd(disk, InitDisk.FsType.BCACHE)
             self._bcache.add_backing(self._cg.get_ssd_cache_partition(), disk, self._cg.get_hdd_data_partition(disk))
             BtrfsUtil.addDiskToBtrfs(self._bcache.get_bcache_dev(disk), self._mnt.mount_point)
             assert disk != self._cg.boot_disk

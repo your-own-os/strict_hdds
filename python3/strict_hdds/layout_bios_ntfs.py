@@ -23,7 +23,7 @@
 
 import functools
 import subprocess
-from .util import Util, PartiUtil, MbrUtil
+from .util import Util, PartiUtil, MbrUtil, InitDisk
 from .types import MountCommand
 from .handy import MountBios, DisksChecker, HandyUtil
 from . import errors
@@ -155,8 +155,8 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
 
     # create partitions
     hdd = HandyUtil.checkAndGetHdd(disk_list)
-    Util.initializeDisk(hdd, "msdos", [
-        ("*", "ntfs"),
+    InitDisk.initMbrDisk(hdd, [
+        ("*", InitDisk.FsType.NTFS),
     ])
 
     # create file system

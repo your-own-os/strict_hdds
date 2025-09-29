@@ -22,7 +22,7 @@
 
 
 import functools
-from .util import Util, PartiUtil, BcachefsUtil
+from .util import Util, PartiUtil, BcachefsUtil, InitDisk
 from .types import MountCommand
 from .handy import EfiCacheGroup, MountEfi, HandyCg, DisksChecker, HandyUtil
 from . import errors
@@ -152,12 +152,12 @@ class StorageLayoutImpl(StorageLayout):
 
         if Util.isBlkDevSsdOrHdd(disk):
             self._mnt.umount_esp(self._cg.get_hdd_esp_partition(self._cg.boot_disk))
-            self._cg.add_ssd(disk, "bcachefs")
+            self._cg.add_ssd(disk, InitDisk.FsType.BCACHEFS)
             BcachefsUtil.addSsdToBcachefs(self._cg.get_ssd_cache_partition(), self._mnt.mount_point)
             self._mnt.mount_esp(self._cg.get_ssd_esp_partition())
             return True
         else:
-            self._cg.add_hdd(disk, "bcachefs")
+            self._cg.add_hdd(disk, InitDisk.FsType.BCACHEFS)
             BcachefsUtil.addHddToBcachefs(self._cg.get_hdd_data_partition(disk), self._mnt.mount_point)
             assert disk != self._cg.boot_disk
             return False

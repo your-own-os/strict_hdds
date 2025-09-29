@@ -23,7 +23,7 @@
 
 import functools
 import subprocess
-from .util import Util, PartiUtil, GptUtil
+from .util import Util, PartiUtil, GptUtil, InitDisk
 from .types import MountCommand
 from .handy import MountEfi, DisksChecker, HandyUtil
 from . import errors
@@ -168,10 +168,10 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
 
     # create partitions
     hdd = HandyUtil.checkAndGetHdd(disk_list)
-    Util.initializeDisk(hdd, "gpt", [
-        ("%dMiB" % (Util.getEspSizeInMb()), "esp"),
+    InitDisk.initGptDisk(hdd, [
+        ("%dMiB" % (Util.getEspSizeInMb()), InitDisk.FsType.ESP),
         ("128MiB", None),
-        ("*", "ntfs"),
+        ("*", InitDisk.FsType.NTFS),
     ])
 
     # get esp partition and root partition
