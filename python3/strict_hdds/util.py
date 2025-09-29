@@ -23,6 +23,7 @@
 
 import os
 import re
+import enum
 import uuid
 import time
 import stat
@@ -1092,6 +1093,185 @@ class BtrfsUtil:
             for i in range(0, 1024):
                 f.write(bytearray(4096))            # we found -f is not enough for robustly adding disk
         Util.cmdCall("btrfs", "device", "add", "-f", disk, mountPoint)
+
+
+class InitDisk:
+
+    class FsType(enum.Enum):
+        NONE = "none"
+        ESP = "esp"
+        BCACHE = "bcache"
+        BCACHEFS = "bcachefs"
+        BTRFS = "btrfs"
+        SWAP = "swap"
+        EXT4 = "ext4"
+        FAT32 = "fat32"
+        NTFS = "ntfs"
+
+    @classmethod
+    def initGptDisk(cls, devPath, partitionInfoList):
+        assert len(partitionInfoList) >= 1
+
+        def _addPartition(disk, pType, pStart, pEnd):
+            region = parted.Geometry(device=disk.device, start=pStart, end=pEnd)
+            if pType == cls.FsType.NONE:
+                partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
+            elif pType == cls.FsType.ESP:
+                partition = parted.Partition(disk=disk,
+                                             type=parted.PARTITION_NORMAL,
+                                             fs=parted.FileSystem(type="fat32", geometry=region),
+                                             geometry=region)
+                partition.setFlag(parted.PARTITION_BOOT)
+            elif pType in [cls.FsType.BCACHE, cls.FsType.BCACHEFS, cls.FsType.BTRFS]:
+                partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
+            elif pType == cls.FsType.SWAP:
+                partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
+                # don't know why, it says gpt partition has no way to setFlag(SWAP)
+                # partition.setFlag(parted.PARTITION_SWAP)
+            elif pType in [cls.FsType.EXT4, cls.FsType.FAT32, cls.FsType.NTFS]:
+                partition = parted.Partition(disk=disk,
+                                             type=parted.PARTITION_NORMAL,
+                                             fs=parted.FileSystem(type=pType.value, geometry=region),
+                                             geometry=region)
+            else:
+                assert False
+            disk.addPartition(partition=partition,
+                              constraint=disk.device.optimalAlignedConstraint)
+
+        # partitionInfoList => preList & postList
+        preList = None
+        postList = None
+        for i in range(0, len(partitionInfoList)):
+            pSize, _ = partitionInfoList[i]
+            if pSize == "*":
+                assert preList is None
+                preList = partitionInfoList[:i]
+                postList = partitionInfoList[i:]
+        if preList is None:
+            preList = partitionInfoList
+            postList = []
+
+        # sucks that libparted does not support open device exclusively
+        assert not Util.isHarddiskBusy(devPath)
+
+        # delete all partitions, we must do it manually because we need a clean /dev directory to do checks later
+        if PartiUtil.diskHasParti(devPath, 1):
+            Util.wipeHarddisk(devPath)
+
+        # create new disk object
+        disk = parted.freshDisk(parted.getDevice(devPath), "gpt")
+
+        # process preList
+        for pSize, pType in preList:
+            region = cls._getFreeRegion(disk)
+            constraint = parted.Constraint(maxGeom=region).intersect(disk.device.optimalAlignedConstraint)
+            pStart = constraint.startAlign.alignUp(region, region.start)
+            pEnd = constraint.endAlign.alignDown(region, region.end)
+
+            m = re.fullmatch("([0-9]+)(MiB|GiB|TiB)", pSize)
+            assert m is not None
+            sectorNum = parted.sizeToSectors(int(m.group(1)), m.group(2), disk.device.sectorSize)
+            if pEnd < pStart + sectorNum - 1:
+                raise Exception("not enough space")
+
+            _addPartition(disk, pType, pStart, pStart + sectorNum - 1)
+            cls._erasePartitionSignature(devPath, pStart, pEnd)
+
+        # process postList
+        for pSize, pType in postList:
+            region = cls._getFreeRegion(disk)
+            constraint = parted.Constraint(maxGeom=region).intersect(disk.device.optimalAlignedConstraint)
+            pStart = constraint.startAlign.alignUp(region, region.start)
+            pEnd = constraint.endAlign.alignDown(region, region.end)
+
+            if pSize == "*":
+                _addPartition(disk, pType, pStart, pEnd)
+                cls._erasePartitionSignature(devPath, pStart, pEnd)
+            else:
+                assert False
+
+        # write to disk, notify kernel (using BLKRRPART ioctl), block until kernel picks up this change
+        disk.commit()
+
+        # wait partition device nodes appear in /dev
+        # there's still a time gap between kernel and /dev refresh, maybe because udevd?
+        for i in range(0, len(partitionInfoList)):
+            while not PartiUtil.diskHasParti(devPath, i + 1):
+                print("FIXME: partition %d of %s does not exist" % (i + 1, devPath))
+                time.sleep(1)
+
+    @classmethod
+    def initMbrDisk(cls, devPath, partitionInfoList):
+        assert len(partitionInfoList) == 1
+
+        def _addPartition(disk, pType, pStart, pEnd):
+            region = parted.Geometry(device=disk.device, start=pStart, end=pEnd)
+            if pType is None:
+                partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
+            elif pType in [cls.FsType.EXT4, cls.FsType.FAT32, cls.FsType.NTFS]:
+                partition = parted.Partition(disk=disk,
+                                             type=parted.PARTITION_NORMAL,
+                                             fs=parted.FileSystem(type=pType, geometry=region),
+                                             geometry=region)
+                partition.setFlag(parted.PARTITION_BOOT)
+            else:
+                assert False
+            disk.addPartition(partition=partition,
+                              constraint=disk.device.optimalAlignedConstraint)
+
+        # sucks that libparted does not support open device exclusively
+        assert not Util.isHarddiskBusy(devPath)
+
+        # delete all partitions, we must do it manually because we need a clean /dev directory to do checks later
+        if PartiUtil.diskHasParti(devPath, 1):
+            Util.wipeHarddisk(devPath)
+
+        # create new disk object
+        disk = parted.freshDisk(parted.getDevice(devPath), "msdos")
+
+        # process postList
+        for pSize, pType in partitionInfoList:
+            region = cls._getFreeRegion(disk)
+            constraint = parted.Constraint(maxGeom=region).intersect(disk.device.optimalAlignedConstraint)
+            pStart = constraint.startAlign.alignUp(region, region.start)
+            pEnd = constraint.endAlign.alignDown(region, region.end)
+
+            if pSize == "*":
+                _addPartition(disk, pType, pStart, pEnd)
+                cls._erasePartitionSignature(devPath, pStart, pEnd)
+            else:
+                assert False
+
+        # write to disk, notify kernel (using BLKRRPART ioctl), block until kernel picks up this change
+        disk.commit()
+
+        # wait partition device nodes appear in /dev
+        # there's still a time gap between kernel and /dev refresh, maybe because udevd?
+        for i in range(0, len(partitionInfoList)):
+            while not PartiUtil.diskHasParti(devPath, i + 1):
+                print("FIXME: partition %d of %s does not exist" % (i + 1, devPath))
+                time.sleep(1)
+
+    @staticmethod
+    def _getFreeRegion(disk):
+        region = None
+        for r in disk.getFreeSpaceRegions():
+            if r.length <= disk.device.optimumAlignment.grainSize:
+                continue                                                # ignore alignment gaps
+            if region is not None:
+                assert False                                            # there should be only one free region
+            region = r
+        return region
+
+    @staticmethod
+    def _erasePartitionSignature(devPath, pStart, pEnd):
+        # fixme: this implementation is very limited
+        with open(devPath, "wb") as f:
+            f.seek(pStart * 512)
+            if pEnd - pStart + 1 < 32:
+                f.write(bytearray((pEnd - pStart + 1) * 512))
+            else:
+                f.write(bytearray(32 * 512))
 
 
 class PhysicalDiskMounts:
