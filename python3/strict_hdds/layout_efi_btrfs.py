@@ -286,8 +286,8 @@ def _getMntParams(obj, mntArgsDict):
 
     ret = []
     for dirPath, dirMode, dirUid, dirGid, mntOptList in SubVolsBtrfs.getParamsForMountWithoutSnapshot():
-        ret.append(MountCommand.Mount(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, "btrfs", mnt_opt_list=(mntOptList + tlist)))
-    ret.append(MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, "vfat", mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
+        ret.append(MountCommand.Mount(dirPath, dirMode, dirUid, dirGid, obj.dev_rootfs, MountCommand.Mount.FsType.BTRFS, mnt_opt_list=(mntOptList + tlist)))
+    ret.append(MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_boot, MountCommand.Mount.FsType.VFAT, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)))
 
     SubVolsBtrfs.mntParamsMergeMntArgSnapshot(ret, mntArgsDict)
     MountEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)

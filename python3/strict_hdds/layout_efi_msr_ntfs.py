@@ -170,7 +170,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     hdd = HandyUtil.checkAndGetHdd(disk_list)
     InitDisk.initGptDisk(hdd, [
         ("%dMiB" % (Util.getEspSizeInMb()), InitDisk.FsType.ESP),
-        ("128MiB", None),
+        ("128MiB", InitDisk.FsType.NONE),
         ("*", InitDisk.FsType.NTFS),
     ])
 
@@ -201,8 +201,8 @@ def _getMntParams(obj, mntArgsDict):
         tlistBoot += mntArgsDict.pop("extra_mount_options_for_boot_dev").split(",")
 
     ret = [
-        MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_sys, "ntfs3", mnt_opt_list=tlist),
-        MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.get_esp(), "vfat", mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
+        MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_sys, MountCommand.Mount.FsType.NTFS3, mnt_opt_list=tlist),
+        MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.get_esp(), MountCommand.Mount.FsType.VFAT, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
     ]
 
     MountEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)

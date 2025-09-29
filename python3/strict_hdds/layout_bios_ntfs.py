@@ -191,7 +191,7 @@ def _getMntParams(obj, mntArgsDict):
         assert mntArgsDict["extra_mount_options_for_root_dev"] != ""
         tlist += mntArgsDict.pop("extra_mount_options_for_root_dev").split(",")
     mntParams = [
-        MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_sys, "ntfs3", mnt_opt_list=tlist)
+        MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_sys, MountCommand.Mount.FsType.NTFS3, mnt_opt_list=tlist)
     ]
     MountBios.mntParamsMergeMntArgReadOnly(mntParams, mntArgsDict)
     return mntParams

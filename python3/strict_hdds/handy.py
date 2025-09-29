@@ -25,6 +25,7 @@ import os
 import re
 import sys
 import abc
+import enum
 import glob
 import time
 import struct
@@ -951,9 +952,9 @@ class Mount(abc.ABC):
                     else:
                         raise errors.StorageLayoutMountError("mount directory \"%s\" is invalid" % (real_dir_path))
                 if p.device is not None:
-                    Util.cmdCall("mount", "-t", p.fstype, "-o", p.opts, p.device, real_dir_path)
+                    Util.cmdCall("mount", "-t", p.fstype.value, "-o", p.opts, p.device, real_dir_path)
 
-            self._mntEntries.append(self.MountEntry(p.device, p.mountpoint, p.fstype, p.opts, real_dir_path))
+            self._mntEntries.append(self.MountEntry(p.device, p.mountpoint, p.fstype.value, p.opts, real_dir_path))
 
     @property
     def mount_point(self):

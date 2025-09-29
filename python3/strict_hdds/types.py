@@ -23,11 +23,19 @@
 
 import os
 import abc
+import enum
 
 
 class MountCommand:
 
     class Mount:
+
+        class FsType(enum.Enum):
+            EXT4 = "ext4"
+            BTRFS = "btrfs"
+            BCACHEFS = "bcachefs"
+            VFAT = "vfat"
+            NTFS3 = "ntfs3"
 
         def __init__(self, dir_path, dir_mode, dir_uid, dir_gid, device, fstype, mnt_opt_list=[]):
             assert os.path.isabs(dir_path)
@@ -35,7 +43,7 @@ class MountCommand:
             assert isinstance(dir_uid, int)
             assert isinstance(dir_gid, int)
             assert device is not None
-            assert fstype is not None
+            assert isinstance(fstype, self.FsType)
             assert mnt_opt_list is not None
 
             self.device = device
