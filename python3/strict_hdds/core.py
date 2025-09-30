@@ -33,11 +33,6 @@ from .handy import HandyUtil
 from . import errors
 
 
-class BootMode(enum.Enum):
-    EFI = "efi"
-    BIOS = "bios"
-
-
 class StorageLayout(abc.ABC):
 
     @property

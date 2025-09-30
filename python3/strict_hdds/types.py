@@ -26,6 +26,11 @@ import abc
 import enum
 
 
+class BootMode(enum.Enum):
+    EFI = "efi"
+    BIOS = "bios"
+
+
 class MountCommand:
 
     class Mount:

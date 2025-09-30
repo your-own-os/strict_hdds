@@ -24,10 +24,10 @@
 import functools
 import subprocess
 from .util import Util, BcacheUtil, BtrfsUtil, InitDisk
-from .types import MountCommand
+from .types import BootMode, MountCommand
 from .handy import EfiCacheGroup, Bcache, SubVols, SubVolsBtrfs, MountEfi, HandyCg, HandyBcache, DisksChecker, HandyUtil
 from . import errors
-from . import BootMode, StorageLayout
+from . import StorageLayout
 
 
 class StorageLayoutImpl(StorageLayout):

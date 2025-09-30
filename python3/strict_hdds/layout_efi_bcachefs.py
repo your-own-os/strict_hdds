@@ -23,10 +23,10 @@
 
 import functools
 from .util import Util, PartiUtil, BcachefsUtil, InitDisk
-from .types import MountCommand
+from .types import BootMode, MountCommand
 from .handy import EfiCacheGroup, MountEfi, HandyCg, DisksChecker, HandyUtil
 from . import errors
-from . import BootMode, StorageLayout
+from . import StorageLayout
 
 
 class StorageLayoutImpl(StorageLayout):

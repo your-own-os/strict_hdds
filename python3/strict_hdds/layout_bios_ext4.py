@@ -24,10 +24,10 @@
 import functools
 import subprocess
 from .util import Util, PartiUtil, MbrUtil, InitDisk
-from .types import MountCommand
+from .types import BootMode, MountCommand
 from .handy import SwapFile, MountBios, DisksChecker, HandyUtil
 from . import errors
-from . import BootMode, StorageLayout
+from . import StorageLayout
 
 
 class StorageLayoutImpl(StorageLayout):
