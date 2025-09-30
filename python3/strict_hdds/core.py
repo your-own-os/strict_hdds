@@ -24,6 +24,7 @@
 import os
 import abc
 import glob
+import enum
 import psutil
 import importlib
 import functools
@@ -32,10 +33,12 @@ from .handy import HandyUtil
 from . import errors
 
 
-class StorageLayout(abc.ABC):
+class BootMode(enum.Enum):
+    EFI = "efi"
+    BIOS = "bios"
 
-    BOOT_MODE_BIOS = "bios"
-    BOOT_MODE_EFI = "efi"
+
+class StorageLayout(abc.ABC):
 
     @property
     def name(self):

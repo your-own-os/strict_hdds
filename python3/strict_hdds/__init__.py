@@ -35,13 +35,10 @@ __author__ = "fpemud@sina.com (Fpemud)"
 __version__ = "0.0.1"
 
 
-from .types import MountCommand
-from .types import RwController
-
+from .core import BootMode
 from .core import StorageLayout
 
 from .core import get_supported_storage_layout_names
-
 from .core import get_storage_layout
 from .core import mount_storage_layout
 from .core import create_and_mount_storage_layout
@@ -58,8 +55,7 @@ from .misc import BootDirWriter
 
 
 __all__ = [
-    "MountCommand",
-    "RwController",
+    "BootMode",
     "StorageLayout",
     "get_supported_storage_layout_names",
     "get_storage_layout",

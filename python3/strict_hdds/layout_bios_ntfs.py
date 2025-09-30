@@ -27,7 +27,7 @@ from .util import Util, PartiUtil, MbrUtil, InitDisk
 from .types import MountCommand
 from .handy import MountBios, DisksChecker, HandyUtil
 from . import errors
-from . import StorageLayout
+from . import BootMode, StorageLayout
 
 
 class StorageLayoutImpl(StorageLayout):
@@ -51,7 +51,7 @@ class StorageLayoutImpl(StorageLayout):
 
     @property
     def boot_mode(self):
-        return StorageLayout.BOOT_MODE_BIOS
+        return BootMode.BIOS
 
     @property
     def boot_disk(self):

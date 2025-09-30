@@ -27,7 +27,7 @@ from .util import Util, PartiUtil, BtrfsUtil, InitDisk
 from .types import MountCommand
 from .handy import EfiMultiDisk, SubVols, SubVolsBtrfs, MountEfi, HandyMd, DisksChecker, HandyUtil
 from . import errors
-from . import StorageLayout
+from . import BootMode, StorageLayout
 
 
 class StorageLayoutImpl(StorageLayout):
@@ -56,7 +56,7 @@ class StorageLayoutImpl(StorageLayout):
 
     @property
     def boot_mode(self):
-        return StorageLayout.BOOT_MODE_EFI
+        return BootMode.EFI
 
     @EfiMultiDisk.proxy
     def boot_disk(self):
