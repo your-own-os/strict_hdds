@@ -95,6 +95,9 @@ class StorageLayoutImpl(StorageLayout):
     def is_read_only(self):
         pass
 
+    def get_esp(self):
+        return self._hddEspParti
+
     def get_disk_list(self):
         return [self._hdd]
 
