@@ -1001,7 +1001,7 @@ class InitDisk:
             elif pType == cls.FsType.ESP:
                 partition = parted.Partition(disk=disk,
                                              type=parted.PARTITION_NORMAL,
-                                             fs=parted.FileSystem(type="fat32", geometry=region),
+                                             fs=parted.FileSystem(type=cls.FsType.FAT32.value, geometry=region),
                                              geometry=region)
                 partition.setFlag(parted.PARTITION_BOOT)
             elif pType in [cls.FsType.BCACHE, cls.FsType.BCACHEFS, cls.FsType.BTRFS]:
