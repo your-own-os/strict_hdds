@@ -99,7 +99,7 @@ def parse(boot_dev, root_dev, mount_dir):
     if boot_dev is not None:
         raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_SHOULD_NOT_EXIST)
     if Util.getBlkDevFsType(root_dev) != "ntfs":
-        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE("ntfs"))
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.SYS_PARTITION_FS_SHOULD_BE("ntfs"))
 
     # hdd
     hdd = PartiUtil.partiToDisk(root_dev)
@@ -121,8 +121,8 @@ def parse(boot_dev, root_dev, mount_dir):
 def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     mntArgsDict = mntArgsDict.copy()
 
-    # scan for root partition
-    rootPartitionList = []
+    # scan for system partition
+    sysPartitionList = []
     for disk in disk_list:
         if not MbrUtil.hasBootCode(disk):                           # no boot code, ignore unbootable disk
             continue
@@ -134,17 +134,17 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
             if not PartiUtil.partiExists(parti):
                 break
             if Util.getBlkDevFsType(parti) == "ntfs":
-                rootPartitionList.append(parti)
+                sysPartitionList.append(parti)
             i += 1
-    if len(rootPartitionList) == 0:
-        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_NOT_FOUND)
-    if len(rootPartitionList) > 1:
-        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITIONS_TOO_MANY)
+    if len(sysPartitionList) == 0:
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.SYS_PARTITION_NOT_FOUND)
+    if len(sysPartitionList) > 1:
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.SYS_PARTITIONS_TOO_MANY)
 
     # return
     ret = StorageLayoutImpl()
-    ret._hdd = PartiUtil.partiToDisk(rootPartitionList[0])
-    ret._hddSysParti = rootPartitionList[0]
+    ret._hdd = PartiUtil.partiToDisk(sysPartitionList[0])
+    ret._hddSysParti = sysPartitionList[0]
     ret._mnt = MountBios(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)      # do mount during MountBios initialization
     return ret
 
@@ -159,13 +159,13 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     ])
 
     # create file system
-    rootParti = PartiUtil.diskToParti(hdd, 1)
-    WinUtil.mkNtfs(rootParti)
+    sysParti = PartiUtil.diskToParti(hdd, 1)
+    WinUtil.mkNtfs(sysParti)
 
     # return
     ret = StorageLayoutImpl()
     ret._hdd = hdd
-    ret._hddSysParti = rootParti
+    ret._hddSysParti = sysParti
     ret._mnt = MountBios(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)      # do mount during MountBios initialization
     return ret
 

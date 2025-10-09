@@ -210,34 +210,34 @@ def create_and_mount_storage_layout(layout_name, mount_dir, disk_list=None, **kw
 
     modname = Util.layoutName2modName(layout_name)
 
-    f = None
+    create_and_mount = None
     try:
-        f = getattr(importlib.import_module(".%s" % (modname), package=__package__), "create_and_mount")
+        create_and_mount = getattr(importlib.import_module(".%s" % (modname), package=__package__), "create_and_mount")
     except ModuleNotFoundError:
         raise errors.StorageLayoutCreateError("layout \"%s\" not supported" % (layout_name))
 
-    return f(disk_list, mount_dir, kwargs)
+    return create_and_mount(disk_list, mount_dir, kwargs)
 
 
 def _parseOneStorageLayout(layoutName, bootDev, rootDev, mountDir):
     modname = Util.layoutName2modName(layoutName)
 
-    f = None
+    parse = None
     try:
-        f = getattr(importlib.import_module(".%s" % (modname), package=__package__), "parse")
+        parse = getattr(importlib.import_module(".%s" % (modname), package=__package__), "parse")
     except ModuleNotFoundError:
         raise errors.StorageLayoutParseError("", "unknown storage layout")
 
-    return f(bootDev, rootDev, mountDir)
+    return parse(bootDev, rootDev, mountDir)
 
 
 def _detectAndMountOneStorageLayout(layoutName, diskList, mountDir, mntArgsDict):
     modname = Util.layoutName2modName(layoutName)
 
-    f = None
+    detect_and_mount = None
     try:
-        f = getattr(importlib.import_module(".%s" % (modname), package=__package__), "detect_and_mount")
+        detect_and_mount = getattr(importlib.import_module(".%s" % (modname), package=__package__), "detect_and_mount")
     except ModuleNotFoundError:
         raise errors.StorageLayoutParseError("", "unknown storage layout")
 
-    return f(diskList, mountDir, mntArgsDict)
+    return detect_and_mount(diskList, mountDir, mntArgsDict)

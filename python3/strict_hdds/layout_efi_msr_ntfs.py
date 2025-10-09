@@ -51,7 +51,7 @@ class StorageLayoutImpl(StorageLayout):
         self._hdd = None                 # boot harddisk name
         self._hddEspParti = None         # ESP partition name
         self._hddMsrParti = None         # MSR partition name
-        self._hddSysParti = False        # windows partition name
+        self._hddSysParti = None         # windows system partition name
         self._mnt = None                 # MountEfi
 
     @property
@@ -115,12 +115,16 @@ class StorageLayoutImpl(StorageLayout):
 
 
 def parse(boot_dev, root_dev, mount_dir):
-    if PartiUtil.partiToDisk(boot_dev) != PartiUtil.partiToDisk(root_dev):
+    disk, espPartId = PartiUtil.partiToDiskAndPartiId(boot_dev)
+    disk2, sysPartId = PartiUtil.partiToDiskAndPartiId(root_dev)
+    if disk != disk2:
         raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), "boot device and root device are not on the same harddisk")
+    if espPartId + 2 != sysPartId:
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), "MSR partition not found")
     if not GptUtil.isEspPartition(boot_dev):
         raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.BOOT_DEV_IS_NOT_ESP)
     if Util.getBlkDevFsType(root_dev) != "ntfs":
-        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.ROOT_PARTITION_FS_SHOULD_BE("ntfs"))
+        raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.SYS_PARTITION_FS_SHOULD_BE("ntfs"))
 
     # get mntArgsDict from mount options
     mntArgsDict = dict()
@@ -130,6 +134,7 @@ def parse(boot_dev, root_dev, mount_dir):
     ret = StorageLayoutImpl()
     ret._hdd = PartiUtil.partiToDisk(boot_dev)
     ret._hddEspParti = boot_dev
+    ret._hddMsrParti = PartiUtil.diskToParti(disk, espPartId + 1)
     ret._hddSysParti = root_dev
     ret._mnt = MountEfi(True, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)
     return ret
@@ -138,30 +143,34 @@ def parse(boot_dev, root_dev, mount_dir):
 def detect_and_mount(disk_list, mount_dir, mntArgsDict):
     mntArgsDict = mntArgsDict.copy()
 
-    # scan for ESP and root partition
-    espAndRootPartitionList = []
+    # scan for ESP, MSR and system partition
+    espAndMsrAndSysPartitionList = []
     for disk in disk_list:
         espParti = PartiUtil.diskToParti(disk, 1)
-        rootParti = PartiUtil.diskToParti(disk, 2)
+        msrParti = PartiUtil.diskToParti(disk, 2)
+        sysParti = PartiUtil.diskToParti(disk, 3)
         if not PartiUtil.partiExists(espParti):
             continue
-        if not PartiUtil.partiExists(rootParti):
+        if not PartiUtil.partiExists(msrParti):
+            continue
+        if not PartiUtil.partiExists(sysParti):
             continue
         if not GptUtil.isEspPartition(espParti):
             continue
-        if Util.getBlkDevFsType(rootParti) != "ntfs":
+        if Util.getBlkDevFsType(sysParti) != "ntfs":
             continue
-        espAndRootPartitionList.append((disk, espParti, rootParti))
-    if len(espAndRootPartitionList) == 0:
+        espAndMsrAndSysPartitionList.append((disk, espParti, msrParti, sysParti))
+    if len(espAndMsrAndSysPartitionList) == 0:
         raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.DISK_NOT_FOUND)
-    if len(espAndRootPartitionList) > 1:
+    if len(espAndMsrAndSysPartitionList) > 1:
         raise errors.StorageLayoutParseError(HandyUtil.getStorageLayoutName(StorageLayoutImpl), errors.DISK_TOO_MANY)
 
     # return
     ret = StorageLayoutImpl()
-    ret._hdd = espAndRootPartitionList[0][0]
-    ret._hddEspParti = espAndRootPartitionList[0][1]
-    ret._hddSysParti = espAndRootPartitionList[0][2]
+    ret._hdd = espAndMsrAndSysPartitionList[0][0]
+    ret._hddEspParti = espAndMsrAndSysPartitionList[0][1]
+    ret._hddMsrParti = espAndMsrAndSysPartitionList[0][2]
+    ret._hddSysParti = espAndMsrAndSysPartitionList[0][3]
     ret._mnt = MountEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
     return ret
 
@@ -179,7 +188,8 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
 
     # get esp partition and root partition
     espParti = PartiUtil.diskToParti(hdd, 1)
-    rootParti = PartiUtil.diskToParti(hdd, 2)
+    msrParti = PartiUtil.diskToParti(hdd, 2)
+    rootParti = PartiUtil.diskToParti(hdd, 3)
     subprocess.check_call(["mkfs.vfat", espParti], stdout=subprocess.DEVNULL)                             # mkfs.vfat does not have a quiet option
     WinUtil.mkNtfs(rootParti)                                                                             # FIXME: maybe windows efi boot has no limit?
 
@@ -187,6 +197,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     ret = StorageLayoutImpl()
     ret._hdd = hdd
     ret._hddEspParti = espParti
+    ret._hddMsrParti = msrParti
     ret._hddSysParti = rootParti
     ret._mnt = MountEfi(False, mount_dir, functools.partial(_getMntParams, ret), mntArgsDict)             # do mount during MountEfi initialization
     return ret
@@ -205,7 +216,7 @@ def _getMntParams(obj, mntArgsDict):
 
     ret = [
         MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_sys, MountCommand.Mount.FsType.NTFS3, mnt_opt_list=tlist),
-        MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.get_esp(), MountCommand.Mount.FsType.VFAT, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot), is_temp=True),
+        MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.dev_esp, MountCommand.Mount.FsType.VFAT, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot), is_temp=True),
     ]
 
     MountEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)
