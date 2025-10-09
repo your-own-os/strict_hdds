@@ -1093,7 +1093,7 @@ class InitDisk:
             elif pType in [cls.FsType.EXT4, cls.FsType.FAT32, cls.FsType.NTFS]:
                 partition = parted.Partition(disk=disk,
                                              type=parted.PARTITION_NORMAL,
-                                             fs=parted.FileSystem(type=pType, geometry=region),
+                                             fs=parted.FileSystem(type=pType.value, geometry=region),
                                              geometry=region)
                 partition.setFlag(parted.PARTITION_BOOT)
             else:
