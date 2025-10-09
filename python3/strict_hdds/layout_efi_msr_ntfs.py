@@ -95,6 +95,10 @@ class StorageLayoutImpl(StorageLayout):
     def is_read_only(self):
         pass
 
+    @MountEfi.proxy
+    def get_bootdir_rw_controller(self):
+        pass
+
     def get_esp(self):
         return self._hddEspParti
 
