@@ -25,7 +25,6 @@ import os
 import re
 import sys
 import abc
-import enum
 import glob
 import time
 import struct
@@ -859,12 +858,13 @@ class Mount(abc.ABC):
 
     class MountEntry:
 
-        def __init__(self, device, mountpoint, fstype, opts, real_dir_path):
+        def __init__(self, device, mountpoint, fstype, opts, real_dir_path, is_temp):
             assert device is not None
             assert os.path.isabs(mountpoint)
             assert fstype is not None
             assert opts is not None
             assert real_dir_path is not None
+            assert not (mountpoint == "/" and is_temp)
 
             self._device = device
             self._mountpoint = mountpoint
@@ -872,6 +872,7 @@ class Mount(abc.ABC):
             self._opts = opts
 
             self._real_dir_path = real_dir_path
+            self._is_temp = is_temp                     # whether the mountpoint is a temporary directory, which would be removed after umount
 
         @property
         def device(self):
@@ -905,6 +906,9 @@ class Mount(abc.ABC):
         @property
         def real_mnt_opt_list(self):
             return self.real_opts.split(",")
+
+        def is_temporary(self):
+            return self._is_temp
 
     @staticmethod
     def proxy(func):
@@ -954,7 +958,7 @@ class Mount(abc.ABC):
                 if p.device is not None:
                     Util.cmdCall("mount", "-t", p.fstype.value, "-o", p.opts, p.device, real_dir_path)
 
-            self._mntEntries.append(self.MountEntry(p.device, p.mountpoint, p.fstype, p.opts, real_dir_path))
+            self._mntEntries.append(self.MountEntry(p.device, p.mountpoint, p.fstype, p.opts, real_dir_path, p.is_temporary()))
 
     @property
     def mount_point(self):
@@ -967,6 +971,8 @@ class Mount(abc.ABC):
         for p in reversed(self._mntEntries):
             if p.device is not None:
                 Util.cmdCall("umount", p.real_dir_path)
+            if p.is_temporary():
+                os.rmdir(p.real_dir_path)
 
     def _myGetMntParams(self, mntArgsDict):
         mntParams = self._getMntParamsFunc(mntArgsDict)

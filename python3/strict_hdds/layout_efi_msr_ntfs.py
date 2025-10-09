@@ -205,7 +205,7 @@ def _getMntParams(obj, mntArgsDict):
 
     ret = [
         MountCommand.Mount(Util.rootfsDir, *Util.rootfsDirModeUidGid, obj.dev_sys, MountCommand.Mount.FsType.NTFS3, mnt_opt_list=tlist),
-        MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.get_esp(), MountCommand.Mount.FsType.VFAT, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot)),
+        MountCommand.Mount(Util.bootDir, *Util.bootDirModeUidGid, obj.get_esp(), MountCommand.Mount.FsType.VFAT, mnt_opt_list=(Util.bootDirMntOptList + tlistBoot), is_temp=True),
     ]
 
     MountEfi.mntParamsMergeMntArgReadOnly(ret, mntArgsDict)

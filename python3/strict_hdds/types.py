@@ -42,7 +42,7 @@ class MountCommand:
             VFAT = "vfat"
             NTFS3 = "ntfs3"
 
-        def __init__(self, dir_path, dir_mode, dir_uid, dir_gid, device, fstype, mnt_opt_list=[]):
+        def __init__(self, dir_path, dir_mode, dir_uid, dir_gid, device, fstype, mnt_opt_list=[], is_temp=False):
             assert os.path.isabs(dir_path)
             assert dir_mode is not None
             assert isinstance(dir_uid, int)
@@ -50,6 +50,7 @@ class MountCommand:
             assert device is not None
             assert isinstance(fstype, self.FsType)
             assert mnt_opt_list is not None
+            assert not (dir_path == "/" and is_temp)
 
             self.device = device
             self.mountpoint = dir_path
@@ -60,9 +61,14 @@ class MountCommand:
             self.mnt_dir_uid = dir_uid
             self.mnt_dir_gid = dir_gid
 
+            self._is_temp = is_temp
+
         @property
         def opts(self):
             return ",".join(self.mnt_opt_list)
+
+        def is_temporary(self):
+            return self._is_temp
 
     class Mkdir:
 
