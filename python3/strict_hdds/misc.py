@@ -24,7 +24,7 @@
 class BootDirWriter:
 
     def __init__(self, layout):
-        if layout is not None and layout.name in ["efi-ext4", "efi-btrfs", "efi-bcache-btrfs", "efi-bcachefs"]:
+        if layout is not None and layout.name in ["efi-ext4", "efi-btrfs", "efi-bcache-btrfs", "efi-bcachefs", "efi-msr-ntfs"]:
             self._ctrl = layout.get_bootdir_rw_controller()
             self._origIsWritable = None
         else:
