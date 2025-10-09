@@ -22,8 +22,7 @@
 
 
 import functools
-import subprocess
-from .util import Util, PartiUtil, MbrUtil, InitDisk
+from .util import Util, PartiUtil, MbrUtil, WinUtil, InitDisk
 from .types import BootMode, MountCommand
 from .handy import MountBios, DisksChecker, HandyUtil
 from . import errors
@@ -161,16 +160,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
 
     # create file system
     rootParti = PartiUtil.diskToParti(hdd, 1)
-    cmdList = [
-        "mkfs.ntfs",
-        "-s", "512",                            # specify sector size manually, to supress a warning
-        "-c", "4096",                           # specify cluster size manually, to supress a warning
-        "-H", "255", "-S", "63", "-p", "63",    # so that this partition is bootable by windows (63 sectors per track, partition starts from track 1)
-        "-F",
-        "-Q",
-        rootParti,
-    ]
-    subprocess.check_call(cmdList, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)    # quiet option of mkfs.ntfs is not totally quiet
+    WinUtil.mkNtfs(rootParti)
 
     # return
     ret = StorageLayoutImpl()

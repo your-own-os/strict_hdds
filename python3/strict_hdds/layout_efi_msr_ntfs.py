@@ -23,7 +23,7 @@
 
 import functools
 import subprocess
-from .util import Util, PartiUtil, GptUtil, InitDisk
+from .util import Util, PartiUtil, GptUtil, WinUtil, InitDisk
 from .types import BootMode, MountCommand
 from .handy import MountEfi, DisksChecker, HandyUtil
 from . import errors
@@ -181,7 +181,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     espParti = PartiUtil.diskToParti(hdd, 1)
     rootParti = PartiUtil.diskToParti(hdd, 2)
     subprocess.check_call(["mkfs.vfat", espParti], stdout=subprocess.DEVNULL)                             # mkfs.vfat does not have a quiet option
-    # FIXME: mkfs.ntfs
+    WinUtil.mkNtfs(rootParti)                                                                             # FIXME: maybe windows efi boot has no limit?
 
     # return
     ret = StorageLayoutImpl()

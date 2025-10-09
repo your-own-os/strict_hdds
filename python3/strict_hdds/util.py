@@ -977,6 +977,22 @@ class BtrfsUtil:
         Util.cmdCall("btrfs", "device", "add", "-f", disk, mountPoint)
 
 
+class WinUtil:
+
+    @staticmethod
+    def mkNtfs(disk):
+        cmdList = [
+            "mkfs.ntfs",
+            "-s", "512",                            # specify sector size manually, to supress a warning
+            "-c", "4096",                           # specify cluster size manually, to supress a warning
+            "-H", "255", "-S", "63", "-p", "63",    # so that this partition is bootable by windows (63 sectors per track, partition starts from track 1)
+            "-F",
+            "-Q",
+            disk,
+        ]
+        subprocess.check_call(cmdList, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)    # quiet option of mkfs.ntfs is not totally quiet
+
+
 class InitDisk:
 
     class FsType(enum.Enum):
