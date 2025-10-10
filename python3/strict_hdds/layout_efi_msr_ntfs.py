@@ -185,8 +185,8 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     # create partitions
     hdd = HandyUtil.checkAndGetHdd(disk_list)
     InitDisk.initGptDisk(hdd, [
-        ("%dMiB" % (Util.getEspSizeInMb()), InitDisk.FsType.ESP),
-        ("128MiB", InitDisk.FsType.NONE),
+        ("100MiB", InitDisk.FsType.ESP),
+        ("16MiB", InitDisk.FsType.NONE),
         ("*", InitDisk.FsType.NTFS),
     ])
 
