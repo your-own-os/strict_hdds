@@ -123,6 +123,10 @@ class StorageLayoutImpl(StorageLayout):
         pass
 
     @EfiCacheGroup.proxy
+    def get_esp_size(self):
+        pass
+
+    @EfiCacheGroup.proxy
     def sync_esp(self, dst):
         pass
 
