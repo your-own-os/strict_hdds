@@ -69,7 +69,7 @@ class EfiMultiDisk:
         if len(set(tlist)) != 1:
             raise errors.StorageLayoutParseError(errors.ESP_PARTITION_SIZE_NOT_SAME)
         if tlist[0] % (1024 * 1024) != 0:
-            raise errors.StorageLayoutParseError(errors.ESP_PARTITION_SIZE_INVALID)
+            raise errors.StorageLayoutParseError(errors.ESP_PARTITION_SIZE_INVALID(self._hddList[0]))
 
     @property
     def boot_disk(self):
@@ -241,10 +241,11 @@ class EfiCacheGroup:
 
         # check ESP partition sizes are same
         tlist = self._hddList + ([self._ssd] if self._ssd is not None else [])
-        if len(set(tlist)) != 1:
+        tlist2 = [Util.getBlkDevSize(PartiUtil.diskToParti(x, 1)) for x in tlist]
+        if len(set(tlist2)) != 1:
             raise errors.StorageLayoutParseError(errors.ESP_PARTITION_SIZE_NOT_SAME)
-        if tlist[0] % (1024 * 1024) != 0:
-            raise errors.StorageLayoutParseError(errors.ESP_PARTITION_SIZE_INVALID)
+        if tlist2[0] % (1024 * 1024) != 0:
+            raise errors.StorageLayoutParseError(errors.ESP_PARTITION_SIZE_INVALID(tlist[0]))
 
     @property
     def boot_disk(self):
