@@ -241,8 +241,10 @@ class EfiCacheGroup:
 
         # check ESP partition sizes are same
         tlist = self._hddList + ([self._ssd] if self._ssd is not None else [])
-        if len(set([Util.getBlkDevSize(PartiUtil.diskToParti(x, 1)) for x in tlist])) != 1:
+        if len(set(tlist)) != 1:
             raise errors.StorageLayoutParseError(errors.ESP_PARTITION_SIZE_NOT_SAME)
+        if tlist[0] % (1024 * 1024) != 0:
+            raise errors.StorageLayoutParseError(errors.ESP_PARTITION_SIZE_INVALID)
 
     @property
     def boot_disk(self):
