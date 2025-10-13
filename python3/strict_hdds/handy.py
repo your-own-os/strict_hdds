@@ -49,8 +49,9 @@ class EfiMultiDisk:
             return f
 
     def __init__(self, diskList=[], bootHdd=None):
+        assert len(diskList) > 0
+
         # assign self._hddList
-        assert diskList is not None
         self._hddList = sorted(diskList)
 
         # assign self._bootHdd
@@ -62,6 +63,13 @@ class EfiMultiDisk:
         else:
             assert bootHdd is None
         self._bootHdd = bootHdd
+
+        # check ESP partition size
+        tlist = [Util.getBlkDevSize(PartiUtil.diskToParti(x, 1)) for x in self._hddList]
+        if len(set(tlist)) != 1:
+            raise errors.StorageLayoutParseError(errors.ESP_PARTITION_SIZE_NOT_SAME)
+        if tlist[0] % (1024 * 1024) != 0:
+            raise errors.StorageLayoutParseError(errors.ESP_PARTITION_SIZE_INVALID)
 
     @property
     def boot_disk(self):
@@ -100,12 +108,6 @@ class EfiMultiDisk:
         assert disk in self._hddList
         return PartiUtil.diskToParti(disk, 2)
 
-    def get_esp_size(self):
-        if self._bootHdd is not None:
-            return Util.getBlkDevSize(PartiUtil.diskToParti(self._bootHdd, 1))
-        else:
-            return Util.getEspSize()
-
     def add_disk(self, disk, fsType):
         assert disk is not None and disk not in self._hddList
 
@@ -116,7 +118,7 @@ class EfiMultiDisk:
             else:
                 fsType1 = InitDisk.FsType.FAT32
             InitDisk.initGptDisk(disk, [
-                ("%dMiB" % (Util.getEspSizeInMb()), fsType1),
+                ("%dMiB" % (self._espSizeInMb()), fsType1),
                 ("*", fsType),
             ])
 
@@ -185,6 +187,14 @@ class EfiMultiDisk:
                 continue
             fsUuidDict[fsUuid] = partiDevPath
 
+    def _espSizeInMb(self):
+        if self._bootHdd is not None:
+            ret = Util.getBlkDevSize(PartiUtil.diskToParti(self._bootHdd, 1))
+            assert ret % (1024 * 1024) == 0
+            return ret // (1024 * 1024)
+        else:
+            return Util.getEspSizeInMb()
+
 
 class EfiCacheGroup:
 
@@ -228,6 +238,11 @@ class EfiCacheGroup:
             else:
                 assert bootHdd is None
         self._bootHdd = bootHdd
+
+        # check ESP partition sizes are same
+        tlist = self._hddList + ([self._ssd] if self._ssd is not None else [])
+        if len(set([Util.getBlkDevSize(PartiUtil.diskToParti(x, 1)) for x in tlist])) != 1:
+            raise errors.StorageLayoutParseError(errors.ESP_PARTITION_SIZE_NOT_SAME)
 
     @property
     def boot_disk(self):
@@ -289,14 +304,6 @@ class EfiCacheGroup:
         assert disk in self._hddList
         return PartiUtil.diskToParti(disk, 2)
 
-    def get_esp_size(self):
-        if self._ssd is not None:
-            return Util.getBlkDevSize(self._ssdEspParti)
-        elif self._bootHdd is not None:
-            return Util.getBlkDevSize(PartiUtil.diskToParti(self._bootHdd, 1))
-        else:
-            return Util.getEspSize()
-
     def add_ssd(self, ssd, fsType):
         assert ssd is not None and self._ssd is None and ssd not in self._hddList
 
@@ -307,7 +314,7 @@ class EfiCacheGroup:
         try:
             # create partitions
             InitDisk.initGptDisk(self._ssd, [
-                ("%dMiB" % (Util.getEspSizeInMb()), InitDisk.FsType.ESP),
+                ("%dMiB" % (self._espSizeInMb()), InitDisk.FsType.ESP),
                 ("*", fsType),
             ])
 
@@ -363,9 +370,8 @@ class EfiCacheGroup:
                 fsType1 = InitDisk.FsType.ESP
             else:
                 fsType1 = InitDisk.FsType.FAT32
-
             InitDisk.initGptDisk(hdd, [
-                ("%dMiB" % (Util.getEspSizeInMb()), fsType1),
+                ("%dMiB" % (self._espSizeInMb()), fsType1),
                 ("*", fsType),
             ])
 
@@ -452,6 +458,18 @@ class EfiCacheGroup:
                 error_callback(errors.CheckCode.TRIVIAL, "%s and %s has same file system UUID" % (fsUuidDict[fsUuid], partiDevPath))
                 continue
             fsUuidDict[fsUuid] = partiDevPath
+
+    def _espSizeInMb(self):
+        if self._ssd is not None:
+            ret = Util.getBlkDevSize(self._ssdEspParti)
+            assert ret % (1024 * 1024) == 0
+            return ret // (1024 * 1024)
+        elif self._bootHdd is not None:
+            ret = Util.getBlkDevSize(PartiUtil.diskToParti(self._bootHdd, 1))
+            assert ret % (1024 * 1024) == 0
+            return ret // (1024 * 1024)
+        else:
+            return Util.getEspSizeInMb()
 
 
 class Bcache:
@@ -1229,7 +1247,7 @@ class HandyCg:
             if not GptUtil.isEspPartition(ssdEspParti):
                 raise errors.StorageLayoutParseError(storageLayoutName, errors.BOOT_DEV_IS_NOT_ESP)
             if Util.getBlkDevSize(ssdEspParti) != Util.getEspSize():
-                raise errors.StorageLayoutParseError(storageLayoutName, errors.PARTITION_SIZE_INVALID(ssdEspParti))
+                raise errors.StorageLayoutParseError(storageLayoutName, errors.ESP_PARTITION_SIZE_INVALID(ssdEspParti))
 
             # ssdCacheParti
             if not PartiUtil.partiExists(ssdCacheParti):
@@ -1518,7 +1536,7 @@ class HandyUtil:
             if Util.getBlkDevFsType(espParti) != "vfat":
                 raise errors.StorageLayoutParseError(storageLayoutName, errors.PARTITION_TYPE_SHOULD_BE(espParti, "vfat"))
             if Util.getBlkDevSize(espParti) != Util.getEspSize():
-                raise errors.StorageLayoutParseError(storageLayoutName, errors.PARTITION_SIZE_INVALID(espParti))
+                raise errors.StorageLayoutParseError(storageLayoutName, errors.ESP_PARTITION_SIZE_INVALID(espParti))
 
             # data partition
             if not PartiUtil.diskHasParti(disk, 2):
