@@ -104,7 +104,7 @@ class EfiMultiDisk:
         if self._bootHdd is not None:
             return Util.getBlkDevSize(PartiUtil.diskToParti(self._bootHdd, 1))
         else:
-            return Util.getEspSizeInMb()
+            return Util.getEspSize()
 
     def add_disk(self, disk, fsType):
         assert disk is not None and disk not in self._hddList
@@ -295,7 +295,7 @@ class EfiCacheGroup:
         elif self._bootHdd is not None:
             return Util.getBlkDevSize(PartiUtil.diskToParti(self._bootHdd, 1))
         else:
-            return Util.getEspSizeInMb()
+            return Util.getEspSize()
 
     def add_ssd(self, ssd, fsType):
         assert ssd is not None and self._ssd is None and ssd not in self._hddList
