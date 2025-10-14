@@ -182,11 +182,22 @@ def detect_and_mount(disk_list, mount_dir, mntArgsDict):
 def create_and_mount(disk_list, mount_dir, mntArgsDict):
     mntArgsDict = mntArgsDict.copy()
 
+    osType = mntArgsDict.get("os", None)
+    if osType in ["mswin_7"]:
+        espSize = 100
+        msrSize = 128
+    elif osType in ["mswin_10"]:
+        espSize = Util.getEspSizeInMb()
+        msrSize = 128
+    else:
+        espSize = Util.getEspSizeInMb()
+        msrSize = 128
+
     # create partitions
     hdd = HandyUtil.checkAndGetHdd(disk_list)
     InitDisk.initGptDisk(hdd, [
-        ("%dMiB" % (Util.getEspSizeInMb()), InitDisk.FsType.ESP),
-        ("128MiB", InitDisk.FsType.NONE),
+        ("%dMiB" % (espSize), InitDisk.FsType.ESP),
+        ("%dMiB" % (msrSize), InitDisk.FsType.NONE),
         ("*", InitDisk.FsType.NTFS),
     ])
 
