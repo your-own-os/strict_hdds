@@ -184,12 +184,14 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
 
     osType = mntArgsDict.get("os", None)
     if osType in ["mswin_7"]:
+        # from http://www.mistyprojects.co.uk/documents/BCDEdit/files/defaults_uefi.htm
         espSize = 100
         msrSize = 128
     elif osType in ["mswin_10"]:
         espSize = Util.getEspSizeInMb()
         msrSize = 128
     else:
+        # this is a big enough configuration
         espSize = Util.getEspSizeInMb()
         msrSize = 128
 
