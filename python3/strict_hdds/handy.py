@@ -896,7 +896,7 @@ class Mount(abc.ABC):
         def __init__(self, device, mountpoint, fstype, opts, real_dir_path, is_temp):
             assert device is not None
             assert os.path.isabs(mountpoint)
-            assert fstype is not None
+            assert isinstance(fstype, MountCommand.Mount.FsType)
             assert opts is not None
             assert real_dir_path is not None
             assert not (mountpoint == "/" and is_temp)
@@ -1111,7 +1111,7 @@ class MountEfi(Mount):
 
     def mount_esp(self, parti):
         assert self._pEsp.device is None
-        Util.cmdCall("mount", "-t", self._pEsp.fstype, "-o", self._pEsp.opts, parti, self._pEsp.real_dir_path)
+        Util.cmdCall("mount", "-t", self._pEsp.fstype.value, "-o", self._pEsp.opts, parti, self._pEsp.real_dir_path)
         self._pEsp._device = parti
 
     def umount_esp(self, parti):
