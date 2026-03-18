@@ -197,7 +197,7 @@ def create_and_mount(disk_list, mount_dir, mntArgsDict):
     espParti = PartiUtil.diskToParti(hdd, 1)
     rootParti = PartiUtil.diskToParti(hdd, 2)
     subprocess.check_call(["mkfs.vfat", espParti], stdout=subprocess.DEVNULL)                             # mkfs.vfat does not have a quiet option
-    subprocess.check_call( ["mkfs.xfs", "-f", rootParti], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.check_call(["mkfs.xfs", "-f", "-q", rootParti])
 
     # return
     ret = StorageLayoutImpl()
