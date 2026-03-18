@@ -997,11 +997,12 @@ class InitDisk:
 
     class FsType(enum.Enum):
         NONE = "none"
+        SWAP = "swap"
         ESP = "esp"
         BCACHE = "bcache"
         BCACHEFS = "bcachefs"
         BTRFS = "btrfs"
-        SWAP = "swap"
+        XFS = "xfs"
         EXT4 = "ext4"
         FAT32 = "fat32"
         NTFS = "ntfs"
@@ -1020,7 +1021,7 @@ class InitDisk:
                                              fs=parted.FileSystem(type=cls.FsType.FAT32.value, geometry=region),
                                              geometry=region)
                 partition.setFlag(parted.PARTITION_BOOT)
-            elif pType in [cls.FsType.BCACHE, cls.FsType.BCACHEFS, cls.FsType.BTRFS]:
+            elif pType in [cls.FsType.BCACHE, cls.FsType.BCACHEFS, cls.FsType.BTRFS, cls.FsType.XFS]:
                 partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)
             elif pType == cls.FsType.SWAP:
                 partition = parted.Partition(disk=disk, type=parted.PARTITION_NORMAL, geometry=region)

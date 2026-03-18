@@ -198,7 +198,7 @@ def doCheck():
         print(message)
     layout = strict_hdds.get_storage_layout(sys.argv[2])
     layout.check(auto_fix=False, error_callback=__errCb)
-    if layout.name in ["bios-ext4", "efi-ext4"]:
+    if layout.name in ["bios-ext4", "efi-ext4", "efi-xfs"]:
         layout.opt_check("swap", auto_fix=False, error_callback=__errCb)
     if layout.name == "efi-bcache-btrfs":
         layout.opt_check("bcache-write-mode", "writeback", auto_fix=False, error_callback=__errCb)
@@ -249,7 +249,7 @@ def _show(layout):
         print("Boot directory: %s" % ("read-write" if layout.get_bootdir_rw_controller().is_writable() else "read-only"))
         return
 
-    if layout.name == "efi-ext4":
+    if layout.name in ["efi-ext4", "efi-xfs"]:
         if layout.has_swap_file():
             swapStr = " (with swap)"
         else:

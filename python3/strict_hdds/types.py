@@ -37,6 +37,7 @@ class MountCommand:
 
         class FsType(enum.Enum):
             EXT4 = "ext4"
+            XFS = "xfs"
             BTRFS = "btrfs"
             BCACHEFS = "bcachefs"
             VFAT = "vfat"

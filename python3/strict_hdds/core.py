@@ -121,6 +121,11 @@ def get_storage_layout(mount_dir="/"):
                     return _parseOneStorageLayout("efi-btrfs", bootDev, rootDev, mount_dir)
 
         # simple layout
+        if Util.anyIn(["efi-xfs"], allLayoutNames):
+            if Util.getBlkDevFsType(rootDev) == "xfs":
+                return _parseOneStorageLayout("efi-xfs", bootDev, rootDev, mount_dir)
+
+        # simple layout
         if Util.anyIn(["efi-ext4"], allLayoutNames):
             if Util.getBlkDevFsType(rootDev) == "ext4":
                 return _parseOneStorageLayout("efi-ext4", bootDev, rootDev, mount_dir)
@@ -180,6 +185,11 @@ def mount_storage_layout(mount_dir, layout_name=None, disk_list=None, **kwargs):
             bcacheDevPathList = BcacheUtil.scanAndRegisterAllAndFilter(disk_list)    # only call bcache related procedure when corresponding storage layout exists
             if any(Util.getBlkDevFsType(x) == "btrfs" for x in bcacheDevPathList):
                 return _detectAndMountOneStorageLayout("efi-bcache-btrfs", disk_list, mount_dir, kwargs)
+
+        # simple layout
+        if Util.anyIn(["efi-xfs"], allLayoutNames):
+            if any([Util.getBlkDevFsType(x) == "xfs" for x in normalPartiList]):
+                return _detectAndMountOneStorageLayout("efi-xfs", disk_list, mount_dir, kwargs)
 
         # simple layout
         if Util.anyIn(["efi-ext4"], allLayoutNames):
