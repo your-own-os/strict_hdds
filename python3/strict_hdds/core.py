@@ -131,6 +131,11 @@ def get_storage_layout(mount_dir="/"):
                 return _parseOneStorageLayout("efi-ext4", bootDev, rootDev, mount_dir)
     else:
         # simple layout
+        if Util.anyIn(["bios-xfs"], allLayoutNames):
+            if Util.getBlkDevFsType(rootDev) == "xfs":
+                return _parseOneStorageLayout("bios-xfs", bootDev, rootDev, mount_dir)
+
+        # simple layout
         if Util.anyIn(["bios-ext4"], allLayoutNames):
             if Util.getBlkDevFsType(rootDev) == "ext4":
                 return _parseOneStorageLayout("bios-ext4", bootDev, rootDev, mount_dir)
@@ -210,6 +215,11 @@ def mount_storage_layout(mount_dir, layout_name=None, disk_list=None, **kwargs):
         if Util.anyIn(["bios-fat"], allLayoutNames):
             if any([Util.getBlkDevFsType(x) == "vfat" for x in normalPartiList]):
                 return _detectAndMountOneStorageLayout("bios-fat", disk_list, mount_dir, kwargs)
+
+        # simple layout
+        if Util.anyIn(["bios-xfs"], allLayoutNames):
+            if any([Util.getBlkDevFsType(x) == "xfs" for x in normalPartiList]):
+                return _detectAndMountOneStorageLayout("bios-xfs", disk_list, mount_dir, kwargs)
 
     raise errors.StorageLayoutParseError("", "unknown storage layout")
 

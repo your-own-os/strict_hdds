@@ -198,7 +198,7 @@ def doCheck():
         print(message)
     layout = strict_hdds.get_storage_layout(sys.argv[2])
     layout.check(auto_fix=False, error_callback=__errCb)
-    if layout.name in ["bios-ext4", "efi-ext4", "efi-xfs"]:
+    if layout.name in ["bios-ext4", "efi-ext4", "efi-xfs", "bios-xfs"]:
         layout.opt_check("swap", auto_fix=False, error_callback=__errCb)
     if layout.name == "efi-bcache-btrfs":
         layout.opt_check("bcache-write-mode", "writeback", auto_fix=False, error_callback=__errCb)
@@ -259,6 +259,14 @@ def _show(layout):
         return
 
     if layout.name == "bios-ext4":
+        if layout.has_swap_file():
+            swapStr = " (with swap)"
+        else:
+            swapStr = ""
+        print("Storage layout: %s, HDD: %s%s" % (layout.name, layout.boot_disk, swapStr))
+        return
+
+    if layout.name == "bios-xfs":
         if layout.has_swap_file():
             swapStr = " (with swap)"
         else:
