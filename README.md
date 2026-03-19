@@ -1,83 +1,82 @@
 # strict_hdds
 
-#### 介绍
 Ensures only some optimized harddisk layouts are used.
 
-#### 软件架构
-软件架构说明
+## Description
 
+strict_hdds is a Python library that provides a standardized approach to managing hard disk layouts on Linux systems.
 
-#### 安装教程
+Storage layouts properties:
+- **Single Filesystem**: A single filesystem is exposed to user if multiple disks are used. Use simple linear layout, RAID is not supported.
+- **SSD caching**: SSD caching is supported if possible.
+- **OS Compatibility**: Storage layout are for various operating systems. Note strict_hdds itself can only be used on Linux systems.
+- **Swap Support**: Swap is supported in all layouts. Swap file is prefered.
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+## Supported Storage Layouts
 
-#### 使用说明
+### BIOS Boot Layouts
+- `bios-ext4` - BIOS boot with ext4 filesystem
+- `bios-fat` - BIOS boot with FAT filesystem
+- `bios-ntfs` - BIOS boot with NTFS filesystem
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+### EFI Boot Layouts
+- `efi-ext4` - EFI boot with ext4 filesystem
+- `efi-xfs` - EFI boot with XFS filesystem
+- `efi-btrfs` - EFI boot with Btrfs filesystem
+- `efi-bcache-btrfs` - EFI boot with Btrfs and bcache support
+- `efi-bcachefs` - EFI boot with bcachefs filesystem
+- `efi-msr-ntfs` - EFI boot with Microsoft Reserved partition and NTFS
 
-#### 参与贡献
+## Usage
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
+### Python API
 
+```python
+import strict_hdds
 
-#### 特技
+# Show supported layout names
+layouts = strict_hdds.get_supported_storage_layout_names()
+print(layouts)
 
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+# Get storage layout for a mounted directory
+layout = strict_hdds.get_storage_layout("/mnt")
 
+# Mount a storage layout
+layout = strict_hdds.mount_storage_layout(
+    "/mnt",
+    layout_name="efi-ext4")
 
+# Create and mount a new storage layout
+layout = strict_hdds.create_and_mount_storage_layout(
+    "efi-ext4",
+    "/mnt",
+    disk_list=["/dev/sda"],
+    read_only=False
+)
 
-https://pypi.org/project/pyfatfs/
-https://github.com/isislovecruft/pyrsync/blob/master/pyrsync.py
+# Check the layout
+layout.check(auto_fix=True)
 
-手动解析和修改FAT文件系统中的BPB（Boot Parameter Block）。
+# Get mount commands
+commands = layout.get_mount_commands()
 
-FAT文件系统的BPB是一个4096字节的结构，其中包含了与FAT文件系统相关的各种信息，如分区的大小、FAT表的位置、每个簇的大小、OEM名称、卷标以及UUID等等。因此，你可以手动读取和修改BPB以实现更改FAT分区的UUID或LABEL。
+# Unmount
+layout.umount_and_dispose()
+```
 
+## License
 
-def change_fat_uuid_and_label(partition, new_uuid=None, new_label=None):
-    with open(partition, "rb+") as f:
-        # 读取第一个扇区（偏移量为0）
-        sector_size = 512
-        buffer = f.read(sector_size)
+This project is licensed under the GPLv3 License. See the LICENSE file for details.
 
-        # 解析BPB结构体
-        bpb_size = 0x3e  # FAT32中BPB的固定大小
-        bpb_format = "<3s8sHBHBHHBHHLLLHHBL"
-        bpb_struct = struct.Struct(bpb_format)
-        bpb_values = bpb_struct.unpack_from(buffer, 0)
+## Author
 
-        # 获取原来的UUID和LABEL
-        uuid_position = 0x5a  # UUID在BPB中的偏移量
-        label_position = 0x47  # LABEL在BPB中的偏移量
-        uuid_bytes = buffer[uuid_position:uuid_position+16]
-        label_bytes = buffer[label_position:label_position+11]
-        uuid = uuid_bytes.decode("utf-8").strip()
-        label = label_bytes.decode("utf-8").strip()
+Fpemud <fpemud@sina.com>
 
-        # 生成新的UUID和LABEL（如果未提供）
-        if not new_uuid:
-            new_uuid = "123e4567-e89b-12d3-a456-426655440000"
-        if not new_label:
-            new_label = "new_label".ljust(11).encode("utf-8")
+## Contributing
 
-        # 更新BPB中的UUID和LABEL
-        f.seek(uuid_position)
-        f.write(new_uuid.encode("utf-8").ljust(16).encode("ascii"))
-        f.seek(label_position)
-        f.write(new_label)
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-        # 刷新缓冲区
-        f.flush()
-        os.fsync(f.fileno())
+## Links
+
+- Gitee: https://gitee.com/your-own-os/strict_hdds
+- GitHub: https://github.com/your-own-os/strict_hdds
