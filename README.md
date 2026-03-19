@@ -4,7 +4,7 @@ Ensures only some optimized harddisk layouts are used.
 
 ## Description
 
-strict_hdds is a Python library that provides a standardized approach to managing hard disk layouts on Linux systems.
+strict_hdds is a python library that provides a standardized approach to managing hard disk layouts on Linux systems.
 
 Storage layouts properties:
 - **Single Filesystem**: A single filesystem is exposed to user if multiple disks are used. Use simple linear layout, RAID is not supported.
@@ -14,12 +14,12 @@ Storage layouts properties:
 
 ## Supported Storage Layouts
 
-### BIOS Boot Layouts
+BIOS Boot Layouts
 - `bios-ext4` - BIOS boot with ext4 filesystem
 - `bios-fat` - BIOS boot with FAT filesystem
 - `bios-ntfs` - BIOS boot with NTFS filesystem
 
-### EFI Boot Layouts
+EFI Boot Layouts
 - `efi-ext4` - EFI boot with ext4 filesystem
 - `efi-xfs` - EFI boot with XFS filesystem
 - `efi-btrfs` - EFI boot with Btrfs filesystem
@@ -28,8 +28,6 @@ Storage layouts properties:
 - `efi-msr-ntfs` - EFI boot with Microsoft Reserved partition and NTFS
 
 ## Usage
-
-### Python API
 
 ```python
 import strict_hdds
